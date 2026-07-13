@@ -1,0 +1,203 @@
+<div class="active-job-section">
+  <h3 class="section-title">Current Delivery Details (Active Job)</h3>
+
+  <div *ngIf="!hasActiveJob" class="no-job-card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; background: white; border-radius: 12px; border: 1px dashed #d0d5dd; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+    <mat-icon style="font-size: 64px; width: 64px; height: 64px; color: #98a2b3; margin-bottom: 16px;">local_shipping</mat-icon>
+    <h4 style="font-size: 16px; font-weight: 600; color: #344054; margin: 0 0 8px 0; font-family: 'Outfit', sans-serif;">No Active Job</h4>
+    <p style="font-size: 14px; color: #667085; margin: 0; max-width: 320px; line-height: 1.4; font-family: 'Roboto', sans-serif;">You don't have any active deliveries at the moment. New dispatch requests will appear at the top.</p>
+  </div>
+
+  <div *ngIf="hasActiveJob" class="job-content">
+    <!-- Map area -->
+    <div class="map-area">
+      <div #mapContainer class="map-container"></div>
+      <div class="route-info-box-overlay">
+        <span class="route-label">Total Route:</span>
+        <span class="route-value">{{ activeJob.totalRoute }}</span>
+      </div>
+    </div>
+
+    <!-- Job details grid -->
+    <div class="job-details-grid">
+      <!-- General Row -->
+      <div class="detail-row general-row">
+        <div class="detail-item">
+          <span class="detail-label">Tracking Number</span>
+          <span class="detail-value bold">{{ activeJob.trackingNumber }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Order ID</span>
+          <span class="detail-value bold">{{ activeJob.orderId }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Item Type</span>
+          <span class="detail-value bold">{{ activeJob.itemType }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">ETA</span>
+          <span class="detail-value bold">{{ activeJob.eta }}</span>
+        </div>
+      </div>
+
+      <!-- Address & People Info -->
+      <div class="address-grid">
+        <!-- Pickup Card -->
+        <div class="info-card">
+          <div class="info-card-header">
+            <span class="info-tag pickup-tag">Pickup Details</span>
+            <span class="status-chip" [class.completed]="activeJob.pickup.status === 'Completed'" [class.pending]="activeJob.pickup.status === 'Pending'">
+              <mat-icon>{{ activeJob.pickup.status === 'Completed' ? 'check_circle' : 'hourglass_empty' }}</mat-icon> {{ activeJob.pickup.status }}
+            </span>
+          </div>
+          <div class="info-body">
+            <div class="info-row">
+              <span class="info-label">Sender:</span>
+              <span class="info-val bold">{{ activeJob.senderName }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Contact:</span>
+              <span class="info-val phone-link">{{ activeJob.senderPhone }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Location:</span>
+              <span class="info-val bold">{{ activeJob.pickup.location }} <mat-icon class="location-icon">location_on</mat-icon></span>
+            </div>
+            <div class="info-row address-row">
+              <span class="info-label">Address:</span>
+              <span class="info-val desc">{{ activeJob.pickup.address }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dropoff Card -->
+        <div class="info-card">
+          <div class="info-card-header">
+            <span class="info-tag dropoff-tag">Drop-off Details</span>
+            <span class="status-chip" [class.completed]="activeJob.dropoff.status === 'Completed'" [class.pending]="activeJob.dropoff.status === 'Pending'">
+              <mat-icon>{{ activeJob.dropoff.status === 'Completed' ? 'check_circle' : 'hourglass_empty' }}</mat-icon> {{ activeJob.dropoff.status }}
+            </span>
+          </div>
+          <div class="info-body">
+            <div class="info-row">
+              <span class="info-label">Receiver:</span>
+              <span class="info-val bold">{{ activeJob.receiverName }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Contact:</span>
+              <span class="info-val phone-link">{{ activeJob.receiverPhone }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Location:</span>
+              <span class="info-val bold">{{ activeJob.dropoff.location }}</span>
+            </div>
+            <div class="info-row address-row">
+              <span class="info-label">Address:</span>
+              <span class="info-val desc">{{ activeJob.dropoff.address }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Delivery Timeline Section (Premium UI) -->
+      <div class="info-card timeline-card" style="margin-top: 16px; padding: 16px; background: white; border-radius: 12px; border: 1px solid #eaecf0; box-shadow: 0 1px 2px rgba(0,0,0,0.05); width: 100%;">
+        <h4 style="margin: 0 0 16px 0; font-family: 'Outfit', sans-serif; font-size: 15px; font-weight: 600; color: #1e1b4b; text-align: left;">Delivery Timeline</h4>
+        <div class="agent-timeline-steps" style="display: flex; gap: 16px; justify-content: space-between; padding: 8px 0;">
+          <!-- Created -->
+          <div class="agent-timeline-step" style="display: flex; flex-direction: column; align-items: center; flex: 1; text-align: center;">
+            <div style="width: 28px; height: 28px; border-radius: 50%; background: #d1fae5; color: #065f46; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+              <mat-icon style="font-size: 16px; width: 16px; height: 16px; display: block; line-height: 16px;">check</mat-icon>
+            </div>
+            <span style="font-size: 12px; font-weight: 600; color: #344054; display: block; margin-bottom: 2px; font-family: 'Outfit', sans-serif;">Created</span>
+            <span style="font-size: 11px; color: #667085; font-family: 'Roboto', sans-serif;">{{ activeJob.created_at }}</span>
+          </div>
+          
+          <!-- Assigned -->
+          <div class="agent-timeline-step" style="display: flex; flex-direction: column; align-items: center; flex: 1; text-align: center;">
+            <div [style.background]="activeJob.assigned_at !== '-' ? '#d1fae5' : '#f2f4f7'" [style.color]="activeJob.assigned_at !== '-' ? '#065f46' : '#667085'" style="width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+              <mat-icon style="font-size: 16px; width: 16px; height: 16px; display: block; line-height: 16px;">{{ activeJob.assigned_at !== '-' ? 'check' : 'schedule' }}</mat-icon>
+            </div>
+            <span style="font-size: 12px; font-weight: 600; color: #344054; display: block; margin-bottom: 2px; font-family: 'Outfit', sans-serif;">Assigned</span>
+            <span style="font-size: 11px; color: #667085; font-family: 'Roboto', sans-serif;">{{ activeJob.assigned_at }}</span>
+          </div>
+          
+          <!-- Picked Up -->
+          <div class="agent-timeline-step" style="display: flex; flex-direction: column; align-items: center; flex: 1; text-align: center;">
+            <div [style.background]="activeJob.picked_up_at !== '-' ? '#d1fae5' : '#f2f4f7'" [style.color]="activeJob.picked_up_at !== '-' ? '#065f46' : '#667085'" style="width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+              <mat-icon style="font-size: 16px; width: 16px; height: 16px; display: block; line-height: 16px;">{{ activeJob.picked_up_at !== '-' ? 'check' : 'schedule' }}</mat-icon>
+            </div>
+            <span style="font-size: 12px; font-weight: 600; color: #344054; display: block; margin-bottom: 2px; font-family: 'Outfit', sans-serif;">Picked Up</span>
+            <span style="font-size: 11px; color: #667085; font-family: 'Roboto', sans-serif;">{{ activeJob.picked_up_at }}</span>
+          </div>
+          
+          <!-- In Transit -->
+          <div class="agent-timeline-step" style="display: flex; flex-direction: column; align-items: center; flex: 1; text-align: center;">
+            <div [style.background]="activeJob.in_transit_at !== '-' ? '#d1fae5' : '#f2f4f7'" [style.color]="activeJob.in_transit_at !== '-' ? '#065f46' : '#667085'" style="width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+              <mat-icon style="font-size: 16px; width: 16px; height: 16px; display: block; line-height: 16px;">{{ activeJob.in_transit_at !== '-' ? 'check' : 'schedule' }}</mat-icon>
+            </div>
+            <span style="font-size: 12px; font-weight: 600; color: #344054; display: block; margin-bottom: 2px; font-family: 'Outfit', sans-serif;">In Transit</span>
+            <span style="font-size: 11px; color: #667085; font-family: 'Roboto', sans-serif;">{{ activeJob.in_transit_at }}</span>
+          </div>
+          
+          <!-- Delivered -->
+          <div class="agent-timeline-step" style="display: flex; flex-direction: column; align-items: center; flex: 1; text-align: center;">
+            <div [style.background]="activeJob.delivered_at !== '-' ? '#d1fae5' : '#f2f4f7'" [style.color]="activeJob.delivered_at !== '-' ? '#065f46' : '#667085'" style="width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+              <mat-icon style="font-size: 16px; width: 16px; height: 16px; display: block; line-height: 16px;">{{ activeJob.delivered_at !== '-' ? 'check' : 'schedule' }}</mat-icon>
+            </div>
+            <span style="font-size: 12px; font-weight: 600; color: #344054; display: block; margin-bottom: 2px; font-family: 'Outfit', sans-serif;">Delivered</span>
+            <span style="font-size: 11px; color: #667085; font-family: 'Roboto', sans-serif;">{{ activeJob.delivered_at }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Footer -->
+      <div class="next-step-box" style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px;">
+        <div class="next-step-left">
+          <span class="detail-label">Next Step Action</span>
+          <span class="detail-value bold">Total Distance: {{ activeJob.totalDistance }}</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <span [style.background-color]="activeJob.payment_status === 'Paid' ? '#d1fae5' : '#fee2e2'"
+                [style.color]="activeJob.payment_status === 'Paid' ? '#065f46' : '#991b1b'"
+                style="padding: 6px 12px; border-radius: 999px; font-weight: 600; font-size: 13px; font-family: 'Outfit', sans-serif;">
+            ₹2,000 - {{ activeJob.payment_status || 'Unpaid' }}
+          </span>
+          <button class="confirm-btn" (click)="advanceStatus()">
+            <mat-icon>check_box</mat-icon>
+            {{ getNextStepButtonLabel() }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- OTP Verification Modal Dialog -->
+<div class="otp-modal-overlay" *ngIf="showOtpModal">
+  <div class="otp-modal-container">
+    <div class="otp-modal-header" style="text-align: center;">
+      <mat-icon style="color: #4169e1; font-size: 32px; width: 32px; height: 32px; margin-bottom: 8px;">lock</mat-icon>
+      <h3 style="margin: 0 0 8px 0; font-family: 'Outfit', sans-serif; font-size: 18px; color: #1e1b4b;">Verify Delivery PIN</h3>
+      <p style="margin: 0; font-size: 13px; color: #6b7280; line-height: 1.5;">Ask the customer for the 6-digit random verification PIN shown on their dashboard to complete the delivery.</p>
+    </div>
+    
+    <div class="otp-modal-body" style="margin: 20px 0;">
+      <div class="otp-input-group" style="display: flex; flex-direction: column; gap: 8px;">
+        <label for="otp_pin" style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: #6b7280;">6-Digit Verification PIN *</label>
+        <input type="text" id="otp_pin" maxlength="6" [(ngModel)]="otpPin" placeholder="e.g. 123456" class="otp-input" style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 16px; font-weight: 700; text-align: center; letter-spacing: 2px;">
+      </div>
+      <div class="error-banner" *ngIf="otpError" style="display: flex; align-items: center; gap: 8px; margin-top: 12px; padding: 10px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; color: #991b1b; font-size: 13px;">
+        <mat-icon style="font-size: 16px; width: 16px; height: 16px;">error</mat-icon>
+        <span>{{ otpError }}</span>
+      </div>
+    </div>
+    
+    <div class="otp-modal-actions" style="display: flex; gap: 8px; justify-content: flex-end;">
+      <button class="cancel-btn" (click)="cancelOtp()" style="padding: 10px 16px; border: 1px solid #e5e7eb; background: white; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; color: #4b5563;">CANCEL</button>
+      <button class="submit-btn" (click)="submitOtp()" [disabled]="otpPin.length !== 6 || isVerifyingOtp" style="padding: 10px 16px; border: none; background: #4169e1; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; color: white; transition: background 0.2s;">
+        <span *ngIf="!isVerifyingOtp">VERIFY & DELIVER</span>
+        <span *ngIf="isVerifyingOtp">VERIFYING...</span>
+      </button>
+    </div>
+  </div>
+</div>
+

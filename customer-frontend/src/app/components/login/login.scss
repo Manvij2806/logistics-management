@@ -1,0 +1,252 @@
+.login-page-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  width: 100vw;
+  background-color: #f4f6fa; // Matches the light gray-blue background in the uploaded image
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  box-sizing: border-box;
+  padding: 24px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 440px;
+  background-color: #ffffff;
+  border-radius: 20px;
+  padding: 44px 36px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.login-header {
+  h2 {
+    font-size: 1.65rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+    letter-spacing: -0.5px;
+  }
+  p {
+    font-size: 0.85rem;
+    color: #64748b;
+    margin: 6px 0 0 0;
+    font-weight: 500;
+  }
+}
+
+.tab-switcher {
+  display: flex;
+  background-color: #e2edf8; // Capsule container background
+  border-radius: 12px;
+  padding: 4px;
+  
+  .tab {
+    flex: 1;
+    text-align: center;
+    padding: 10px;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #475569;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.25s ease;
+    
+    &.active {
+      background-color: #ffffff; // Active white pill
+      color: #0b66fe; // Active text blue
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    &:hover:not(.active) {
+      color: #1e293b;
+    }
+  }
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  label {
+    font-size: 0.825rem;
+    font-weight: 700;
+    color: #1e293b;
+  }
+}
+
+.input-wrapper {
+  position: relative;
+  width: 100%;
+
+  .input-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #64748b;
+    font-size: 0.95rem;
+    pointer-events: none;
+  }
+
+  input {
+    width: 100%;
+    padding: 13px 44px 13px 40px;
+    background-color: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    color: #1e293b;
+    font-size: 0.925rem;
+    font-weight: 500;
+    box-sizing: border-box;
+    font-family: inherit;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+    &::placeholder {
+      color: #94a3b8;
+    }
+
+    &:focus {
+      outline: none;
+      border-color: #0b66fe;
+      box-shadow: 0 0 0 3px rgba(11, 102, 254, 0.15);
+    }
+  }
+
+  .toggle-pw-icon {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #0ea5e9; // Soft sky-blue/teal eye icon matching image
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: color 0.2s;
+
+    &:hover {
+      color: #0284c7;
+    }
+  }
+}
+
+.remember-me-row {
+  display: flex;
+  align-items: center;
+}
+
+.remember-me-checkbox {
+  display: flex;
+  align-items: center;
+  position: relative;
+  padding-left: 24px;
+  cursor: pointer;
+  user-select: none;
+
+  input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+
+    &:checked ~ .checkbox-box {
+      background-color: #0b66fe;
+      border-color: #0b66fe;
+
+      &::after {
+        display: block;
+      }
+    }
+  }
+
+  .checkbox-box {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    height: 16px;
+    width: 16px;
+    background-color: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    transition: all 0.2s;
+
+    &::after {
+      content: "";
+      position: absolute;
+      display: none;
+      left: 5px;
+      top: 2px;
+      width: 4px;
+      height: 8px;
+      border: solid white;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
+    }
+  }
+
+  .checkbox-label {
+    font-size: 0.825rem;
+    color: #64748b;
+    font-weight: 500;
+  }
+}
+
+.error-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #fef2f2;
+  border: 1px solid #fee2e2;
+  color: #ef4444;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 0.775rem;
+  font-weight: 500;
+
+  i {
+    font-size: 0.9rem;
+  }
+}
+
+.submit-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 13px 20px;
+  background-color: #0b66fe; // Vibrant blue color matching photo Sign In button
+  border: none;
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  box-shadow: 0 4px 12px rgba(11, 102, 254, 0.15);
+  margin-top: 6px;
+
+  .btn-icon {
+    font-size: 0.95rem;
+  }
+
+  &:hover {
+    background-color: #0052d4;
+  }
+
+  &:active {
+    transform: scale(0.99);
+  }
+}

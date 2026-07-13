@@ -1,0 +1,25 @@
+@if (isLoggedIn()) {
+  <div class="app-layout">
+    <app-sidebar [activeView]="activeView" (viewChange)="onViewChange($event)"></app-sidebar>
+    <main class="main-content">
+      @switch (activeView) {
+        @case ('dashboard') {
+          <app-dashboard (viewChange)="onViewChange($event)" (trackShipment)="onTrackShipment($event)"></app-dashboard>
+        }
+        @case ('track-delivery') {
+          <app-track-delivery [searchTrackingId]="selectedTrackingId" (searchTrackingIdChange)="selectedTrackingId = $event"></app-track-delivery>
+        }
+        @case ('profile') {
+          <app-profile></app-profile>
+        }
+      }
+    </main>
+  </div>
+} @else {
+  <div style="display: flex; align-items: center; justify-content: center; height: 100vh; background-color: #f9fafb; font-family: 'Outfit', sans-serif;">
+    <div style="text-align: center; color: #4b5563;">
+      <h3 style="margin-bottom: 8px;">Verifying Session...</h3>
+      <p style="font-size: 14px;">Redirecting you shortly.</p>
+    </div>
+  </div>
+}

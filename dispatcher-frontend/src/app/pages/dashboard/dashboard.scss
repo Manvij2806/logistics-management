@@ -1,0 +1,261 @@
+.dashboard-page {
+  padding: 24px 32px;
+  background: #f8fafc;
+  min-height: 100vh;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  color: #334155;
+}
+
+.page-title-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+
+  h1 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+  }
+
+  p {
+    font-size: 14px;
+    color: #64748b;
+    margin: 4px 0 0 0;
+  }
+
+  .refresh-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    height: 38px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+
+    i {
+      font-size: 11px;
+      color: #64748b;
+    }
+
+    &:hover:not(:disabled) {
+      background: #f8fafc;
+      color: #0f172a;
+      border-color: #cbd5e1;
+    }
+  }
+}
+
+// ── KPI Summary Cards Row ───────────────────────────────────────────────────
+.kpi-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+
+  @media (min-width: 600px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  @media (min-width: 900px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.kpi-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 18px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.02);
+
+  .kpi-icon-wrapper {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+
+    &.blue { background: #eff6ff; color: #1f57f5; }
+    &.info { background: #e0f2fe; color: #0284c7; }
+    &.green { background: #e6fcf5; color: #0ca678; }
+    &.orange { background: #fff4e6; color: #f76707; }
+  }
+
+  .kpi-content {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .kpi-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: #64748b;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    line-height: 1;
+  }
+
+  .kpi-value {
+    font-size: 22px;
+    font-weight: 800;
+    color: #0f172a;
+    margin-top: 4px;
+    line-height: 1;
+    
+    &.text-blue { color: #1f57f5; }
+    &.text-orange { color: #f76707; }
+  }
+
+  .kpi-subtext {
+    font-size: 11px;
+    color: #94a3b8;
+    margin-top: 4px;
+    font-weight: 500;
+  }
+}
+
+// ── Split Grid Layout ────────────────────────────────────────────────────────
+.dashboard-split-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  align-items: start;
+
+  @media (min-width: 900px) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.panel-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.02);
+
+  h3 {
+    font-size: 14px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 16px 0;
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+}
+
+// ── Action Items ─────────────────────────────────────────────────────────────
+.actions-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.action-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid #f1f5f9;
+  background: #f8fafc;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #ffffff;
+    border-color: #cbd5e1;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.04);
+  }
+
+  .action-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    
+    &.blue { background: #eff6ff; color: #1f57f5; }
+    &.info { background: #e0f2fe; color: #0284c7; }
+    &.orange { background: #fff4e6; color: #f76707; }
+  }
+
+  .action-details {
+    display: flex;
+    flex-direction: column;
+    
+    h4 {
+      margin: 0;
+      font-size: 13.5px;
+      font-weight: 600;
+      color: #0f172a;
+    }
+    
+    p {
+      margin: 2px 0 0 0;
+      font-size: 11px;
+      color: #64748b;
+    }
+  }
+}
+
+// ── Operations Items ─────────────────────────────────────────────────────────
+.operations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.op-item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+
+  .op-icon {
+    font-size: 16px;
+    color: #3b4fd8;
+    margin-top: 2px;
+    
+    &.text-green { color: #10b981; }
+  }
+
+  .op-content {
+    display: flex;
+    flex-direction: column;
+
+    h4 {
+      margin: 0;
+      font-size: 13.5px;
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    p {
+      margin: 2px 0 0 0;
+      font-size: 11.5px;
+      color: #64748b;
+      line-height: 1.4;
+    }
+  }
+}

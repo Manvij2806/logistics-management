@@ -1,0 +1,242 @@
+.earnings-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.page-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.earnings-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.card.dark {
+  background: linear-gradient(135deg, var(--card-dark) 0%, var(--card-dark-alt) 100%);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+
+  .card-label {
+    font-size: 12px;
+    color: var(--sidebar-text);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+  }
+
+  .card-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #ffffff;
+  }
+
+  .card-icon {
+    position: absolute;
+    right: 16px;
+    bottom: 16px;
+    font-size: 40px;
+    width: 40px;
+    height: 40px;
+    color: rgba(255, 255, 255, 0.08);
+  }
+}
+
+.earnings-details {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+.chart-section, .transactions-section {
+  background: #ffffff;
+  border-radius: var(--radius-md);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+  }
+}
+
+/* Custom CSS Bar Chart */
+.bar-chart {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  height: 220px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.bar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.bar-wrapper {
+  height: 180px;
+  width: 24px;
+  display: flex;
+  align-items: flex-end;
+  background: #f0f4f8;
+  border-radius: 12px;
+  overflow: visible;
+  position: relative;
+}
+
+.bar {
+  width: 100%;
+  background: linear-gradient(180deg, #5b9aff 0%, #2196f3 100%);
+  border-radius: 12px;
+  transition: height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  position: relative;
+
+  &:hover {
+    background: #1e88e5;
+
+    .bar-tooltip {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(-8px);
+    }
+  }
+}
+
+.bar-tooltip {
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%) translateY(0);
+  background: var(--text-primary);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 4px;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  box-shadow: var(--shadow-sm);
+  z-index: 10;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 4px 4px 0;
+    border-style: solid;
+    border-color: var(--text-primary) transparent transparent;
+  }
+}
+
+.bar-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* Transactions list styling */
+.transaction-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.transaction-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-light);
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #fafbfc;
+  }
+}
+
+.txn-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.txn-icon-wrapper {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #e8f0fe;
+  color: #2196f3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.txn-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.txn-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.txn-subtitle {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.txn-right {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.txn-amount {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent-green);
+}
+
+.txn-status {
+  font-size: 10px;
+  color: var(--accent-green);
+  font-weight: 500;
+  text-transform: uppercase;
+}

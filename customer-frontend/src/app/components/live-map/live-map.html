@@ -1,0 +1,23 @@
+<div class="map-wrapper">
+  <canvas #mapCanvas (click)="onCanvasClick($event)"></canvas>
+  
+  <!-- Map Legend overlay -->
+  <div class="map-legend">
+    <div class="legend-item">
+      <span class="legend-dot green"></span>
+      <span>Pickup</span>
+    </div>
+    <div class="legend-item">
+      <span class="legend-dot red"></span>
+      <span>Destination</span>
+    </div>
+    <div class="legend-item">
+      <span class="legend-dot blue"></span>
+      <span>Active Truck</span>
+    </div>
+    <div class="legend-item">
+      <span class="legend-dot orange"></span>
+      <span>Delayed Truck</span>
+    </div>
+  </div>
+</div>

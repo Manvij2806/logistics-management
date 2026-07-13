@@ -1,0 +1,87 @@
+<header class="topbar">
+  <div class="topbar-left">
+    <h1 class="topbar-title">{{ pageTitle() }}</h1>
+    @if (currentUser()) {
+      <p class="topbar-subtitle">Welcome back, {{ currentUser()!.full_name }}</p>
+    }
+  </div>
+
+  <div class="topbar-right">
+    <!-- Notification Bell Container -->
+    <div class="notification-container">
+      <button class="notif-bell-btn" (click)="toggleNotifications($event)" [attr.aria-label]="'View notifications'">
+        <svg class="bell-icon" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+        </svg>
+        <span class="notif-badge" *ngIf="notificationService.unreadCount() > 0">
+          {{ notificationService.unreadCount() }}
+        </span>
+      </button>
+ 
+      <!-- Notifications Dropdown Panel -->
+      <div class="notif-dropdown" *ngIf="showNotifications()" (click)="$event.stopPropagation()">
+        <div class="notif-header">
+          <span class="notif-title">Notifications</span>
+          <div class="notif-header-actions">
+            <button class="notif-action-btn" *ngIf="notificationService.unreadCount() > 0" (click)="markAllRead()">Mark all read</button>
+            <button class="notif-action-btn view-all" (click)="viewAll()">View All</button>
+          </div>
+        </div>
+ 
+        <div class="notif-list">
+          <div class="notif-empty" *ngIf="notificationService.notifications().length === 0">
+            No notifications yet
+          </div>
+          
+          <div *ngFor="let item of notificationService.notifications()" 
+               class="notif-item" 
+               [class.unread]="!item.read"
+               (click)="notificationService.markAsRead(item.id)">
+            <!-- Circular Icon Container -->
+            <div class="notif-icon-container" [ngClass]="'type-' + item.type">
+              <!-- Success (Completed) Icon -->
+              <svg *ngIf="item.type === 'success'" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+              </svg>
+              <!-- Info (Assigned) Icon -->
+              <svg *ngIf="item.type === 'info'" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0zM13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1" />
+              </svg>
+              <!-- User Registered Icon -->
+              <svg *ngIf="item.type === 'user'" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+              </svg>
+              <!-- Warning (Password Reset) Icon -->
+              <svg *ngIf="item.type === 'warning'" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0v4M5 11h14a2 2 0 012 2v7a2 2 0 01-2 2H5a2 2 0 01-2-2v-7a2 2 0 012-2z" />
+              </svg>
+              <!-- Error (Off duty) Icon -->
+              <svg *ngIf="item.type === 'error'" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636" />
+              </svg>
+            </div>
+ 
+            <!-- Content Area -->
+            <div class="notif-item-body">
+              <div class="notif-item-title">
+                <strong>{{ item.title }}</strong><span class="notif-item-msg" *ngIf="item.message">&nbsp;{{ item.message }}</span>
+              </div>
+            </div>
+ 
+            <!-- Timestamp Area -->
+            <span class="notif-item-time">{{ formatTime(item.timestamp) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+ 
+    <!-- User Profile Chip -->
+    <div class="user-chip">
+      <div class="user-avatar">{{ getUserInitials() }}</div>
+      <div class="user-meta">
+        <span class="user-name">{{ currentUser()?.full_name }}</span>
+        <span class="user-role">{{ currentUser()?.role }}</span>
+      </div>
+    </div>
+  </div>
+</header>

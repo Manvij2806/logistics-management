@@ -1,0 +1,71 @@
+<div class="drivers-container">
+  <div class="view-header">
+    <div class="header-title">
+      <h2>Driver Management</h2>
+      <p>Monitor online drivers, active assignments, and contact details</p>
+    </div>
+  </div>
+
+  <div class="drivers-grid">
+    @for (driver of drivers; track driver.id) {
+      <p-card styleClass="driver-profile-card">
+        <div class="driver-card-header">
+          <div class="driver-avatar" [style.background-color]="driver.avatarColor">
+            {{ driver.name.substring(0, 1) }}
+          </div>
+          <div class="driver-meta">
+            <h3>{{ driver.name }}</h3>
+            <span class="driver-id">ID: {{ driver.id }}</span>
+          </div>
+          <p-tag [value]="driver.status" [severity]="getSeverity(driver.status)"></p-tag>
+        </div>
+
+        <div class="driver-card-body">
+          <div class="body-row">
+            <span class="row-label"><i class="pi pi-car"></i> Vehicle Type</span>
+            <span class="row-value">{{ driver.vehicleType }}</span>
+          </div>
+          
+          <div class="body-row">
+            <span class="row-label"><i class="pi pi-phone"></i> Contact</span>
+            <span class="row-value">{{ driver.phone }}</span>
+          </div>
+          
+          <div class="body-row">
+            <span class="row-label"><i class="pi pi-star-fill text-yellow-500"></i> Rating</span>
+            <span class="row-value">{{ driver.rating }} / 5.0</span>
+          </div>
+
+          <div class="body-row shipment-row">
+            <span class="row-label"><i class="pi pi-map-marker"></i> Active Task</span>
+            @if (getDriverActiveShipment(driver.id); as shipment) {
+              <span class="row-value active-shipment">
+                {{ shipment.id }} ({{ shipment.status }})
+              </span>
+            } @else {
+              <span class="row-value text-gray-400">Idle / No Assignment</span>
+            }
+          </div>
+        </div>
+
+        <div class="driver-card-footer">
+          <p-button 
+            label="Call" 
+            icon="pi pi-phone" 
+            [outlined]="true"
+            size="small"
+            styleClass="flex-1" 
+            (onClick)="callDriver(driver.name)">
+          </p-button>
+          <p-button 
+            label="Message" 
+            icon="pi pi-comments" 
+            size="small"
+            styleClass="flex-1" 
+            (onClick)="messageDriver(driver.name)">
+          </p-button>
+        </div>
+      </p-card>
+    }
+  </div>
+</div>

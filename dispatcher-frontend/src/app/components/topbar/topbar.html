@@ -1,0 +1,18 @@
+<header class="topbar">
+  <div class="topbar-left">
+    <h1 class="topbar-title">{{ pageTitle() }}</h1>
+    @if (currentUser()) {
+      <p class="topbar-subtitle">Welcome back, {{ currentUser()!.full_name }}</p>
+    }
+  </div>
+
+  <div class="topbar-right">
+    <div class="user-chip">
+      <div class="user-avatar">{{ getUserInitials() }}</div>
+      <div class="user-meta">
+        <span class="user-name">{{ currentUser()?.full_name }}</span>
+        <span class="user-role">{{ currentUser()?.role }}</span>
+      </div>
+    </div>
+  </div>
+</header>

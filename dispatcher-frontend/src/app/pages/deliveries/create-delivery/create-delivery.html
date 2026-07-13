@@ -1,0 +1,436 @@
+<div class="create-delivery-page">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-left">
+      <button class="back-btn" routerLink="/deliveries" title="Back to Deliveries">
+        <i class="pi pi-arrow-left"></i>
+      </button>
+      <h1>Create Delivery Order</h1>
+    </div>
+    <nav class="breadcrumb">
+      <span class="breadcrumb-link" routerLink="/deliveries">Deliveries</span>
+      <span class="breadcrumb-separator">›</span>
+      <span class="breadcrumb-current">Create</span>
+    </nav>
+  </div>
+
+  <div class="form-wrapper">
+
+    <!-- ── Section 1 & 2: Pickup & Delivery Addresses ──────────────────────────── -->
+    <div class="two-col-sections" style="margin-bottom: 16px;">
+
+      <!-- Pickup Address -->
+      <div class="form-section address-card">
+        <div class="section-header">
+          <h2 class="section-title">1. Pickup Address <span class="required">*</span></h2>
+        </div>
+
+        <div class="section-body">
+          <div class="address-grid">
+            <!-- Address Line 1 -->
+            <div class="field">
+              <label>Address Line 1</label>
+              <input
+                type="text"
+                pInputText
+                [(ngModel)]="pickup.line1"
+                (ngModelChange)="updatePickupAddress()"
+                placeholder="Street Address"
+                class="w-full"
+                [class.input-error]="formErrors.pickupAddress"
+              />
+            </div>
+
+            <!-- Address Line 2 -->
+            <div class="field">
+              <label>Address Line 2</label>
+              <input
+                type="text"
+                pInputText
+                [(ngModel)]="pickup.line2"
+                (ngModelChange)="updatePickupAddress()"
+                placeholder="Street Address Line 2"
+                class="w-full"
+              />
+            </div>
+
+            <!-- State / City / Pincode Row -->
+            <div class="address-row-3col">
+              <!-- State -->
+              <div class="field">
+                <label>State</label>
+                <input
+                  type="text"
+                  pInputText
+                  list="states-list"
+                  [(ngModel)]="pickup.state"
+                  (ngModelChange)="updatePickupAddress()"
+                  placeholder="Enter State"
+                  class="w-full"
+                  [class.input-error]="formErrors.pickupAddress"
+                />
+              </div>
+
+              <!-- City -->
+              <div class="field">
+                <label>City</label>
+                <input
+                  type="text"
+                  pInputText
+                  list="pickup-cities-list"
+                  [(ngModel)]="pickup.city"
+                  (ngModelChange)="updatePickupAddress()"
+                  placeholder="Enter City"
+                  class="w-full"
+                  [class.input-error]="formErrors.pickupAddress"
+                />
+                <datalist id="pickup-cities-list">
+                  <option *ngFor="let city of getPickupCities()" [value]="city"></option>
+                </datalist>
+              </div>
+
+              <!-- Pincode -->
+              <div class="field">
+                <label>Pincode</label>
+                <input
+                  type="text"
+                  pInputText
+                  [(ngModel)]="pickup.pincode"
+                  (ngModelChange)="updatePickupAddress()"
+                  placeholder="Postal code"
+                  class="w-full"
+                  maxlength="6"
+                  [class.input-error]="formErrors.pickupPincode"
+                />
+                <small class="error-msg" *ngIf="formErrors.pickupPincode">{{formErrors.pickupPincode}}</small>
+              </div>
+            </div>
+
+            <small class="error-msg" *ngIf="formErrors.pickupAddress">{{formErrors.pickupAddress}}</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Delivery Address -->
+      <div class="form-section address-card">
+        <div class="section-header">
+          <h2 class="section-title">2. Delivery Address <span class="required">*</span></h2>
+        </div>
+
+        <div class="section-body">
+          <div class="address-grid">
+            <!-- Address Line 1 -->
+            <div class="field">
+              <label>Address Line 1</label>
+              <input
+                type="text"
+                pInputText
+                [(ngModel)]="delivery.line1"
+                (ngModelChange)="updateDeliveryAddress()"
+                placeholder="Street Address"
+                class="w-full"
+                [class.input-error]="formErrors.deliveryAddress"
+              />
+            </div>
+
+            <!-- Address Line 2 -->
+            <div class="field">
+              <label>Address Line 2</label>
+              <input
+                type="text"
+                pInputText
+                [(ngModel)]="delivery.line2"
+                (ngModelChange)="updateDeliveryAddress()"
+                placeholder="Street Address Line 2"
+                class="w-full"
+              />
+            </div>
+
+            <!-- State / City / Pincode Row -->
+            <div class="address-row-3col">
+              <!-- State -->
+              <div class="field">
+                <label>State</label>
+                <input
+                  type="text"
+                  pInputText
+                  list="states-list"
+                  [(ngModel)]="delivery.state"
+                  (ngModelChange)="updateDeliveryAddress()"
+                  placeholder="Enter State"
+                  class="w-full"
+                  [class.input-error]="formErrors.deliveryAddress"
+                />
+              </div>
+
+              <!-- City -->
+              <div class="field">
+                <label>City</label>
+                <input
+                  type="text"
+                  pInputText
+                  list="delivery-cities-list"
+                  [(ngModel)]="delivery.city"
+                  (ngModelChange)="updateDeliveryAddress()"
+                  placeholder="Enter City"
+                  class="w-full"
+                  [class.input-error]="formErrors.deliveryAddress"
+                />
+                <datalist id="delivery-cities-list">
+                  <option *ngFor="let city of getDeliveryCities()" [value]="city"></option>
+                </datalist>
+              </div>
+
+              <!-- Pincode -->
+              <div class="field">
+                <label>Pincode</label>
+                <input
+                  type="text"
+                  pInputText
+                  [(ngModel)]="delivery.pincode"
+                  (ngModelChange)="updateDeliveryAddress()"
+                  placeholder="Postal Code"
+                  class="w-full"
+                  maxlength="6"
+                  [class.input-error]="formErrors.deliveryPincode"
+                />
+                <small class="error-msg" *ngIf="formErrors.deliveryPincode">{{formErrors.deliveryPincode}}</small>
+              </div>
+            </div>
+
+            <small class="error-msg" *ngIf="formErrors.deliveryAddress">{{formErrors.deliveryAddress}}</small>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── Section 2 & 3: Sender + Recipient ────────────────────────── -->
+    <div class="two-col-sections">
+
+      <!-- Sender Details -->
+      <div class="form-section">
+        <div class="section-header">
+          <span class="section-icon person-icon">
+            <i class="pi pi-user"></i>
+          </span>
+          <h2 class="section-title">3. Sender Details</h2>
+        </div>
+        <div class="section-body">
+          <div class="two-field-row">
+            <div class="field">
+              <label>Sender Name <span class="required">*</span></label>
+              <input
+                type="text"
+                pInputText
+                [(ngModel)]="form.senderName"
+                placeholder="Enter Full Name"
+                class="w-full"
+                [class.input-error]="formErrors.senderName"
+              />
+              <small class="error-msg" *ngIf="formErrors.senderName">{{formErrors.senderName}}</small>
+            </div>
+            <div class="field">
+              <label>Sender Phone <span class="required">*</span></label>
+              <input
+                type="text"
+                pInputText
+                [(ngModel)]="form.senderPhone"
+                placeholder="+91"
+                class="w-full"
+                maxlength="10"
+                [class.input-error]="formErrors.senderPhone"
+              />
+              <small class="error-msg" *ngIf="formErrors.senderPhone">{{formErrors.senderPhone}}</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recipient Details -->
+      <div class="form-section">
+        <div class="section-header">
+          <span class="section-icon person-icon">
+            <i class="pi pi-user"></i>
+          </span>
+          <h2 class="section-title">4. Recipient Details</h2>
+        </div>
+        <div class="section-body">
+          <div class="two-field-row">
+            <div class="field">
+              <label>Recipient Name <span class="required">*</span></label>
+              <input
+                type="text"
+                pInputText
+                [(ngModel)]="form.recipientName"
+                placeholder="Enter Full Name"
+                class="w-full"
+                [class.input-error]="formErrors.recipientName"
+              />
+              <small class="error-msg" *ngIf="formErrors.recipientName">{{formErrors.recipientName}}</small>
+            </div>
+            <div class="field">
+              <label>Recipient Phone <span class="required">*</span></label>
+              <input
+                type="text"
+                pInputText
+                [(ngModel)]="form.recipientPhone"
+                placeholder="+91"
+                class="w-full"
+                maxlength="10"
+                [class.input-error]="formErrors.recipientPhone"
+              />
+              <small class="error-msg" *ngIf="formErrors.recipientPhone">{{formErrors.recipientPhone}}</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── Section 5: Package & Priority Information ───────────────────────────── -->
+    <div class="form-section">
+      <div class="section-header">
+        <span class="section-icon package-icon">
+          <i class="pi pi-box"></i>
+        </span>
+        <h2 class="section-title">5. Package & Priority Information</h2>
+      </div>
+
+      <div class="section-body">
+
+        <!-- Package Type / Description / Weight row -->
+        <div class="package-grid">
+          <div class="field">
+            <label>Package Type <span class="required">*</span></label>
+            <p-select
+              [options]="packageTypeOptions"
+              optionLabel="label"
+              optionValue="value"
+              [(ngModel)]="form.packageType"
+              placeholder="Select Type"
+              styleClass="w-full"
+              [class.input-error]="formErrors.packageType"
+            ></p-select>
+            <small class="error-msg" *ngIf="formErrors.packageType">{{formErrors.packageType}}</small>
+          </div>
+
+          <div class="field">
+            <label>Package Description</label>
+            <input
+              type="text"
+              pInputText
+              [(ngModel)]="form.packageDescription"
+              placeholder="Describe items being shipped."
+              class="w-full"
+            />
+          </div>
+
+          <div class="field weight-field">
+            <label>Weight (kg) <span class="required">*</span></label>
+            <p-inputNumber
+              [(ngModel)]="form.weight"
+              [minFractionDigits]="2"
+              [maxFractionDigits]="2"
+              [min]="0.01"
+              placeholder="Enter weight"
+              styleClass="w-full"
+              [class.input-error]="formErrors.weight"
+            ></p-inputNumber>
+            <small class="error-msg" *ngIf="formErrors.weight">{{formErrors.weight}}</small>
+          </div>
+        </div>
+
+        <!-- Priority Selection -->
+        <div class="field" style="margin-bottom: 20px;">
+          <label>Priority <span class="required">*</span></label>
+          <div class="priority-options-horizontal">
+            <div
+              class="priority-option"
+              *ngFor="let opt of priorityOptions"
+              (click)="form.priority = opt.value"
+            >
+              <p-radioButton
+                [value]="opt.value"
+                [(ngModel)]="form.priority"
+                [inputId]="'priority_' + opt.value"
+              ></p-radioButton>
+              <label [for]="'priority_' + opt.value" class="priority-label">{{opt.label}}</label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Special Handling -->
+        <div class="field">
+          <label class="handling-label">
+            Special Handling
+            <span class="handling-hint">(Select if applicable)</span>
+          </label>
+          <div class="handling-options">
+            <div
+              class="handling-chip"
+              *ngFor="let opt of specialHandlingOptions"
+              [class.selected]="isHandlingSelected(opt.value)"
+              (click)="toggleHandling(opt.value)"
+            >
+              <span class="chip-checkbox" [class.checked]="isHandlingSelected(opt.value)">
+                <i class="pi pi-check" *ngIf="isHandlingSelected(opt.value)"></i>
+              </span>
+              <i [class]="opt.icon" [style.color]="opt.color" class="chip-icon"></i>
+              <span class="chip-label">{{opt.label}}</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── Section 6: Additional Information ────────────────────────── -->
+    <div class="form-section">
+      <div class="section-header">
+        <span class="section-icon notes-icon">
+          <i class="pi pi-file-edit"></i>
+        </span>
+        <h2 class="section-title">6. Additional Information</h2>
+      </div>
+
+      <div class="section-body">
+        <div class="field">
+          <label>Special Delivery Instructions <span class="optional-hint">(Optional)</span></label>
+          <textarea
+            pTextarea
+            [(ngModel)]="form.specialInstructions"
+            placeholder="Enter any special handling or delivery instructions."
+            rows="3"
+            class="w-full"
+          ></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Footer Actions ────────────────────────────────────────────── -->
+    <div class="form-footer">
+      <p-button
+        label="Reset"
+        [outlined]="true"
+        severity="secondary"
+        (onClick)="reset()"
+        styleClass="reset-btn"
+      ></p-button>
+      <p-button
+        label="Create Order"
+        icon="pi pi-lock"
+        iconPos="left"
+        (onClick)="createOrder()"
+        styleClass="create-order-btn"
+      ></p-button>
+    </div>
+
+  </div>
+
+  <!-- Shared Indian States Datalist -->
+  <datalist id="states-list">
+    <option *ngFor="let state of statesList" [value]="state"></option>
+  </datalist>
+</div>

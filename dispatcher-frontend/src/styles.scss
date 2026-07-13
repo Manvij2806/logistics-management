@@ -1,0 +1,13 @@
+@import "primeicons/primeicons.css";
+
+:root {
+  --sidebar-bg: #091225;
+  --sidebar-active: #1F57F5;
+  --content-bg: #f5f7fa;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background: var(--content-bg);
+}

@@ -1,0 +1,257 @@
+.past-deliveries-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: #ffffff;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.controls-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+}
+
+.filters-group {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.filters,
+.date-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.date-input-wrapper {
+  display: flex;
+  align-items: center;
+  background: white;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  padding: 4px 10px;
+  height: 34px;
+}
+
+.calendar-input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 12px;
+  color: var(--text-primary);
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.clear-date-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-secondary);
+  margin-left: 6px;
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.filter-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.filter-pills {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-pill {
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border-light);
+  background: white;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+
+  &:hover {
+    background: #f9fafb;
+  }
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  background: white;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  padding: 6px 12px;
+  width: 250px;
+  min-height: 34px;
+
+  &:focus-within {
+    border-color: #4361e8;
+    box-shadow: 0 0 0 3px rgba(67, 97, 232, 0.12);
+  }
+
+  .search-icon {
+    color: var(--text-secondary);
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    margin-right: 8px;
+  }
+
+  input {
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 13px;
+    width: 100%;
+
+    &::placeholder {
+      color: #98a2b3;
+    }
+  }
+}
+
+.clear-inline-btn {
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.table-container {
+  background: white;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  overflow-x: auto;
+}
+
+.deliveries-table {
+  width: 100%;
+  min-width: 820px;
+  box-shadow: none !important;
+
+  th.mat-header-cell,
+  th.mat-mdc-header-cell {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-light);
+    padding: 14px 16px;
+    background: #fcfcfd;
+  }
+
+  td.mat-cell,
+  td.mat-mdc-cell {
+    font-size: 13px;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-light);
+    padding: 14px 16px;
+  }
+
+  tr.mat-row:last-child td.mat-cell,
+  tr.mat-mdc-row:last-child td.mat-mdc-cell {
+    border-bottom: none;
+  }
+}
+
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-block;
+
+  &.delivered {
+    background: #ecfdf3;
+    color: #027a48;
+  }
+
+  &.cancelled {
+    background: #fef3f2;
+    color: #b42318;
+  }
+
+  &.late {
+    background: #fffaeb;
+    color: #b54708;
+  }
+}
+
+.empty-state {
+  min-height: 160px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--text-secondary);
+  border-top: 1px solid var(--border-light);
+
+  mat-icon {
+    color: #98a2b3;
+  }
+
+  button {
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    background: #ffffff;
+    color: #4361e8;
+    padding: 8px 12px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+}
+
+@media (max-width: 980px) {
+  .controls-row,
+  .filters-group {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .search-box {
+    width: 100%;
+  }
+
+  .filter-pills {
+    flex-wrap: wrap;
+  }
+}

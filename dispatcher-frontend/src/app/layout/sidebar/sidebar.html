@@ -1,0 +1,89 @@
+<div class="sidebar" [class.collapsed]="isCollapsed">
+  <button class="toggle-btn" (click)="toggleSidebar()">
+    <i class="pi" [ngClass]="isCollapsed ? 'pi-chevron-right' : 'pi-chevron-left'"></i>
+  </button>
+
+  <div class="brand">
+    <div class="brand-icon">
+      <i class="pi pi-box"></i>
+    </div>
+    <div class="brand-text">
+      <div class="brand-name">LogisticsPro</div>
+      <div class="brand-sub">Dispatch Portal</div>
+    </div>
+  </div>
+
+  <nav class="nav">
+
+
+    <!-- Deliveries Group -->
+    <div class="nav-group" [class.group-active]="isDeliveriesActive()"
+      [class.group-expanded]="isDeliveriesExpanded && !isCollapsed">
+      <!-- Deliveries Category Header -->
+      <div class="nav-item group-header" [class.active]="isDeliveriesActive()" (click)="toggleDeliveries()">
+        <i class="pi pi-box"></i> <!-- 📦 icon -->
+        <span>Deliveries</span>
+        <i class="pi group-arrow" [ngClass]="isDeliveriesExpanded ? 'pi-chevron-down' : 'pi-chevron-right'"
+          *ngIf="!isCollapsed"></i>
+      </div>
+
+      <!-- Submenu Level 1 -->
+      <div class="submenu-l1" *ngIf="isDeliveriesExpanded && !isCollapsed">
+        <!-- Delivery Management -->
+        <a routerLink="/deliveries" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}"
+          class="nav-item submenu-item">
+          <i class="pi pi-file"></i> <!-- 📄 icon -->
+          <span>Delivery Management</span>
+        </a>
+
+        <!-- Assign Delivery Agent Dropdown -->
+        <div class="dropdown-container" [class.dropdown-expanded]="isAssignAgentExpanded">
+          <div class="nav-item submenu-item dropdown-header" [class.active]="isAssignAgentActive()"
+            (click)="toggleAssignAgent($event)">
+            <i class="pi pi-user-plus"></i> <!-- User-plus icon matching screenshot -->
+            <span>Assign Delivery Agent</span>
+            <i class="pi dropdown-arrow" [ngClass]="isAssignAgentExpanded ? 'pi-chevron-down' : 'pi-chevron-right'"></i>
+          </div>
+
+          <!-- Submenu Level 2 -->
+          <div class="submenu-l2" *ngIf="isAssignAgentExpanded">
+            <!-- Delivery Details -->
+            <a [routerLink]="['/deliveries', currentDeliveryId, 'details']" routerLinkActive="active"
+              class="nav-item submenu-item sub-sub-item">
+              <i class="pi pi-list"></i> <!-- List icon matching screenshot -->
+              <span>Delivery Details</span>
+            </a>
+
+            <!-- Select Delivery Agent -->
+            <a [routerLink]="['/deliveries', currentDeliveryId, 'select-agent']" routerLinkActive="active"
+              class="nav-item submenu-item sub-sub-item">
+              <i class="pi pi-user"></i> <!-- User icon matching screenshot -->
+              <span>Select Delivery Agent</span>
+            </a>
+
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Agent Workload -->
+    <a routerLink="/agent-workload" routerLinkActive="active" class="nav-item">
+      <i class="pi pi-chart-bar"></i>
+      <span>Agent Workload</span>
+    </a>
+
+    <!-- Profile -->
+    <a routerLink="/profile" routerLinkActive="active" class="nav-item">
+      <i class="pi pi-user"></i>
+      <span>Profile</span>
+    </a>
+
+  </nav>
+
+
+  <div class="logout" (click)="logout()">
+    <i class="pi pi-sign-out"></i>
+    <span>Logout</span>
+  </div>
+</div>

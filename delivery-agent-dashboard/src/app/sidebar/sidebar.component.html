@@ -1,0 +1,46 @@
+<div class="sidebar-wrapper" [class.collapsed]="isCollapsed">
+  <div class="brand-row">
+    <div class="brand">
+      <span class="brand-mark">
+        <mat-icon class="brand-icon">inventory_2</mat-icon>
+      </span>
+      <span class="brand-copy" *ngIf="!isCollapsed">
+        <span class="brand-text">LogisticsPro</span>
+        <span class="brand-subtitle">Agent Portal</span>
+      </span>
+    </div>
+
+    <button class="collapse-toggle-btn" (click)="toggleCollapse()" [title]="isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'">
+      <mat-icon>{{ isCollapsed ? 'chevron_right' : 'chevron_left' }}</mat-icon>
+    </button>
+  </div>
+
+  <mat-divider class="brand-divider"></mat-divider>
+
+  <nav class="nav-list">
+    <a class="nav-item" [class.active]="currentView === 'dashboard'" href="#" (click)="selectView('dashboard'); $event.preventDefault()" title="My Dashboard">
+      <mat-icon>dashboard</mat-icon>
+      <span *ngIf="!isCollapsed">My Dashboard</span>
+    </a>
+    <a class="nav-item" [class.active]="currentView === 'past-jobs'" href="#" (click)="selectView('past-jobs'); $event.preventDefault()" title="Past Jobs">
+      <mat-icon>work_history</mat-icon>
+      <span *ngIf="!isCollapsed">Past Jobs</span>
+    </a>
+    <a class="nav-item" [class.active]="currentView === 'earnings'" href="#" (click)="selectView('earnings'); $event.preventDefault()" title="Earnings Report">
+      <mat-icon>bar_chart</mat-icon>
+      <span *ngIf="!isCollapsed">Earnings Report</span>
+    </a>
+    <a class="nav-item" [class.active]="currentView === 'profile'" href="#" (click)="selectView('profile'); $event.preventDefault()" title="Profile">
+      <mat-icon>person</mat-icon>
+      <span *ngIf="!isCollapsed">Profile</span>
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <mat-divider class="footer-divider"></mat-divider>
+    <a class="nav-item logout-btn" href="#" (click)="logout(); $event.preventDefault()" title="Logout">
+      <mat-icon>logout</mat-icon>
+      <span *ngIf="!isCollapsed">Logout</span>
+    </a>
+  </div>
+</div>

@@ -1,0 +1,364 @@
+<div class="select-agent-page">
+  <div class="content-grid">
+
+    <!-- Main Content Panel (Left) -->
+    <div class="main-content-panel">
+      <!-- Breadcrumb and Page Header -->
+      <div class="page-header">
+        <div class="header-left">
+          <button class="back-btn" (click)="goBack()" aria-label="Go back">
+            <i class="pi pi-arrow-left"></i>
+          </button>
+          <div>
+            <nav class="breadcrumb">
+              <span class="bc-link" (click)="router.navigate(['/deliveries'])">Deliveries</span>
+              <span class="bc-sep">›</span>
+              <span class="bc-link" (click)="goBack()">Assign Delivery Agent</span>
+              <span class="bc-sep">›</span>
+              <span class="bc-current">Select Delivery Agent</span>
+            </nav>
+            <h1>Select Delivery Agent</h1>
+          </div>
+        </div>
+      </div>
+
+      <!-- Delivery Info Banner -->
+      <div class="delivery-info-banner" *ngIf="delivery">
+        <div class="info-block">
+          <span class="info-label">Tracking Number</span>
+          <span class="info-value tracking-code">{{ delivery.tracking_number }}</span>
+        </div>
+        <div class="info-block">
+          <span class="info-label">Delivery ID</span>
+          <span class="info-value delivery-code">{{ delivery.delivery_id }}</span>
+        </div>
+        <div class="info-block address-block">
+          <span class="info-label">Pickup Address</span>
+          <span class="info-value address-value">
+            <span class="bullet blue-bullet"></span>
+            {{ delivery.pickup_address }}
+          </span>
+        </div>
+        <div class="info-block address-block">
+          <span class="info-label">Drop Address</span>
+          <span class="info-value address-value">
+            <span class="bullet green-bullet"></span>
+            {{ delivery.drop_address }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Filters Toolbar -->
+      <div class="filters-toolbar">
+        <div class="search-wrapper">
+          <i class="pi pi-search search-icon"></i>
+          <input
+            pInputText
+            [(ngModel)]="searchTerm"
+            placeholder="Search agent by name or phone..."
+            (input)="onFilterChange()"
+          />
+        </div>
+        <div class="filter-dropdowns">
+          <p-select
+            [options]="zones"
+            [(ngModel)]="selectedZone"
+            (onChange)="onFilterChange()"
+            class="toolbar-select"
+          ></p-select>
+          <p-select
+            [options]="statuses"
+            [(ngModel)]="selectedStatus"
+            (onChange)="onFilterChange()"
+            class="toolbar-select"
+          ></p-select>
+          <p-select
+            [options]="vehicleTypes"
+            [(ngModel)]="selectedVehicleType"
+            (onChange)="onFilterChange()"
+            class="toolbar-select"
+          ></p-select>
+          <button class="refresh-btn" (click)="refreshAgents()">
+            <i class="pi pi-refresh"></i> Refresh
+          </button>
+        </div>
+      </div>
+
+      <!-- Agents Table -->
+      <div class="table-container">
+        <div class="loading-overlay" *ngIf="loading">
+          <i class="pi pi-spin pi-spinner"></i>
+          <span>Loading agents...</span>
+        </div>
+
+        <table class="agents-table" *ngIf="!loading">
+          <thead>
+            <tr>
+              <th>Agent</th>
+              <th>Phone</th>
+              <th>Vehicle Type</th>
+              <th>Active Deliveries</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              *ngFor="let agent of paginatedAgents"
+              [class.selected-row]="selectedAgent?.id === agent.id"
+              (click)="selectAgent(agent)"
+            >
+              <!-- Agent column -->
+              <td class="agent-cell">
+                <div class="radio-selector" [class.checked]="selectedAgent?.id === agent.id">
+                  <div class="radio-dot" *ngIf="selectedAgent?.id === agent.id"></div>
+                </div>
+                <div class="agent-avatar-wrapper" style="background: transparent; border: none; width: 32px; height: 32px; box-shadow: none;">
+                  <svg viewBox="0 0 100 100" style="width: 100%; height: 100%;">
+                    <!-- Face -->
+                    <circle cx="42" cy="30" r="18" fill="#ffe0bd" />
+                    <!-- Cap dome -->
+                    <path d="M24,30 C24,15 60,15 60,30 Z" [attr.fill]="agent.color" />
+                    <!-- Visor -->
+                    <path d="M42,20 L72,12 C74,11 76,14 74,16 L56,28 Z" [attr.fill]="agent.color" />
+                    <!-- Body/Shoulders -->
+                    <path d="M10,85 C10,50 35,46 56,46 C70,46 80,55 80,85 Z" [attr.fill]="agent.color" />
+                    <!-- Bottom Arm -->
+                    <path d="M10,82 C10,95 85,95 85,82 C85,78 75,78 70,82 Z" fill="#ffe0bd" />
+                    <!-- Box -->
+                    <rect x="55" y="46" width="33" height="33" rx="8" [attr.fill]="agent.boxColor" />
+                    <!-- Stripes -->
+                    <rect x="55" y="54" width="33" height="5" [attr.fill]="agent.boxStripeColor" />
+                    <rect x="55" y="66" width="33" height="5" [attr.fill]="agent.boxStripeColor" />
+                  </svg>
+                </div>
+                <div class="agent-contact">
+                  <span class="agent-name-text">{{ agent.name }}</span>
+                </div>
+              </td>
+              <!-- Phone -->
+              <td>{{ agent.phone }}</td>
+              <!-- Vehicle Type -->
+              <td>{{ agent.vehicleType }}</td>
+              <!-- Active Deliveries -->
+              <td>
+                <span class="deliveries-ratio">{{ agent.activeDeliveries }} / {{ agent.maxDeliveries }}</span>
+              </td>
+              <!-- Action Button -->
+              <td>
+                <button
+                  class="row-assign-btn"
+                  [class.assigned-btn]="selectedAgent?.id === agent.id"
+                  (click)="selectAgent(agent); $event.stopPropagation()"
+                >
+                  <i class="pi pi-check"></i> Assign
+                </button>
+              </td>
+            </tr>
+
+            <!-- Empty State -->
+            <tr *ngIf="filteredAgents.length === 0">
+              <td colspan="5" class="empty-table-cell">
+                <div class="empty-state">
+                  <i class="pi pi-info-circle"></i>
+                  <p>No agents match the selected search criteria.</p>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination Row -->
+      <div class="pagination-bar" *ngIf="!loading && filteredAgents.length > pageSize">
+        <div class="pagination-info">
+          Showing {{ startIndex }} to {{ endIndex }} of {{ filteredAgents.length }} agents
+        </div>
+        <div class="pagination-controls">
+          <button class="pag-btn prev" [disabled]="currentPage === 1" (click)="prevPage(); $event.stopPropagation()">
+            <i class="pi pi-chevron-left"></i>
+          </button>
+          <button
+            *ngFor="let page of pagesArray"
+            class="pag-btn page-num"
+            [class.active]="currentPage === page"
+            (click)="setPage(page); $event.stopPropagation()"
+          >
+            {{ page }}
+          </button>
+          <button class="pag-btn next" [disabled]="currentPage === totalPages" (click)="nextPage(); $event.stopPropagation()">
+            <i class="pi pi-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Footer Action and Details Bar -->
+      <div class="left-panel-footer">
+        <div class="footer-actions">
+          <button class="btn-cancel" (click)="goBack()">Cancel</button>
+          <button
+            class="btn-submit-assignment"
+            [disabled]="!selectedAgent || saving"
+            (click)="assignAgent()"
+          >
+            <i class="pi pi-send"></i> Assign to Delivery
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Assignment Summary Sidebar (Right) -->
+    <div class="summary-sidebar-panel" [class.drawer-active]="selectedAgent">
+      <div class="sidebar-header">
+        <h2>Assignment Summary</h2>
+        <button class="close-sidebar-btn" (click)="selectedAgent = null" aria-label="Close sidebar">
+          <i class="pi pi-times"></i>
+        </button>
+      </div>
+
+      <div class="sidebar-scroll-container">
+        <!-- Delivery Details Section -->
+        <div class="summary-section">
+          <h3>Delivery Details</h3>
+          <div class="details-list" *ngIf="delivery">
+            <div class="detail-row">
+              <span class="detail-label">Delivery ID</span>
+              <span class="detail-val">{{ delivery.delivery_id }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Tracking Number</span>
+              <span class="detail-val">{{ delivery.tracking_number }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Source</span>
+              <span class="detail-val">{{ delivery.pickup_address }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Destination</span>
+              <span class="detail-val">{{ delivery.drop_address }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Estimated Pickup</span>
+              <span class="detail-val">Today, {{ getEstimatedPickupTime() }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Customer</span>
+              <span class="detail-val">{{ delivery.customer_name }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Selected Agent Section -->
+        <div class="summary-section">
+          <h3>Selected Agent</h3>
+          <div class="no-agent-selected" *ngIf="!selectedAgent">
+            <i class="pi pi-user"></i>
+            <p>No agent selected yet. Click 'Assign' on an agent in the table to view their details.</p>
+          </div>
+          <div class="agent-summary-card" *ngIf="selectedAgent">
+            <div class="agent-card-header">
+              <div class="card-avatar-wrapper" style="background: transparent; border: none; width: 36px; height: 36px; box-shadow: none;">
+                <svg viewBox="0 0 100 100" style="width: 100%; height: 100%;">
+                  <!-- Face -->
+                  <circle cx="42" cy="30" r="18" fill="#ffe0bd" />
+                  <!-- Cap dome -->
+                  <path d="M24,30 C24,15 60,15 60,30 Z" [attr.fill]="selectedAgent.color" />
+                  <!-- Visor -->
+                  <path d="M42,20 L72,12 C74,11 76,14 74,16 L56,28 Z" [attr.fill]="selectedAgent.color" />
+                  <!-- Body/Shoulders -->
+                  <path d="M10,85 C10,50 35,46 56,46 C70,46 80,55 80,85 Z" [attr.fill]="selectedAgent.color" />
+                  <!-- Bottom Arm -->
+                  <path d="M10,82 C10,95 85,95 85,82 C85,78 75,78 70,82 Z" fill="#ffe0bd" />
+                  <!-- Box -->
+                  <rect x="55" y="46" width="33" height="33" rx="8" [attr.fill]="selectedAgent.boxColor" />
+                  <!-- Stripes -->
+                  <rect x="55" y="54" width="33" height="5" [attr.fill]="selectedAgent.boxStripeColor" />
+                  <rect x="55" y="66" width="33" height="5" [attr.fill]="selectedAgent.boxStripeColor" />
+                </svg>
+              </div>
+              <div class="card-agent-info">
+                <h4 class="card-name">{{ selectedAgent.name }}</h4>
+                <span class="card-phone">{{ selectedAgent.phone }}</span>
+                <span class="card-meta">{{ selectedAgent.startArea }} &nbsp;•&nbsp; {{ selectedAgent.vehicleType }}</span>
+              </div>
+              <div class="card-status-container">
+                <span class="status-badge" [ngClass]="selectedAgent.status.toLowerCase()">
+                  {{ selectedAgent.status }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Workload Summary Section -->
+        <div class="summary-section" *ngIf="selectedAgent">
+          <h3>Workload Summary</h3>
+          <div class="workload-summary-grid">
+            <!-- Donut Chart -->
+            <div class="donut-chart-container">
+              <div class="donut-chart-svg-wrapper">
+                <svg viewBox="0 0 36 36" class="donut-svg">
+                  <!-- Background Track -->
+                  <path
+                    class="donut-ring"
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    fill="none"
+                    stroke="#e2e8f0"
+                    stroke-width="3"
+                  ></path>
+                  <!-- Value Segment -->
+                  <path
+                    class="donut-segment"
+                    [attr.stroke-dasharray]="getStrokeDashArray()"
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    fill="none"
+                    stroke="#10b981"
+                    stroke-width="3"
+                    stroke-linecap="round"
+                  ></path>
+                </svg>
+                <div class="donut-label-content">
+                  <span class="donut-percent">{{ getUtilizationPercent() }}%</span>
+                  <span class="donut-label">Utilization</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Legend Info -->
+            <div class="workload-legend">
+              <div class="legend-item">
+                <span class="legend-color-dot green-dot"></span>
+                <span class="legend-label">Active Deliveries</span>
+                <span class="legend-value">{{ selectedAgent.activeDeliveries }}</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-color-dot blue-dot"></span>
+                <span class="legend-label">Available Capacity</span>
+                <span class="legend-value">{{ selectedAgent.maxDeliveries - selectedAgent.activeDeliveries }}</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-color-dot gray-dot"></span>
+                <span class="legend-label">Total Capacity</span>
+                <span class="legend-value">{{ selectedAgent.maxDeliveries }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Button inside sidebar footer -->
+      <div class="sidebar-footer">
+        <button
+          class="btn-sidebar-submit"
+          [disabled]="!selectedAgent || saving"
+          (click)="assignAgent()"
+        >
+          <i class="pi pi-check-circle"></i> Assign to Delivery Agent
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Drawer Overlay Backdrop -->
+  <div class="drawer-backdrop" *ngIf="selectedAgent" (click)="selectedAgent = null"></div>
+</div>

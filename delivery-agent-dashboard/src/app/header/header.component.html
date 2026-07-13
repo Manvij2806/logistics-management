@@ -1,0 +1,60 @@
+<div class="header-bar">
+  <div class="header-left">
+    <h1 class="page-title">Agent Dashboard - Logistics</h1>
+  </div>
+
+  <div class="header-search" *ngIf="showSearch">
+    <mat-icon class="search-icon">search</mat-icon>
+    <input type="search" aria-label="Search deliveries" placeholder="Search deliveries, tracking..." [(ngModel)]="searchQuery" (input)="onSearchInput()">
+    <button *ngIf="searchQuery" type="button" class="clear-search" (click)="clearSearch()" aria-label="Clear search">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div class="header-spacer" *ngIf="!showSearch"></div>
+
+  <div class="header-right">
+    <div class="notification-wrapper">
+      <button mat-icon-button class="notif-btn" aria-label="Notifications" (click)="toggleNotificationsDropdown()">
+        <mat-icon>notifications_none</mat-icon>
+        <span class="notif-badge" *ngIf="unreadCount > 0">{{ unreadCount }}</span>
+      </button>
+
+      <!-- Dropdown Card -->
+      <div class="notif-dropdown" *ngIf="showNotificationsDropdown">
+        <div class="notif-dropdown-header">
+          <span>Notifications</span>
+          <div class="header-actions">
+            <button class="action-btn" (click)="markAllAsRead()" *ngIf="unreadCount > 0">Mark read</button>
+            <button class="action-btn text-danger" (click)="clearAllNotifications()" *ngIf="notificationsList.length > 0">Clear all</button>
+          </div>
+        </div>
+
+        <div class="notif-list">
+          <div class="notif-item" *ngFor="let item of notificationsList" [class.unread]="!item.read">
+            <div class="notif-item-icon" [ngClass]="item.type">
+              <mat-icon>{{ item.type === 'success' ? 'check_circle' : item.type === 'warning' ? 'warning' : 'info' }}</mat-icon>
+            </div>
+            <div class="notif-item-body">
+              <div class="notif-item-title">{{ item.title }}</div>
+              <div class="notif-item-msg">{{ item.message }}</div>
+              <div class="notif-item-time">{{ item.timestamp | date:'shortTime' }}</div>
+            </div>
+          </div>
+          <div class="notif-empty" *ngIf="notificationsList.length === 0">
+            <mat-icon>notifications_off</mat-icon>
+            <span>No notifications yet</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="user-profile">
+      <div class="user-avatar">{{ userInitials }}</div>
+      <div class="user-info">
+        <span class="user-name">{{ userName }}</span>
+        <span class="user-role">Delivery Agent</span>
+      </div>
+    </div>
+  </div>
+</div>

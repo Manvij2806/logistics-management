@@ -1,0 +1,60 @@
+<div class="page-content">
+  <div class="page-header">
+    <div class="header-text">
+      <h2>Agents</h2>
+      <p>Delivery agents available in your network</p>
+    </div>
+  </div>
+
+  <div class="user-management-container">
+    <div class="table-toolbar">
+      <div class="search-box">
+        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        </svg>
+        <input
+          type="text"
+          placeholder="Search by name, email, phone..."
+          [ngModel]="searchQuery()"
+          (ngModelChange)="searchQuery.set($event)"
+        />
+      </div>
+      <div class="api-error" *ngIf="loadError()">{{ loadError() }}</div>
+    </div>
+
+    <div class="table-container">
+      <div *ngIf="isLoading()" style="padding: 48px; text-align: center; color: var(--text-muted);">
+        Loading agents...
+      </div>
+
+      <table class="data-table" *ngIf="!isLoading()">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Status</th>
+            <th>Active Deliveries</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="filteredAgents().length === 0">
+            <td colspan="5" class="empty-cell">No Records Found.</td>
+          </tr>
+          <tr *ngFor="let a of filteredAgents()">
+            <td class="cell-name">{{ a.fullname }}</td>
+            <td>{{ a.email }}</td>
+            <td>{{ a.phone_number ?? '—' }}</td>
+            <td>
+              <span class="status-text" [ngClass]="a.status === 'Active' ? 'status-active' : 'status-inactive'">
+                {{ a.status }}
+              </span>
+            </td>
+            <td>{{ a.active_deliveries ?? 0 }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

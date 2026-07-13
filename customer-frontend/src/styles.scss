@@ -1,0 +1,65 @@
+@import "primeicons/primeicons.css";
+@import 'leaflet/dist/leaflet.css';
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
+
+$font-family-primary: 'Inter', sans-serif;
+$font-family-title: 'Outfit', sans-serif;
+
+:root {
+  --font-family: #{$font-family-primary};
+  --font-title: #{$font-family-title};
+  
+  --sidebar-bg: #1a1c2e;
+  --sidebar-text: #ffffff;
+  --sidebar-text-muted: #8b8ea9;
+  --sidebar-active-bg: #0066f2;
+  --sidebar-active-border: #0066f2;
+  --sidebar-active-text: #ffffff;
+  
+  --primary-color: #0066f2;
+  --primary-hover: #0052d9;
+  --bg-color: #f5f6fa;
+  --card-bg: #ffffff;
+  --text-color: #1f2029;
+  --text-muted: #6e7191;
+  --border-color: #e8eaf0;
+  
+  // Status Colors
+  --status-transit-bg: #e0f2fe;
+  --status-transit-text: #0369a1;
+  --status-delivered-bg: #e8f5e9;
+  --status-delivered-text: #2e7d32;
+  --status-delivery-bg: #fff3e0;
+  --status-delivery-text: #e65100;
+  --status-pending-bg: #eceff1;
+  --status-pending-text: #455a64;
+  --status-delayed-bg: #ffebee;
+  --status-delayed-text: #c62828;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-title);
+  margin: 0;
+  font-weight: 600;
+}
+
+// Custom override for PrimeNG styles to blend with our custom styles
+.p-card {
+  border-radius: 16px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+.p-dialog {
+  border-radius: 16px !important;
+}

@@ -1,0 +1,168 @@
+<!-- Toast Alerts -->
+<div class="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 10000; display: flex; flex-direction: column; gap: 10px;">
+  <div *ngFor="let toast of toasts()" class="toast-banner" style="background-color: #1e1b4b; color: white; padding: 12px 24px; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06); font-weight: 500; font-family: 'Outfit', sans-serif; animation: slideIn 0.3s ease;">
+    {{ toast.message }}
+  </div>
+</div>
+
+<style>
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+</style>
+
+<div class="dashboard-container">
+  <!-- Top Welcome Header -->
+  <div class="dashboard-header">
+    <div class="header-welcome">
+      <h2>Hello, {{ currentUser()?.full_name || 'Customer' }}! 👋</h2>
+      <p>Track your deliveries and stay updated</p>
+    </div>
+    <div class="header-right">
+      <div class="notification-bell" (click)="toggleNotifications($event)">
+        <i class="pi pi-bell"></i>
+        @if (unreadAlertsCount > 0) {
+          <span class="bell-badge">{{ unreadAlertsCount }}</span>
+        }
+
+        <!-- Dropdown Panel -->
+        @if (showNotificationsDropdown) {
+          <div class="notifications-dropdown" (click)="$event.stopPropagation()">
+            <div class="dropdown-header">
+              <h3>Notifications</h3>
+              <span class="mark-all-read" (click)="markAllAlertsAsRead()">Mark all as read</span>
+            </div>
+            
+            <div class="dropdown-list">
+              @if (alerts.length === 0) {
+                <div class="empty-notifications">
+                  <i class="pi pi-bell-slash"></i>
+                  <p>No notifications yet</p>
+                </div>
+              } @else {
+                @for (alert of alerts; track alert.id) {
+                  <div 
+                    class="dropdown-item" 
+                    [class.unread]="!alert.read" 
+                    (click)="handleAlertClick(alert)">
+                    <div class="item-icon-wrapper" [class]="alert.type">
+                      <i [class]="getAlertIcon(alert.type)"></i>
+                    </div>
+                    <div class="item-body">
+                      <p class="item-message">{{ alert.message }}</p>
+                      <div class="item-meta">
+                        <span class="item-shipment">{{ alert.shipmentId }}</span>
+                        <span class="item-time">• {{ alert.time }}</span>
+                      </div>
+                    </div>
+                    @if (!alert.read) {
+                      <span class="unread-indicator"></span>
+                    }
+                  </div>
+                }
+              }
+            </div>
+          </div>
+        }
+      </div>
+      <div class="header-profile-icon">
+        <i class="pi pi-user"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- Metric Cards (Matching Mockup 1:1 style) -->
+  <div class="mockup-kpi-grid">
+    <div class="mockup-kpi-card" (click)="navigateTo('track-delivery')">
+      <span class="card-title">Active Deliveries</span>
+      <h2 class="card-value">{{ activeShipmentsCount }}</h2>
+      <span class="card-link">View all</span>
+    </div>
+    
+    <div class="mockup-kpi-card" (click)="navigateTo('track-delivery')">
+      <span class="card-title">Delivered Orders</span>
+      <h2 class="card-value">{{ deliveredOrdersCount }}</h2>
+      <span class="card-link">View all</span>
+    </div>
+
+    <div class="mockup-kpi-card" (click)="navigateTo('track-delivery')">
+      <span class="card-title">Cancelled Orders</span>
+      <h2 class="card-value">{{ cancelledOrdersCount }}</h2>
+      <span class="card-link">View all</span>
+    </div>
+  </div>
+
+  <!-- Active Deliveries Section -->
+  <div class="section-container">
+    <div class="section-header">
+      <h3>Active Deliveries</h3>
+      <span class="view-all-link" (click)="navigateTo('track-delivery')">View All</span>
+    </div>
+
+    <div class="active-deliveries-list">
+      @for (shipment of getActiveShipments(); track shipment.id) {
+        <div class="delivery-item-card" (click)="openShipmentDetails(shipment)">
+          <div class="delivery-item-icon" [class]="shipment.status.replace(' ', '-').toLowerCase()">
+            <i class="pi pi-box"></i>
+          </div>
+          <div class="delivery-item-details">
+            <div class="item-header-row">
+              <span class="item-id">{{ shipment.delivery_id }}</span>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <span style="font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; text-transform: uppercase;"
+                      [style.background-color]="getUserRoleInDelivery(shipment) === 'Sender' ? '#e0e7ff' : '#d1fae5'"
+                      [style.color]="getUserRoleInDelivery(shipment) === 'Sender' ? '#4338ca' : '#065f46'">
+                  {{ getUserRoleInDelivery(shipment) }}
+                </span>
+                <p-tag [value]="shipment.status" [severity]="getSeverity(shipment.status)"></p-tag>
+              </div>
+            </div>
+            <div class="item-route">
+              <div class="route-loc">{{ shipment.pickup_address }}</div>
+              <div class="route-loc dest">{{ shipment.drop_address }}</div>
+            </div>
+            <div class="item-eta-row">
+              <span class="item-eta">ETA: 18:00</span>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Recent Delivered Section -->
+  <div class="section-container">
+    <div class="section-header">
+      <h3>Recent Delivered</h3>
+      <span class="view-all-link" (click)="navigateTo('track-delivery')">View All</span>
+    </div>
+
+    <div class="recent-delivered-list">
+      @for (shipment of getDeliveredShipments(); track shipment.id) {
+        <div class="delivered-row" (click)="openShipmentDetails(shipment)">
+          <div class="delivered-row-left">
+            <div class="delivered-icon">
+              <i class="pi pi-briefcase"></i>
+            </div>
+            <span class="delivered-id">{{ shipment.delivery_id }}</span>
+            <span style="font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; margin-left: 8px;"
+                  [style.background-color]="getUserRoleInDelivery(shipment) === 'Sender' ? '#e0e7ff' : '#d1fae5'"
+                  [style.color]="getUserRoleInDelivery(shipment) === 'Sender' ? '#4338ca' : '#065f46'">
+              {{ getUserRoleInDelivery(shipment) }}
+            </span>
+          </div>
+          <p-tag value="Delivered" severity="success"></p-tag>
+          <span class="delivered-date">{{ shipment.created_at | date:'dd MMM yyyy' }}</span>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Shipment Details Dialog -->
+  <app-shipment-details 
+    [shipment]="selectedShipmentForDetails" 
+    [visible]="detailsVisible" 
+    (close)="detailsVisible = false">
+  </app-shipment-details>
+</div>

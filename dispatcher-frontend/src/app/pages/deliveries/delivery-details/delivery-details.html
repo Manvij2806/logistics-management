@@ -1,0 +1,268 @@
+<div class="details-page">
+
+  <!-- ── Header ──────────────────────────────────────────────────────── -->
+  <div class="page-header">
+    <div class="header-left">
+      <button class="back-btn" (click)="goBack()">
+        <i class="pi pi-arrow-left"></i>
+      </button>
+      <div>
+        <h1>Delivery Details</h1>
+        <nav class="breadcrumb">
+          <span (click)="goBack()" class="bc-link">Deliveries</span>
+          <span class="bc-sep">›</span>
+          <span class="bc-link" (click)="goBack()">Assign Delivery Agent</span>
+          <span class="bc-sep">›</span>
+          <span class="bc-current">Delivery Details</span>
+        </nav>
+      </div>
+    </div>
+    <div class="header-right" *ngIf="hasSelected && delivery">
+      <p-button
+        label="Select Agent"
+        icon="pi pi-user-plus"
+        (onClick)="goToSelectAgent()"
+        [disabled]="delivery.status === 'Picked Up' || delivery.status === 'In Transit' || delivery.status === 'Delivered' || delivery.status === 'Cancelled'"
+      ></p-button>
+    </div>
+  </div>
+
+  <!-- Delivery List Selector (First Lists the Delivery IDs and a Button) -->
+  <div class="delivery-selector-card" style="background: white; border-radius: 12px; border: 1px solid #eaecf0; padding: 20px; margin-bottom: 24px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); width: 100%;">
+    <h3 style="margin: 0 0 16px 0; font-family: 'Outfit', sans-serif; font-size: 15px; font-weight: 600; color: #1e1b4b; text-align: left;">All Deliveries List</h3>
+    <div style="display: flex; gap: 12px; flex-wrap: wrap; max-height: 150px; overflow-y: auto; padding: 4px;">
+      <div *ngFor="let d of allDeliveries" 
+           [style.background]="hasSelected && d.id === delivery?.dbId ? '#eff6ff' : '#f8fafc'"
+           [style.border]="hasSelected && d.id === delivery?.dbId ? '1.5px solid #3b82f6' : '1px solid #e2e8f0'"
+           style="display: flex; align-items: center; gap: 12px; padding: 8px 16px; border-radius: 8px; font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 500; color: #334155; transition: all 0.2s;">
+        <span style="font-weight: 700; color: #1e293b;">{{ d.delivery_id }}</span>
+        <button (click)="selectDelivery(d.id)" 
+                [style.background]="hasSelected && d.id === delivery?.dbId ? '#3b82f6' : '#ffffff'"
+                [style.color]="hasSelected && d.id === delivery?.dbId ? '#ffffff' : '#475569'"
+                [style.border]="hasSelected && d.id === delivery?.dbId ? 'none' : '1px solid #cbd5e1'"
+                style="padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 600; text-transform: uppercase; transition: all 0.2s; outline: none;">
+          Details
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Detailing container ──────────────────────────────────────── -->
+  <div *ngIf="hasSelected">
+    <div class="loading-state" *ngIf="loading" style="padding: 40px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; background: white; border-radius: 12px; border: 1px solid #eaecf0; margin-bottom: 24px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+      <i class="pi pi-spin pi-spinner" style="font-size: 2rem; color: #3b82f6;"></i>
+      <span style="font-family: 'Outfit', sans-serif; color: #64748b;">Loading delivery details...</span>
+    </div>
+
+    <div *ngIf="!loading && delivery">
+      <!-- ── Summary Bar ─────────────────────────────────────────────────── -->
+      <div class="summary-bar">
+    <div class="summary-item">
+      <span class="summary-label">Tracking Number</span>
+      <div class="summary-value tracking">
+        <b>{{delivery.trackingNumber}}</b>
+        <button class="copy-btn" (click)="copyTracking()" title="Copy">
+          <i class="pi pi-copy"></i>
+        </button>
+      </div>
+    </div>
+    <div class="summary-divider"></div>
+    <div class="summary-item">
+      <span class="summary-label">Delivery ID</span>
+      <span class="summary-value"><b>{{delivery.id}}</b></span>
+    </div>
+    <div class="summary-divider"></div>
+    <div class="summary-item">
+      <span class="summary-label">Status</span>
+      <p-tag [value]="delivery.status" [severity]="getSeverity(delivery.status)"></p-tag>
+    </div>
+    <div class="summary-divider"></div>
+    <div class="summary-item">
+      <span class="summary-label">Created On</span>
+      <span class="summary-value">{{delivery.createdAt}}</span>
+    </div>
+    <div class="summary-divider"></div>
+    <div class="summary-item">
+      <span class="summary-label">Priority</span>
+      <span class="summary-value priority-badge">{{delivery.priority}}</span>
+    </div>
+    <div class="summary-divider"></div>
+    <div class="summary-item">
+      <span class="summary-label">Payment Status</span>
+      <span class="summary-value bold" [style.color]="delivery.payment_status === 'Paid' ? '#065f46' : '#991b1b'">
+        ₹2,000 - {{delivery.payment_status}}
+        <span *ngIf="delivery.payment_status === 'Paid' && delivery.payment_method" style="font-size: 12px; font-weight: normal; color: #6b7280;">
+          ({{delivery.payment_method}})
+        </span>
+      </span>
+    </div>
+  </div>
+
+  <!-- ── Main Grid ───────────────────────────────────────────────────── -->
+  <div class="main-grid">
+
+    <!-- Left: 3 cols -->
+    <div class="left-col">
+
+      <!-- Row 1: Pickup / Drop / Package -->
+      <div class="cards-row">
+
+        <!-- Pickup Details -->
+        <div class="detail-card">
+          <div class="card-header">
+            <span class="dot blue"></span>
+            <h3>Pickup Details</h3>
+          </div>
+          <div class="card-body">
+            <div class="info-group">
+              <span class="info-label">Address</span>
+              <span class="info-value bold">{{delivery.pickup.address}}</span>
+            </div>
+            <div class="info-divider"></div>
+            <div class="info-group">
+              <span class="info-label">Contact Person</span>
+              <span class="info-value bold">{{delivery.pickup.contact}}</span>
+              <span class="info-value">{{delivery.pickup.phone}}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Drop Details -->
+        <div class="detail-card">
+          <div class="card-header">
+            <span class="dot green"></span>
+            <h3>Drop Details</h3>
+          </div>
+          <div class="card-body">
+            <div class="info-group">
+              <span class="info-label">Address</span>
+              <span class="info-value bold">{{delivery.drop.address}}</span>
+            </div>
+            <div class="info-divider"></div>
+            <div class="info-group">
+              <span class="info-label">Contact Person</span>
+              <span class="info-value bold">{{delivery.drop.contact}}</span>
+              <span class="info-value">{{delivery.drop.phone}}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Package Details -->
+        <div class="detail-card">
+          <div class="card-header">
+            <i class="pi pi-box card-icon"></i>
+            <h3>Package Details</h3>
+          </div>
+          <div class="card-body">
+            <div class="info-group">
+              <span class="info-label">Package Info</span>
+              <span class="info-value bold">{{delivery.package.details}}</span>
+            </div>
+            <div class="info-divider"></div>
+            <div class="info-group">
+              <span class="info-label">Special Instructions</span>
+              <span class="info-value">{{delivery.notes}}</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Row 2: Additional Info / Assignment History -->
+      <div class="cards-row">
+
+        <!-- Additional Information -->
+        <div class="detail-card wide">
+          <div class="card-header">
+            <i class="pi pi-info-circle card-icon"></i>
+            <h3>Additional Information</h3>
+          </div>
+          <div class="card-body info-grid-2">
+            <div class="info-group">
+              <span class="info-label">Agent Assigned</span>
+              <span class="info-value bold">{{delivery.agent}}</span>
+            </div>
+            <div class="info-group">
+              <span class="info-label">Notes</span>
+              <span class="info-value">{{delivery.notes}}</span>
+            </div>
+            <div class="info-group">
+              <span class="info-label">Customer Name</span>
+              <span class="info-value bold">{{delivery.pickup.contact}}</span>
+            </div>
+            <div class="info-group">
+              <span class="info-label">Customer Phone</span>
+              <span class="info-value bold">{{delivery.pickup.phone}}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Assignment History -->
+        <div class="detail-card wide">
+          <div class="card-header">
+            <i class="pi pi-history card-icon"></i>
+            <h3>Assignment History</h3>
+          </div>
+          <div class="card-body">
+            <table class="history-table">
+              <thead>
+                <tr>
+                  <th>Date & Time</th>
+                  <th>Assigned By</th>
+                  <th>Agent</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>{{delivery.createdAt}}</td>
+                  <td>Dispatcher</td>
+                  <td>{{delivery.agent}}</td>
+                  <td>
+                    <p-tag [value]="delivery.status" [severity]="getSeverity(delivery.status)"></p-tag>
+                  </td>
+                </tr>
+                <tr class="empty-row"><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+                <tr class="empty-row"><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Right: Timeline -->
+    <div class="right-col">
+      <div class="detail-card timeline-card">
+        <div class="card-header">
+          <h3>Delivery Timeline</h3>
+        </div>
+        <div class="card-body">
+          <div class="timeline">
+            <div
+              class="timeline-step"
+              *ngFor="let step of timelineSteps"
+              [class.done]="isStepDone(step.key)"
+              [class.current]="isCurrentStep(step.key)"
+            >
+              <div class="step-indicator">
+                <div class="step-dot">
+                  <i class="pi pi-check" *ngIf="isStepDone(step.key) && !isCurrentStep(step.key)"></i>
+                </div>
+                <div class="step-line"></div>
+              </div>
+              <div class="step-content">
+                <span class="step-label">{{step.label}}</span>
+                <span class="step-meta" *ngIf="isStepDone(step.key) || isCurrentStep(step.key)">{{ getStepTime(step.key) }}</span>
+                <span class="step-meta muted" *ngIf="!isStepDone(step.key) && !isCurrentStep(step.key)">—</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>

@@ -1,0 +1,133 @@
+.request-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 80px;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.request-card {
+  background: white;
+  border-radius: var(--radius-md);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+  width: 380px;
+  overflow: hidden;
+  animation: slideDown 0.3s ease;
+  border: 2px solid #e3e8f0;
+}
+
+.request-header {
+  background: linear-gradient(135deg, #1e3a5f, #2a5298);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.alert-icon {
+  color: #fdd835;
+  font-size: 22px;
+  width: 22px;
+  height: 22px;
+}
+
+.request-title {
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.request-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.request-row {
+  display: flex;
+  gap: 8px;
+}
+
+.req-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  min-width: 110px;
+}
+
+.req-value {
+  font-size: 13px;
+  color: var(--text-primary);
+  font-weight: 600;
+
+  &.earn {
+    color: #2e7d32;
+    font-size: 15px;
+  }
+}
+
+.request-actions {
+  display: flex;
+  gap: 12px;
+  padding: 0 20px 20px;
+}
+
+.btn-reject, .btn-accept {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.2s;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.btn-reject {
+  background: #ffebee;
+  color: #c62828;
+
+  &:hover {
+    background: #ffcdd2;
+  }
+}
+
+.btn-accept {
+  background: #e8f5e9;
+  color: #2e7d32;
+
+  &:hover {
+    background: #c8e6c9;
+  }
+}

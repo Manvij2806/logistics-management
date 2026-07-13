@@ -1,0 +1,42 @@
+<div class="notifications-page-container">
+  
+  <div class="notifications-card">
+    
+    <!-- Header: Title & Mark all as read -->
+    <div class="notifications-header">
+      <h2>Notifications</h2>
+      <span class="mark-read-link" (click)="markAllAsRead()">Mark all as read</span>
+    </div>
+
+    <!-- Notifications List -->
+    <div class="notifications-list">
+      @for (notification of notifications; track notification.id) {
+        <div class="notification-item" [class.unread]="!notification.read" (click)="markAsRead(notification.id)">
+          <!-- Icon on the Left -->
+          <div class="notification-icon-wrapper" [class]="notification.type">
+            <i [class]="getIcon(notification.type)"></i>
+          </div>
+
+          <!-- Description and details -->
+          <div class="notification-content">
+            <h4>{{ notification.message }}</h4>
+            <span class="notification-id">{{ notification.shipmentId }}</span>
+            <span class="notification-time">{{ notification.time }}</span>
+          </div>
+
+          <!-- Unread red dot -->
+          @if (!notification.read) {
+            <span class="unread-dot"></span>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Bottom Load More button -->
+    <div class="load-more-container">
+      <span class="load-more-btn" (click)="loadMore()">Load More</span>
+    </div>
+
+  </div>
+
+</div>

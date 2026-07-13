@@ -1,0 +1,46 @@
+<div class="earnings-container">
+  <h2 class="page-title">Earnings Report</h2>
+
+  <!-- Earnings Cards -->
+  <div class="earnings-cards">
+    <div class="card dark">
+      <span class="card-label">Today's Earnings</span>
+      <span class="card-value">{{ earningsSummary.today }}</span>
+      <mat-icon class="card-icon">today</mat-icon>
+    </div>
+    <div class="card dark">
+      <span class="card-label">Weekly Earnings</span>
+      <span class="card-value">{{ earningsSummary.weekly }}</span>
+      <mat-icon class="card-icon">date_range</mat-icon>
+    </div>
+    <div class="card dark">
+      <span class="card-label">Avg. per Trip</span>
+      <span class="card-value">{{ earningsSummary.avgPerTrip }}</span>
+      <mat-icon class="card-icon">monetization_on</mat-icon>
+    </div>
+  </div>
+
+  <div class="earnings-details">
+    <!-- Transactions List -->
+    <div class="transactions-section">
+      <h3>Recent Transactions</h3>
+      <div class="transaction-list">
+        <div class="transaction-item" *ngFor="let txn of transactions">
+          <div class="txn-left">
+            <div class="txn-icon-wrapper">
+              <mat-icon>account_balance_wallet</mat-icon>
+            </div>
+            <div class="txn-info">
+              <span class="txn-title">Payout for {{ txn.orderId }}</span>
+              <span class="txn-subtitle">{{ txn.date }} • ID: {{ txn.id }}</span>
+            </div>
+          </div>
+          <div class="txn-right">
+            <span class="txn-amount">{{ txn.amount }}</span>
+            <span class="txn-status">{{ txn.status }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

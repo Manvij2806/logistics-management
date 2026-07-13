@@ -1,0 +1,74 @@
+<div class="page-content">
+  <div class="page-header">
+    <div class="header-text">
+      <h2>Audit Logs</h2>
+      <p>Trace and audit all user actions, assignments, security logs, and shipment statuses</p>
+    </div>
+  </div>
+
+  <div class="user-management-container">
+    <div class="table-toolbar">
+      <div class="search-box">
+        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        </svg>
+        <input
+          type="text"
+          placeholder="Search by ID, action, details, user..."
+          [ngModel]="searchQuery()"
+          (ngModelChange)="onSearchChange($event)"
+        />
+      </div>
+      <div class="toolbar-right">
+        <select class="status-select" [ngModel]="categoryFilter()" (ngModelChange)="onCategoryChange($event)">
+          <option value="">All Categories</option>
+          <option *ngFor="let c of categories" [value]="c">{{ c }}</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Log ID</th>
+            <th>Timestamp</th>
+            <th>Category</th>
+            <th>User</th>
+            <th>Action</th>
+            <th>Details</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="paginatedLogs().length === 0">
+            <td colspan="6" class="empty-cell">No audit logs found.</td>
+          </tr>
+          <tr *ngFor="let log of paginatedLogs()">
+            <td class="cell-id">{{ log.id }}</td>
+            <td class="cell-date">{{ log.timestamp | date:'dd MMM yyyy, hh:mm a' }}</td>
+            <td>
+              <span class="category-badge" [ngClass]="getCategoryClass(log.category)">
+                {{ log.category }}
+              </span>
+            </td>
+            <td class="cell-user">{{ log.user }}</td>
+            <td class="cell-action"><strong>{{ log.action }}</strong></td>
+            <td class="cell-details" [title]="log.details">{{ log.details }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pagination" *ngIf="totalLogsCount() > 0">
+      <span class="pagination-info">
+        Showing {{ (page() - 1) * pageSize() + 1 }}–{{ page() * pageSize() > totalLogsCount() ? totalLogsCount() : page() * pageSize() }} of {{ totalLogsCount() }}
+      </span>
+      <div class="pagination-controls">
+        <button class="btn btn-outline" [disabled]="page() <= 1" (click)="goToPage(page() - 1)">Previous</button>
+        <span class="page-number">Page {{ page() }} of {{ totalPages() }}</span>
+        <button class="btn btn-outline" [disabled]="page() >= totalPages()" (click)="goToPage(page() + 1)">Next</button>
+      </div>
+    </div>
+  </div>
+</div>

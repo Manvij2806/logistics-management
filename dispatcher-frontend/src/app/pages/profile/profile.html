@@ -1,0 +1,105 @@
+<div class="profile-container">
+  <div class="profile-grid">
+    
+    <!-- Left Column: Personal Information Card -->
+    <div class="profile-card info-card">
+      <div class="card-header">
+        <div class="avatar-circle">
+          <svg width="40" height="40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+        </div>
+        <div class="header-text">
+          <h2>Personal Profile</h2>
+          <p>Your account information</p>
+        </div>
+      </div>
+
+      <div class="info-list">
+        <div class="info-item">
+          <label>Full Name</label>
+          <span class="info-value">{{ currentUser()?.full_name || 'N/A' }}</span>
+        </div>
+
+        <div class="info-item">
+          <label>Username</label>
+          <span class="info-value">{{ currentUser()?.username || 'N/A' }}</span>
+        </div>
+
+        <div class="info-item">
+          <label>Email Address</label>
+          <span class="info-value">{{ currentUser()?.email || 'N/A' }}</span>
+        </div>
+
+        <div class="info-item">
+          <label>Phone Number</label>
+          <span class="info-value">{{ currentUser()?.phone_number || 'Not Provided' }}</span>
+        </div>
+
+        <div class="info-item">
+          <label>Role</label>
+          <span class="badge role-badge">{{ currentUser()?.role || 'N/A' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Reset Password Card -->
+    <div class="profile-card form-card">
+      <div class="card-header">
+        <div class="header-text">
+          <h2>Change Password</h2>
+          <p>Update your credentials securely</p>
+        </div>
+      </div>
+
+      <form [formGroup]="passwordForm" (ngSubmit)="onSubmit()" class="password-form">
+        <div class="form-group">
+          <label for="oldPassword">Current Password</label>
+          <input
+            id="oldPassword"
+            type="password"
+            formControlName="oldPassword"
+            class="form-control"
+            [class.is-invalid]="f['oldPassword'].touched && f['oldPassword'].invalid"
+            placeholder="Enter current password"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="newPassword">New Password</label>
+          <input
+            id="newPassword"
+            type="password"
+            formControlName="newPassword"
+            class="form-control"
+            [class.is-invalid]="f['newPassword'].touched && f['newPassword'].invalid"
+            placeholder="Min. 6 characters"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="confirmPassword">Confirm New Password</label>
+          <input
+            id="confirmPassword"
+            type="password"
+            formControlName="confirmPassword"
+            class="form-control"
+            [class.is-invalid]="(f['confirmPassword'].touched && f['confirmPassword'].invalid) || (passwordForm.errors?.['mismatch'] && f['confirmPassword'].touched)"
+            placeholder="Re-enter new password"
+          />
+          <div class="error-text" *ngIf="passwordForm.errors?.['mismatch'] && f['confirmPassword'].touched">
+            Passwords do not match.
+          </div>
+        </div>
+
+        <div class="api-success" *ngIf="successMessage()">{{ successMessage() }}</div>
+        <div class="api-error" *ngIf="errorMessage()">{{ errorMessage() }}</div>
+
+        <button type="submit" class="btn btn-primary submit-btn" [disabled]="passwordForm.invalid || isSubmitting()">
+          {{ isSubmitting() ? 'Updating...' : 'Change Password' }}
+        </button>
+      </form>
+    </div>
+
+  </div>
+</div>

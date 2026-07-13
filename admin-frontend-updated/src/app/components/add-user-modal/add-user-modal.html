@@ -1,0 +1,71 @@
+<div class="modal-overlay" (click)="close()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Add New User</h2>
+      <button class="btn-close" (click)="close()">×</button>
+    </div>
+
+    <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
+      <div class="modal-body">
+        <!-- Full Name -->
+        <div class="form-group">
+          <label for="full_name">Full Name</label>
+          <input id="full_name" type="text" formControlName="full_name" class="form-control" [class.is-invalid]="f['full_name'].touched && f['full_name'].invalid">
+        </div>
+
+        <!-- Username (Hidden logically from figma to match UI exactly or keep it if required? Figma just shows Full Name, Email, Role. We will include it so the backend works but design it similarly) -->
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input id="username" type="text" formControlName="username" class="form-control" [class.is-invalid]="f['username'].touched && f['username'].invalid">
+        </div>
+
+        <!-- Email ID -->
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <input id="email" type="email" formControlName="email" class="form-control" [class.is-invalid]="f['email'].touched && f['email'].invalid">
+        </div>
+
+        <!-- Phone No -->
+        <div class="form-group">
+          <label for="phone_number">Phone No</label>
+          <input id="phone_number" type="tel" formControlName="phone_number" class="form-control" placeholder="e.g. +1 555-123-4567" [class.is-invalid]="f['phone_number'].touched && f['phone_number'].invalid">
+          <div class="error-msg" *ngIf="f['phone_number'].touched && f['phone_number'].invalid">
+            Enter a valid phone number (7-20 digits).
+          </div>
+        </div>
+
+        <!-- Role -->
+        <div class="form-group">
+          <label for="role">Role</label>
+          <select id="role" formControlName="role" class="form-control" [class.is-invalid]="f['role'].touched && f['role'].invalid">
+            <option value="" disabled>Select a role</option>
+            <option *ngFor="let r of roles" [value]="r">{{ r }}</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input id="password" type="password" formControlName="password" class="form-control" [class.is-invalid]="f['password'].touched && f['password'].invalid">
+          <div class="error-msg" *ngIf="f['password'].touched && f['password'].errors?.['minlength']">
+            Password must be at least 6 characters.
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="confirm_password">Confirm Password</label>
+          <input id="confirm_password" type="password" formControlName="confirmPassword" class="form-control" [class.is-invalid]="f['confirmPassword'].touched && f['confirmPassword'].invalid">
+        </div>
+
+        <div class="api-error" *ngIf="submitError()">
+          {{ submitError() }}
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" (click)="close()" [disabled]="isSubmitting()">Cancel</button>
+        <button type="submit" class="btn btn-primary" [disabled]="isSubmitting()">Add User</button>
+      </div>
+
+    </form>
+  </div>
+</div>

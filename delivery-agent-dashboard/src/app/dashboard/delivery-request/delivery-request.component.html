@@ -1,0 +1,43 @@
+@if (visible) {
+  <div class="request-overlay">
+    <div class="request-card">
+      <div class="request-header">
+        <mat-icon class="alert-icon">notification_important</mat-icon>
+        <span class="request-title">NEW DELIVERY REQUEST!</span>
+      </div>
+      <div class="request-body">
+        <div class="request-row">
+          <span class="req-label">Delivery ID:</span>
+          <span class="req-value">{{ request.deliveryId }}</span>
+        </div>
+        <div class="request-row">
+          <span class="req-label">Pickup:</span>
+          <span class="req-value">{{ request.pickup }}</span>
+        </div>
+        <div class="request-row">
+          <span class="req-label">Drop-off:</span>
+          <span class="req-value">{{ request.dropoff }}</span>
+        </div>
+        <div class="request-row">
+          <span class="req-label">Total Distance:</span>
+          <span class="req-value">{{ request.totalDistance }}</span>
+        </div>
+        <div class="request-row">
+          <span class="req-label">Earn:</span>
+          <span class="req-value earn">{{ request.earn }}</span>
+        </div>
+      </div>
+      <div class="request-actions">
+        <button class="btn-reject" (click)="reject()">
+          <mat-icon>close</mat-icon>
+          REJECT
+        </button>
+        <button class="btn-accept" (click)="accept()">
+          <mat-icon>check_circle</mat-icon>
+          ACCEPT
+        </button>
+      </div>
+    </div>
+  </div>
+}
+

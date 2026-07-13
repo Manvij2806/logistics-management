@@ -1,0 +1,74 @@
+<div class="login-page-container">
+  
+  <div class="login-card">
+    
+    <!-- Title Section -->
+    <div class="login-header">
+      <h2>Welcome Back</h2>
+      <p>Sign in to your account to continue</p>
+    </div>
+
+    <!-- Login Form -->
+    <form (submit)="onSubmit(); $event.preventDefault()" class="login-form">
+      
+      <!-- Email Address Field -->
+      <div class="form-field">
+        <label for="email">Email Address</label>
+        <div class="input-wrapper">
+          <i class="pi pi-envelope input-icon"></i>
+          <input 
+            type="email" 
+            id="email" 
+            name="email" 
+            placeholder="mj@email.com" 
+            [(ngModel)]="email" 
+            required />
+        </div>
+      </div>
+
+      <!-- Password Field -->
+      <div class="form-field">
+        <label for="password">Password</label>
+        <div class="input-wrapper">
+          <i class="pi pi-lock input-icon"></i>
+          <input 
+            [type]="showPassword ? 'text' : 'password'" 
+            id="password" 
+            name="password" 
+            placeholder="••••••••" 
+            [(ngModel)]="password" 
+            required />
+          <i 
+            [class]="showPassword ? 'pi pi-eye-slash toggle-pw-icon' : 'pi pi-eye toggle-pw-icon'" 
+            (click)="togglePassword()"></i>
+        </div>
+      </div>
+
+      <!-- Remember Me Row -->
+      <div class="remember-me-row">
+        <label class="remember-me-checkbox">
+          <input type="checkbox" name="rememberMe" [(ngModel)]="rememberMe" />
+          <span class="checkbox-box"></span>
+          <span class="checkbox-label">Remember Me</span>
+        </label>
+      </div>
+
+      <!-- Error Message -->
+      @if (errorMessage) {
+        <div class="error-box">
+          <i class="pi pi-exclamation-circle"></i>
+          <span>{{ errorMessage }}</span>
+        </div>
+      }
+
+      <!-- Submit Button -->
+      <button type="submit" class="submit-btn">
+        <i class="pi pi-sign-in btn-icon"></i>
+        <span>Sign In</span>
+      </button>
+
+    </form>
+
+  </div>
+
+</div>

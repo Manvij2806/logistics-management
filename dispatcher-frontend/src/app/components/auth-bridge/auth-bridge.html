@@ -1,0 +1,7 @@
+<div class="bridge-page">
+  <div class="bridge-card">
+    <div class="spinner" *ngIf="!errorMessage()"></div>
+    <p *ngIf="!errorMessage()">Signing you in&hellip;</p>
+    <p class="bridge-error" *ngIf="errorMessage()">{{ errorMessage() }}</p>
+  </div>
+</div>

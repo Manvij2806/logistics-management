@@ -1,0 +1,244 @@
+.shipments-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px;
+}
+
+.view-header {
+  .header-title {
+    h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-color);
+      letter-spacing: -0.5px;
+    }
+    p {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+  }
+}
+
+.filters-bar {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+  background-color: #ffffff;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+
+  .search-box {
+    position: relative;
+    flex-grow: 1;
+    min-width: 250px;
+
+    i {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+    }
+
+    input {
+      padding-left: 40px !important;
+      border-radius: 10px;
+    }
+  }
+
+  ::ng-deep .status-select {
+    min-width: 180px;
+    border-radius: 10px !important;
+  }
+}
+
+::ng-deep .shipments-table {
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  border: 1px solid var(--border-color);
+  background-color: #ffffff;
+
+  .p-datatable-thead > tr > th {
+    background-color: #f8fafc !important;
+    color: var(--text-color) !important;
+    font-weight: 600 !important;
+    font-size: 0.85rem !important;
+    padding: 14px 16px !important;
+  }
+
+  .p-datatable-tbody > tr > td {
+    padding: 14px 16px !important;
+    font-size: 0.85rem !important;
+    color: var(--text-color);
+  }
+}
+
+.tracking-id-cell {
+  cursor: pointer;
+  color: var(--primary-color);
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.route-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  .route-point {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      display: inline-block;
+      
+      &.green { background-color: #10b981; }
+      &.red { background-color: #ef4444; }
+    }
+  }
+}
+
+.driver-name {
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-color);
+}
+
+.unassigned-text {
+  color: #b58900;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #fffbeb;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+}
+
+.eta-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  
+  .eta-time {
+    font-weight: 600;
+    color: var(--text-color);
+  }
+  
+  .distance-left {
+    font-size: 0.75rem;
+    color: var(--primary-color);
+    font-weight: 500;
+  }
+}
+
+.table-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  
+  .assign-btn {
+    padding: 4px 12px !important;
+    font-size: 0.8rem !important;
+  }
+}
+
+.assign-dialog-content {
+  p {
+    font-size: 0.9rem;
+    color: var(--text-color);
+  }
+}
+
+.idle-drivers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+  
+  .driver-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      background-color: #f8fafc;
+      border-color: var(--primary-color);
+      
+      .select-icon {
+        color: var(--primary-color);
+        transform: translateX(2px);
+      }
+    }
+    
+    .driver-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+    }
+    
+    .driver-info {
+      flex-grow: 1;
+      
+      h4 {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--text-color);
+      }
+      
+      span {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+      }
+    }
+    
+    .select-icon {
+      color: var(--text-muted);
+      transition: transform 0.2s ease;
+    }
+  }
+  
+  .no-drivers-warning {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 24px;
+    background-color: #fffbeb;
+    border: 1px solid #fef3c7;
+    border-radius: 10px;
+    color: #b45309;
+    text-align: center;
+    font-size: 0.875rem;
+    
+    i {
+      font-size: 1.5rem;
+    }
+  }
+}

@@ -1,0 +1,82 @@
+<div class="settings-container">
+  <div class="settings-header">
+    <div>
+      <h2 class="page-title">Settings</h2>
+      <p class="page-subtitle">Manage your profile and delivery preferences.</p>
+    </div>
+    <span class="saved-message" *ngIf="savedMessage">{{ savedMessage }}</span>
+  </div>
+
+  <div class="settings-grid">
+    <div class="settings-card">
+      <h3>Profile Settings</h3>
+      <div class="form-group">
+        <label for="fullName">Full Name</label>
+        <input type="text" id="fullName" [(ngModel)]="settings.fullName" class="form-control">
+      </div>
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" [(ngModel)]="settings.email" class="form-control">
+      </div>
+      <div class="form-group">
+        <label for="phone">Phone Number</label>
+        <input type="text" id="phone" [(ngModel)]="settings.phone" class="form-control">
+      </div>
+      <div class="form-group">
+        <label for="vehicleType">Vehicle Type</label>
+        <select id="vehicleType" [(ngModel)]="settings.vehicleType" class="form-control">
+          <option value="Bicycle">Bicycle</option>
+          <option value="Motorcycle">Motorcycle</option>
+          <option value="Car">Car</option>
+          <option value="Van">Van</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="settings-card">
+      <h3>Preferences & Logistics</h3>
+
+      <div class="preference-item">
+        <div class="pref-info">
+          <span class="pref-title">Maximum Delivery Distance</span>
+          <span class="pref-desc">Only receive requests within this range (km).</span>
+        </div>
+        <div class="slider-container">
+          <input type="range" min="5" max="100" [(ngModel)]="settings.maxDistance" class="form-slider">
+          <span class="slider-value">{{ settings.maxDistance }} km</span>
+        </div>
+      </div>
+
+      <mat-divider></mat-divider>
+
+      <div class="preference-item toggle-item">
+        <div class="pref-info">
+          <span class="pref-title">Auto-Accept Requests</span>
+          <span class="pref-desc">Automatically accept orders matching criteria.</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" [(ngModel)]="settings.autoAccept">
+          <span class="slider round"></span>
+        </label>
+      </div>
+
+      <mat-divider></mat-divider>
+
+      <div class="preference-item toggle-item">
+        <div class="pref-info">
+          <span class="pref-title">Sound Notifications</span>
+          <span class="pref-desc">Play alert sounds when new orders arrive.</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" [(ngModel)]="settings.soundNotifications">
+          <span class="slider round"></span>
+        </label>
+      </div>
+
+      <button class="save-btn" (click)="saveSettings()">
+        <mat-icon>save</mat-icon>
+        Save Settings
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,635 @@
+<div class="page-content">
+  <!-- TAB SWITCHER NAVIGATION -->
+  <div class="tabs-navigation">
+    <button class="tab-btn" [class.active]="activeTab() === 'deliveries'" (click)="setTab('deliveries')">
+      <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10M21 16v-4a1 1 0 00-1-1h-3m4 5H17M21 12H17" />
+      </svg>
+      Deliveries
+    </button>
+    <button class="tab-btn" [class.active]="activeTab() === 'workload'" (click)="setTab('workload')">
+      <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z" />
+      </svg>
+      Agent Workload
+    </button>
+  </div>
+
+  <!-- TAB 1: DELIVERIES PORTION -->
+  <div *ngIf="activeTab() === 'deliveries'">
+    
+    <!-- VIEW A: DELIVERIES LIST -->
+    <div *ngIf="currentView() === 'list'">
+      <div class="page-header">
+        <div class="header-text">
+          <h2>Delivery Management</h2>
+          <p>Create delivery orders and search existing shipments</p>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-primary" (click)="openCreateForm()">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            New Delivery
+          </button>
+        </div>
+      </div>
+
+      <div class="user-management-container">
+        <div class="table-toolbar">
+          <div class="search-box">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+            <input
+              type="text"
+              placeholder="Search by tracking number, customer name, status..."
+              [ngModel]="searchQuery()"
+              (ngModelChange)="onSearchChange($event)"
+            />
+          </div>
+          <div class="toolbar-right">
+            <select class="status-select" [ngModel]="statusFilter()" (ngModelChange)="onStatusChange($event)">
+              <option value="">All Statuses</option>
+              <option *ngFor="let s of statuses" [value]="s">{{ s }}</option>
+            </select>
+          </div>
+          <div class="api-error" *ngIf="loadError()">{{ loadError() }}</div>
+        </div>
+
+        <div class="table-container">
+          <div *ngIf="isLoading()" style="padding: 48px; text-align: center; color: var(--text-muted);">
+            Loading deliveries...
+          </div>
+
+          <table class="data-table" *ngIf="!isLoading()">
+            <thead>
+              <tr>
+                <th>Delivery ID</th>
+                <th>Tracking No.</th>
+                <th>Sender</th>
+                <th>Recipient</th>
+                <th>Drop Address</th>
+                <th>Agent</th>
+                <th>Status</th>
+                <th>Created</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="deliveries().length === 0">
+                <td colspan="8" class="empty-cell">No Records Found.</td>
+              </tr>
+              <tr *ngFor="let d of deliveries()" (click)="selectDelivery(d)" class="clickable-row">
+                <td class="cell-id">{{ d.delivery_id }}</td>
+                <td class="cell-tracking">{{ d.tracking_number ?? '—' }}</td>
+                <td>{{ d.sender_name ?? d.customer_name }}</td>
+                <td class="cell-name">{{ d.recipient_name ?? d.customer_name }}</td>
+                <td class="cell-address" title="{{ d.drop_address }}">{{ d.drop_address }}</td>
+                <td>
+                  <span class="agent-name-cell" [class.unassigned-text]="!d.agent || d.agent === 'Unassigned'">
+                    {{ d.agent && d.agent !== 'Unassigned' ? d.agent : 'Unassigned' }}
+                  </span>
+                </td>
+                <td>
+                  <span class="status-text" [ngClass]="getStatusClass(d.status)">{{ d.status }}</span>
+                </td>
+                <td class="cell-date">{{ d.created_at | date:'dd MMM yyyy' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="pagination" *ngIf="!isLoading() && total() > 0">
+          <span class="pagination-info">
+            Showing {{ (page() - 1) * pageSize() + 1 }}–{{ page() * pageSize() > total() ? total() : page() * pageSize() }} of {{ total() }}
+          </span>
+          <div class="pagination-controls">
+            <button class="btn btn-outline" [disabled]="page() <= 1" (click)="goToPage(page() - 1)">Previous</button>
+            <span class="page-number">Page {{ page() }} of {{ totalPages() }}</span>
+            <button class="btn btn-outline" [disabled]="page() >= totalPages()" (click)="goToPage(page() + 1)">Next</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW B: DELIVERY DETAILS VIEW (matches image layout) -->
+    <div *ngIf="currentView() === 'details' && selectedDelivery() as d">
+      <div class="details-header-wrapper">
+        <div class="details-header-left">
+          <button class="btn-back-circle" (click)="showList()">
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+          </button>
+          <div class="details-title-container">
+            <h2>Delivery Details</h2>
+            <div class="breadcrumbs">
+              <span>Deliveries</span> &rsaquo; <span>Assign Delivery Agent</span> &rsaquo; <span class="active-crumb">Delivery Details</span>
+            </div>
+          </div>
+        </div>
+        <div class="details-header-right">
+          <button class="btn btn-select-agent" 
+                  *ngIf="d.status !== 'Delivered' && d.status !== 'Cancelled'" 
+                  (click)="showAssign()">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+            </svg>
+            Select Agent
+          </button>
+        </div>
+      </div>
+
+      <!-- Detail Info Cards Grid -->
+      <div class="details-grid-top">
+        <div class="info-card-mini">
+          <span class="label">Tracking Number</span>
+          <span class="value val-bold">{{ d.tracking_number ?? '—' }}</span>
+        </div>
+        <div class="info-card-mini">
+          <span class="label">Delivery ID</span>
+          <span class="value val-bold">{{ d.delivery_id }}</span>
+        </div>
+        <div class="info-card-mini">
+          <span class="label">Status</span>
+          <span class="value"><span class="status-text" [ngClass]="getStatusClass(d.status)">{{ d.status }}</span></span>
+        </div>
+        <div class="info-card-mini">
+          <span class="label">Created On</span>
+          <span class="value">{{ d.created_at | date:'dd MMM yyyy, hh:mm a' }}</span>
+        </div>
+        <div class="info-card-mini">
+          <span class="label">Priority</span>
+          <span class="value priority-badge" [class.priority-express]="d.priority === 'Express'">{{ d.priority ?? 'Normal' }}</span>
+        </div>
+      </div>
+
+      <div class="details-layout-main">
+        <!-- Left Side Cards -->
+        <div class="details-left-col">
+          <div class="details-row-cards">
+            <!-- Pickup Card -->
+            <div class="info-card-block">
+              <div class="card-title">
+                <span class="blue-dot"></span>
+                Pickup Details
+              </div>
+              <div class="card-content">
+                <div class="info-field">
+                  <span class="field-label">Address</span>
+                  <span class="field-value">{{ d.sender_address ?? d.pickup_address }}</span>
+                </div>
+                <div class="info-row">
+                  <div class="info-field">
+                    <span class="field-label">Contact Person</span>
+                    <span class="field-value">{{ d.sender_name ?? '—' }}</span>
+                  </div>
+                  <div class="info-field">
+                    <span class="field-label">Phone</span>
+                    <span class="field-value">{{ d.sender_phone || d.customer_phone }}</span>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Drop Card -->
+            <div class="info-card-block">
+              <div class="card-title">
+                <span class="green-dot"></span>
+                Drop Details
+              </div>
+              <div class="card-content">
+                <div class="info-field">
+                  <span class="field-label">Address</span>
+                  <span class="field-value">{{ d.recipient_address ?? d.drop_address }}</span>
+                </div>
+                <div class="info-row">
+                  <div class="info-field">
+                    <span class="field-label">Contact Person</span>
+                    <span class="field-value">{{ d.recipient_name ?? d.customer_name }}</span>
+                  </div>
+                  <div class="info-field">
+                    <span class="field-label">Phone</span>
+                    <span class="field-value">{{ d.recipient_phone || d.customer_phone }}</span>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          <div class="details-row-cards">
+            <!-- Package Info Card -->
+            <div class="info-card-block">
+              <div class="card-title">Package Details</div>
+              <div class="card-content">
+                <div class="info-field">
+                  <span class="field-label">Package Info</span>
+                  <span class="field-value">
+                    {{ d.package_description || '—' }}
+                    <span *ngIf="d.package_weight">({{ d.package_weight }})</span>
+                    <span *ngIf="d.package_dimensions"> - {{ d.package_dimensions }}</span>
+                  </span>
+                </div>
+                <div class="info-field">
+                  <span class="field-label">Special Instructions</span>
+                  <span class="field-value italic">{{ d.notes || 'No special instructions.' }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Additional Info Card -->
+            <div class="info-card-block">
+              <div class="card-title">Additional Information</div>
+              <div class="card-content">
+                <div class="info-field">
+                  <span class="field-label">Agent Assigned</span>
+                  <span class="field-value bold" [class.unassigned-text]="!d.agent || d.agent === 'Unassigned'">
+                    {{ d.agent && d.agent !== 'Unassigned' ? d.agent : 'Unassigned' }}
+                  </span>
+                </div>
+                <div class="info-row">
+                  <div class="info-field">
+                    <span class="field-label">Customer Name</span>
+                    <span class="field-value">{{ d.recipient_name ?? d.customer_name }}</span>
+                  </div>
+                  <div class="info-field">
+                    <span class="field-label">Customer Phone</span>
+                    <span class="field-value">{{ d.customer_phone }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Assignment History Card -->
+          <div class="info-card-block full-width-card">
+            <div class="card-title">Assignment History</div>
+            <div class="card-content" style="padding: 0;">
+              <table class="history-table">
+                <thead>
+                  <tr>
+                    <th>Date & Time</th>
+                    <th>Assigned By</th>
+                    <th>Agent</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngIf="assignmentHistory().length === 0">
+                    <td colspan="4" class="empty-cell" style="padding: 24px;">No assignment history recorded.</td>
+                  </tr>
+                  <tr *ngFor="let h of assignmentHistory()">
+                    <td>{{ h.timestamp | date:'dd MMM yyyy, hh:mm a' }}</td>
+                    <td>{{ h.user }}</td>
+                    <td class="bold">{{ h.details.split('"')[1] || 'Agent' }}</td>
+                    <td><span class="badge badge-assigned">Assigned</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Side: Timeline -->
+        <div class="details-right-col">
+          <div class="info-card-block timeline-card">
+            <div class="card-title">Delivery Timeline</div>
+            <div class="card-content">
+              <div class="timeline-container">
+                <div class="timeline-item" [ngClass]="getTimelineStepClass('Created')">
+                  <div class="timeline-indicator">
+                    <div class="timeline-dot"></div>
+                  </div>
+                  <div class="timeline-info">
+                    <h4>Created</h4>
+                    <p>Order registered successfully</p>
+                  </div>
+                </div>
+
+                <div class="timeline-item" [ngClass]="getTimelineStepClass('Assigned')">
+                  <div class="timeline-indicator">
+                    <div class="timeline-dot"></div>
+                  </div>
+                  <div class="timeline-info">
+                    <h4>Assigned</h4>
+                    <p>Delivery agent assigned</p>
+                  </div>
+                </div>
+
+                <div class="timeline-item" [ngClass]="getTimelineStepClass('Picked Up')">
+                  <div class="timeline-indicator">
+                    <div class="timeline-dot"></div>
+                  </div>
+                  <div class="timeline-info">
+                    <h4>Picked Up</h4>
+                    <p>Package picked up from sender</p>
+                  </div>
+                </div>
+
+                <div class="timeline-item" [ngClass]="getTimelineStepClass('In Transit')">
+                  <div class="timeline-indicator">
+                    <div class="timeline-dot"></div>
+                  </div>
+                  <div class="timeline-info">
+                    <h4>In Transit</h4>
+                    <p>Package is on the way</p>
+                  </div>
+                </div>
+
+                <div class="timeline-item" [ngClass]="getTimelineStepClass('Delivered')">
+                  <div class="timeline-indicator">
+                    <div class="timeline-dot"></div>
+                  </div>
+                  <div class="timeline-info">
+                    <h4>Delivered</h4>
+                    <p>Package successfully delivered</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW C: SELECT AGENT FOR ASSIGNMENT -->
+    <div *ngIf="currentView() === 'assign' && selectedDelivery() as d">
+      <div class="details-header-wrapper">
+        <div class="details-header-left">
+          <button class="btn-back-circle" (click)="selectDelivery(d)">
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+          </button>
+          <div class="details-title-container">
+            <h2>Select Delivery Agent</h2>
+            <div class="breadcrumbs">
+              <span>Deliveries</span> &rsaquo; <span>Assign Delivery Agent</span> &rsaquo; <span class="active-crumb">Select Agent</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="user-management-container">
+        <div class="assign-info-box">
+          Assigning agent for order: <span class="bold">{{ d.delivery_id }} ({{ d.tracking_number }})</span>
+          <div class="api-error" *ngIf="assignError()">{{ assignError() }}</div>
+        </div>
+
+        <div class="table-container">
+          <div *ngIf="isLoadingAgents()" style="padding: 48px; text-align: center; color: var(--text-muted);">
+            Loading available agents...
+          </div>
+
+          <table class="data-table" *ngIf="!isLoadingAgents()">
+            <thead>
+              <tr>
+                <th>Agent Name</th>
+                <th>Username</th>
+                <th>Phone</th>
+                <th>Status</th>
+                <th>Active Deliveries</th>
+                <th>Workload Status</th>
+                <th style="text-align: right;">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="agents().length === 0">
+                <td colspan="7" class="empty-cell">No active agents found in the system.</td>
+              </tr>
+              <tr *ngFor="let agent of agents()">
+                <td class="cell-name">{{ agent.fullname }}</td>
+                <td>{{ agent.username }}</td>
+                <td>{{ agent.phone_number || '—' }}</td>
+                <td>
+                  <span class="status-dot-text">
+                    <span class="dot" [class.dot-active]="agent.status === 'Active'" [class.dot-inactive]="agent.status !== 'Active'"></span>
+                    {{ agent.status }}
+                  </span>
+                </td>
+                <td class="bold" style="padding-left: 24px;">{{ agent.active_deliveries ?? 0 }}</td>
+                <td>
+                  <span class="workload-badge" [ngClass]="getAgentWorkloadClass(agent.active_deliveries ?? 0)">
+                    {{ getAgentWorkloadLabel(agent.active_deliveries ?? 0) }}
+                  </span>
+                </td>
+                <td style="text-align: right;">
+                  <button class="btn btn-outline btn-sm btn-assign-action" 
+                          [disabled]="isAssigning() || agent.status !== 'Active'" 
+                          (click)="assignAgent(agent)">
+                    Assign Agent
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- TAB 2: AGENT WORKLOAD PORTION -->
+  <div *ngIf="activeTab() === 'workload'">
+    <div class="page-header">
+      <div class="header-text">
+        <h2>Agent Workload Management</h2>
+        <p>Monitor delivery distribution, workloads, and highlight overloaded agents</p>
+      </div>
+    </div>
+
+    <div class="user-management-container">
+      <div *ngIf="isLoadingAgents()" style="padding: 48px; text-align: center; color: var(--text-muted);">
+        Loading agent workloads...
+      </div>
+
+      <!-- Agent Workload Cards Grid -->
+      <div class="workload-grid" *ngIf="!isLoadingAgents()">
+        <div class="workload-agent-card" *ngFor="let agent of agents()" [class.card-overloaded]="(agent.active_deliveries ?? 0) >= 5">
+          <div class="card-header-flex">
+            <div>
+              <h3>{{ agent.fullname }}</h3>
+              <p class="sub">@{{ agent.username }} &bull; {{ agent.phone_number || 'No Phone' }}</p>
+            </div>
+            <span class="workload-badge" [ngClass]="getAgentWorkloadClass(agent.active_deliveries ?? 0)">
+              {{ getAgentWorkloadLabel(agent.active_deliveries ?? 0) }}
+            </span>
+          </div>
+
+          <div class="workload-stat">
+            <div class="number-block">
+              <span class="num">{{ agent.active_deliveries ?? 0 }}</span>
+              <span class="lbl">Active Deliveries</span>
+            </div>
+            <!-- Visual progress indicator -->
+            <div class="workload-progress-track">
+              <div class="workload-progress-bar" 
+                   [ngClass]="getAgentWorkloadClass(agent.active_deliveries ?? 0)" 
+                   [style.width.%]="Math.min(100, ((agent.active_deliveries ?? 0) / 5) * 100)">
+              </div>
+            </div>
+          </div>
+
+          <div class="card-footer-actions" *ngIf="agent.status === 'Active'">
+            <span class="status-pill status-active-pill">Online & Ready</span>
+          </div>
+          <div class="card-footer-actions" *ngIf="agent.status !== 'Active'">
+            <span class="status-pill status-inactive-pill">Offline / Off-Duty</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CREATE DELIVERY ORDER MODAL (SPrint 1.1) -->
+<div class="modal-overlay" *ngIf="showCreateForm()" (click)="closeCreateForm()">
+  <div class="modal-content large-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Create New Delivery Order</h2>
+      <button class="btn-close" (click)="closeCreateForm()">&times;</button>
+    </div>
+
+    <form [formGroup]="createForm" (ngSubmit)="onCreateSubmit()">
+      <div class="modal-body">
+        <p class="modal-description">Unique tracking number generated automatically. Default status is "Created".</p>
+        
+        <div class="modal-form-grid">
+          <!-- SENDER DETAILS COLUMN -->
+          <div class="form-column-section">
+            <h3>Sender details</h3>
+            
+            <div class="form-group">
+              <label for="sender_name">Sender Name *</label>
+              <input id="sender_name" type="text" formControlName="sender_name" class="form-control" placeholder="Sender Full Name"
+                     [class.is-invalid]="f['sender_name'].touched && f['sender_name'].invalid">
+              <div class="error-msg" *ngIf="f['sender_name'].touched && f['sender_name'].invalid">Sender name is required.</div>
+            </div>
+
+            <div class="form-group">
+              <label for="sender_address">Sender Address *</label>
+              <textarea id="sender_address" formControlName="sender_address" class="form-control text-area-address" placeholder="Pickup Address"
+                        [class.is-invalid]="f['sender_address'].touched && f['sender_address'].invalid"></textarea>
+              <div class="error-msg" *ngIf="f['sender_address'].touched && f['sender_address'].invalid">Sender address is required.</div>
+            </div>
+
+            <div class="form-group">
+              <label for="sender_pincode">Sender Pincode *</label>
+              <input id="sender_pincode" type="text" formControlName="sender_pincode" class="form-control" placeholder="6-digit pincode"
+                     [class.is-invalid]="f['sender_pincode'].touched && f['sender_pincode'].invalid">
+              <div class="error-msg" *ngIf="f['sender_pincode'].touched && f['sender_pincode'].invalid">Enter a valid 6-digit pincode.</div>
+            </div>
+
+            <div class="form-group">
+              <label for="sender_phone">Sender Phone *</label>
+              <input id="sender_phone" type="text" formControlName="sender_phone" class="form-control" placeholder="10-digit phone number"
+                     [class.is-invalid]="f['sender_phone'].touched && f['sender_phone'].invalid">
+              <div class="error-msg" *ngIf="f['sender_phone'].touched && f['sender_phone'].invalid">Sender phone must contain exactly 10 digits.</div>
+            </div>
+          </div>
+
+
+          <!-- RECIPIENT DETAILS COLUMN -->
+          <div class="form-column-section">
+            <h3>Recipient details</h3>
+
+            <div class="form-group">
+              <label for="recipient_name">Recipient Name *</label>
+              <input id="recipient_name" type="text" formControlName="recipient_name" class="form-control" placeholder="Recipient Full Name"
+                     [class.is-invalid]="f['recipient_name'].touched && f['recipient_name'].invalid">
+              <div class="error-msg" *ngIf="f['recipient_name'].touched && f['recipient_name'].invalid">Recipient name is required.</div>
+            </div>
+
+            <div class="form-group">
+              <label for="recipient_address">Recipient Address *</label>
+              <textarea id="recipient_address" formControlName="recipient_address" class="form-control text-area-address" placeholder="Delivery Address"
+                        [class.is-invalid]="f['recipient_address'].touched && f['recipient_address'].invalid"></textarea>
+              <div class="error-msg" *ngIf="f['recipient_address'].touched && f['recipient_address'].invalid">Recipient address is required.</div>
+            </div>
+
+            <div class="form-group">
+              <label for="recipient_pincode">Recipient Pincode *</label>
+              <input id="recipient_pincode" type="text" formControlName="recipient_pincode" class="form-control" placeholder="6-digit pincode"
+                     [class.is-invalid]="f['recipient_pincode'].touched && f['recipient_pincode'].invalid">
+              <div class="error-msg" *ngIf="f['recipient_pincode'].touched && f['recipient_pincode'].invalid">Enter a valid 6-digit pincode.</div>
+            </div>
+
+            <div class="form-group">
+              <label for="recipient_phone">Recipient Phone *</label>
+              <input id="recipient_phone" type="text" formControlName="recipient_phone" class="form-control" placeholder="10-digit phone number"
+                     [class.is-invalid]="f['recipient_phone'].touched && f['recipient_phone'].invalid">
+              <div class="error-msg" *ngIf="f['recipient_phone'].touched && f['recipient_phone'].invalid">Recipient phone must contain exactly 10 digits.</div>
+            </div>
+          </div>
+
+        </div>
+
+        <hr class="form-divider">
+
+        <div class="modal-form-grid">
+          <!-- PACKAGE DETAILS -->
+          <div class="form-column-section">
+            <h3>Package Details</h3>
+
+            <div class="form-group">
+              <label for="package_description">Description (Optional)</label>
+              <input id="package_description" type="text" formControlName="package_description" class="form-control" placeholder="e.g. 2kg parcel, fragile electronics">
+            </div>
+
+            <div class="form-row-2col">
+              <div class="form-group">
+                <label for="package_weight">Weight (Optional)</label>
+                <input id="package_weight" type="text" formControlName="package_weight" class="form-control" placeholder="e.g. 1.5 kg">
+              </div>
+              <div class="form-group">
+                <label for="package_dimensions">Dimensions (Optional)</label>
+                <input id="package_dimensions" type="text" formControlName="package_dimensions" class="form-control" placeholder="e.g. 30x20x10 cm">
+              </div>
+            </div>
+          </div>
+
+          <!-- CUSTOMER CONTACT & ADDITIONAL INFO -->
+          <div class="form-column-section">
+            <h3>Customer Contact & Priority</h3>
+
+            <div class="form-group">
+              <label for="customer_phone">Customer Phone Number *</label>
+              <input id="customer_phone" type="text" formControlName="customer_phone" class="form-control" placeholder="10-digit phone number"
+                     [class.is-invalid]="f['customer_phone'].touched && f['customer_phone'].invalid">
+              <div class="error-msg" *ngIf="f['customer_phone'].touched && f['customer_phone'].invalid">Enter a valid 10-digit phone number.</div>
+            </div>
+
+            <div class="form-row-2col">
+              <div class="form-group">
+                <label for="priority">Priority</label>
+                <select id="priority" formControlName="priority" class="form-control select-control">
+                  <option value="Normal">Normal</option>
+                  <option value="Express">Express</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="notes">Notes / Special Instructions</label>
+              <input id="notes" type="text" formControlName="notes" class="form-control" placeholder="e.g. Handle with care, leave at door">
+            </div>
+          </div>
+        </div>
+
+        <div class="api-error" *ngIf="createError()">{{ createError() }}</div>
+        <div class="api-success" *ngIf="createSuccess()">{{ createSuccess() }}</div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" (click)="closeCreateForm()">Cancel</button>
+        <button type="submit" class="btn btn-primary" [disabled]="isSubmitting()">
+          {{ isSubmitting() ? 'Creating...' : 'Create Order' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

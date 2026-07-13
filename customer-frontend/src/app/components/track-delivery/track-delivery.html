@@ -1,0 +1,209 @@
+<div class="tracking-view-container">
+  
+  <!-- SCREEN 2: SEARCH TRACKING FORM -->
+  @if (!isTracking) {
+    <div class="search-screen-layout">
+      <div class="search-header">
+        <h2>Track Your Delivery</h2>
+        <p>Enter your tracking ID to get real-time updates</p>
+      </div>
+
+      <div class="search-form-card">
+        <label class="form-label">Tracking ID</label>
+        <div class="input-wrapper">
+          <input 
+            type="text" 
+            pInputText 
+            placeholder="e.g. TRK1234567890" 
+            [(ngModel)]="trackingId"
+            (keyup.enter)="trackNow()"
+            class="w-full search-input" />
+          @if (trackingId) {
+            <i class="pi pi-times clear-btn" (click)="clearSearch()"></i>
+          }
+        </div>
+        
+        @if (errorMessage) {
+          <div class="error-msg-box">
+            <i class="pi pi-exclamation-circle"></i>
+            <span>{{ errorMessage }}</span>
+          </div>
+        }
+
+        <p-button 
+          label="Track Now" 
+          styleClass="w-full track-btn" 
+          (onClick)="trackNow()">
+        </p-button>
+      </div>
+
+      <!-- Real-time info card (mockup illustration) -->
+      <div class="real-time-promo-card">
+        <div class="promo-illustration">
+          <div class="map-bg">
+            <div class="map-line"></div>
+            <div class="promo-pin">
+              <i class="pi pi-map-marker"></i>
+            </div>
+            <div class="promo-box">
+              <i class="pi pi-box"></i>
+            </div>
+          </div>
+        </div>
+        <div class="promo-content">
+          <h3>Track in real-time</h3>
+          <p>Get live updates of your package from pickup to delivery.</p>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- SCREEN 3: TRACKING RESULT VIEW (DUAL VIEW) -->
+  @if (isTracking && shipment) {
+    <div class="dual-tracking-layout">
+      
+      <!-- Left Column: Delivery Timeline -->
+      <div class="timeline-left-column">
+        <!-- Back Arrow Navigation -->
+        <div class="timeline-nav-bar">
+          <i class="pi pi-arrow-left back-btn" (click)="goBack()"></i>
+        </div>
+
+        <!-- Title & Subtitle -->
+        <div class="timeline-header">
+          <h2>Delivery Timeline</h2>
+          <span class="tracking-id-text">{{ shipment.id }}</span>
+        </div>
+
+        <!-- Vertical Timeline List -->
+        <div class="timeline-steps-list">
+          @for (step of getTimelineSteps(shipment); track $index; let last = $last) {
+            <div class="timeline-step-row" [class.last-step]="last">
+              <!-- Icon Column with Vertical Line -->
+              <div class="timeline-left-col">
+                <div class="step-circle" [class]="step.colorClass">
+                  <i [class]="step.icon"></i>
+                </div>
+                @if (!last) {
+                  <div class="step-line" [class.completed-line]="step.status === 'completed'"></div>
+                }
+              </div>
+
+              <!-- Content Column -->
+              <div class="timeline-right-col" [class.step-pending]="step.status === 'pending'">
+                <h3 class="step-title">{{ step.title }}</h3>
+                <span class="step-time">{{ step.time }}</span>
+                <p class="step-desc">{{ step.description }}</p>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Right Column: Track Delivery Details Card -->
+      <div class="details-right-column">
+        <div class="result-screen-layout">
+          <!-- Navigation actions -->
+          <div class="result-nav-bar">
+            <p-button icon="pi pi-arrow-left" [rounded]="true" [text]="true" severity="secondary" styleClass="back-arrow-btn" (onClick)="goBack()"></p-button>
+            <p-button icon="pi pi-share-alt" [rounded]="true" [text]="true" severity="secondary" styleClass="share-btn"></p-button>
+          </div>
+
+          <!-- Tracking ID header -->
+          <div class="result-header-row">
+            <span class="result-tracking-id">{{ shipment.id }}</span>
+            <p-tag [value]="shipment.status" [severity]="getSeverity(shipment.status)"></p-tag>
+          </div>
+
+          <!-- Estimated Delivery info -->
+          <div class="result-estimate-section">
+            <span class="estimate-label">Estimated Delivery</span>
+            <h3 class="estimate-time">{{ shipment.eta }}</h3>
+            <span class="estimate-duration" *ngIf="shipment.status !== 'Delivered'">
+              (In {{ shipment.distanceLeft > 0 ? (shipment.distanceLeft / 40 * 60).toFixed(0) : '0' }} mins)
+            </span>
+          </div>
+
+          <!-- Timeline details (Simple 2-dot timeline) -->
+          <div class="result-timeline">
+            <div class="timeline-item">
+              <div class="timeline-dot green"></div>
+              <div class="timeline-text">
+                <h4>{{ shipment.pickupLocation }}</h4>
+                <span>Pickup Location</span>
+              </div>
+              <span class="timeline-date">{{ shipment.timeline[0]?.time || '10:30 AM' }}</span>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot blue"></div>
+              <div class="timeline-text">
+                <h4>{{ shipment.deliveryLocation }}</h4>
+                <span>Delivery Location</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Interactive Leaflet map component -->
+          <div class="result-map-wrapper" style="height: 300px; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; margin: 16px 0; position: relative; z-index: 1;">
+            <div #mapContainer style="width: 100%; height: 100%;"></div>
+          </div>
+
+          <!-- Delivery Agent -->
+          @if (getAssignedDriver(); as driver) {
+            <div class="agent-profile-card">
+              <div class="agent-avatar" [style.background-color]="driver.avatarColor">
+                {{ driver.name.substring(0, 1) }}
+              </div>
+              <div class="agent-info">
+                <h4>{{ driver.name }}</h4>
+                <div class="agent-rating">
+                  <span>{{ driver.rating }}</span>
+                  <i class="pi pi-star-fill text-yellow-500"></i>
+                </div>
+              </div>
+              <div class="agent-actions">
+                <p-button icon="pi pi-phone" [rounded]="true" [outlined]="true" severity="secondary" styleClass="agent-btn" (onClick)="callDriver(driver.name)"></p-button>
+                <p-button icon="pi pi-comments" [rounded]="true" severity="secondary" styleClass="agent-btn" (onClick)="messageDriver(driver.name)"></p-button>
+              </div>
+            </div>
+          }
+
+          <!-- Bottom statistics metrics -->
+          <div class="result-metrics-grid">
+            <div class="metric-block">
+              <div class="metric-icon-wrapper blue">
+                <i class="pi pi-info-circle"></i>
+              </div>
+              <div class="metric-meta">
+                <span class="metric-label">Status</span>
+                <span class="metric-value blue-text">{{ shipment.status }}</span>
+              </div>
+            </div>
+
+            <div class="metric-block">
+              <div class="metric-icon-wrapper orange">
+                <i class="pi pi-clock"></i>
+              </div>
+              <div class="metric-meta">
+                <span class="metric-label">Last Update</span>
+                <span class="metric-value">{{ shipment.timeline[shipment.timeline.length - 1]?.time || '10:30 AM' }}</span>
+              </div>
+            </div>
+
+            <div class="metric-block">
+              <div class="metric-icon-wrapper blue">
+                <i class="pi pi-compass"></i>
+              </div>
+              <div class="metric-meta">
+                <span class="metric-label">Distance Left</span>
+                <span class="metric-value">{{ shipment.status === 'Delivered' ? '0' : shipment.distanceLeft }} km</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  }
+
+</div>

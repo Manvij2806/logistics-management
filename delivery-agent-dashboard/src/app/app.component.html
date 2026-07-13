@@ -1,0 +1,30 @@
+<ng-container *ngIf="!isLoggedIn">
+  <app-login></app-login>
+</ng-container>
+
+<ng-container *ngIf="isLoggedIn">
+  <app-delivery-request></app-delivery-request>
+  <mat-sidenav-container class="sidenav-container" autosize>
+    <mat-sidenav #sidenav mode="side" opened class="sidenav" [class.collapsed]="sidebarCollapsed">
+      <app-sidebar
+        [currentView]="currentView"
+        [isCollapsed]="sidebarCollapsed"
+        (viewChanged)="onViewChanged($event)"
+        (collapseChanged)="onCollapseChanged($event)"
+      ></app-sidebar>
+    </mat-sidenav>
+    <mat-sidenav-content [class.collapsed]="sidebarCollapsed">
+      <app-header [currentView]="currentView"></app-header>
+      <main class="content">
+        <div [ngSwitch]="currentView">
+          <app-dashboard *ngSwitchCase="'dashboard'"></app-dashboard>
+          <div *ngSwitchCase="'past-jobs'" class="view-container">
+            <app-recent-deliveries></app-recent-deliveries>
+          </div>
+          <app-earnings-report *ngSwitchCase="'earnings'"></app-earnings-report>
+          <app-profile *ngSwitchCase="'profile'"></app-profile>
+        </div>
+      </main>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+</ng-container>

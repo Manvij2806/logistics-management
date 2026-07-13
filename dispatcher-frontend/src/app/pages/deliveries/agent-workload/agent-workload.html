@@ -1,0 +1,328 @@
+<div class="agent-workload-page">
+
+  <!-- Page Header -->
+  <div class="page-title-header">
+    <h1>Agent Workload</h1>
+    <p>Overview of all delivery agents and their current workload</p>
+  </div>
+
+  <!-- KPI Row -->
+  <div class="kpi-row">
+    <!-- Card 1: Total Agents -->
+    <div class="kpi-card">
+      <div class="kpi-icon-wrapper blue">
+        <i class="pi pi-users"></i>
+      </div>
+      <div class="kpi-content">
+        <span class="kpi-label">Total Agents</span>
+        <span class="kpi-value">{{ totalAgents }}</span>
+        <span class="kpi-subtext">Active delivery agents</span>
+      </div>
+    </div>
+
+    <!-- Card 2: Available Agents -->
+    <div class="kpi-card">
+      <div class="kpi-icon-wrapper green">
+        <i class="pi pi-user-check"></i>
+      </div>
+      <div class="kpi-content">
+        <span class="kpi-label">Available Agents</span>
+        <span class="kpi-value">{{ availableAgents }}</span>
+        <span class="kpi-subtext">Ready for assignment</span>
+      </div>
+    </div>
+
+    <!-- Card 3: Busy Agents -->
+    <div class="kpi-card">
+      <div class="kpi-icon-wrapper orange">
+        <i class="pi pi-clock"></i>
+      </div>
+      <div class="kpi-content">
+        <span class="kpi-label">Busy Agents</span>
+        <span class="kpi-value">{{ busyAgents }}</span>
+        <span class="kpi-subtext">High workload</span>
+      </div>
+    </div>
+
+    <!-- Card 4: Overloaded Agents -->
+    <div class="kpi-card">
+      <div class="kpi-icon-wrapper red">
+        <i class="pi pi-exclamation-triangle"></i>
+      </div>
+      <div class="kpi-content">
+        <span class="kpi-label">Overloaded Agents</span>
+        <span class="kpi-value text-red">{{ overloadedAgents }}</span>
+        <span class="kpi-subtext">Require attention</span>
+      </div>
+    </div>
+
+    <!-- Card 5: Average Workload Donut -->
+    <div class="kpi-card workload-card">
+      <div class="workload-card-left">
+        <span class="kpi-label">Avg. Workload</span>
+        <span class="kpi-subtext">Across all agents</span>
+      </div>
+      <div class="workload-card-right">
+        <div class="mini-donut-wrapper">
+          <svg viewBox="0 0 36 36" class="mini-donut-svg">
+            <circle class="mini-ring" cx="18" cy="18" r="15.9155" fill="none" stroke="#e2e8f0" stroke-width="3.5"></circle>
+            <circle class="mini-segment" cx="18" cy="18" r="15.9155" fill="none" stroke="#1f57f5" stroke-width="3.5" [attr.stroke-dasharray]="getDonutStrokeDashArray(avgWorkload)" stroke-linecap="round"></circle>
+          </svg>
+          <div class="mini-donut-text">{{ avgWorkload }}%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dashboard Split Content -->
+  <div class="dashboard-split-grid">
+    <!-- Left Column: Table & Filters -->
+    <div class="left-panel-card">
+      <div class="filters-toolbar">
+        <!-- Search Input -->
+        <div class="search-wrapper">
+          <i class="pi pi-search search-icon"></i>
+          <input
+            pInputText
+            [(ngModel)]="searchTerm"
+            placeholder="Search by agent name, phone or zone..."
+            (input)="onFilterChange()"
+          />
+        </div>
+
+        <!-- Filter Dropdowns -->
+        <div class="filter-dropdowns">
+          <p-select
+            [options]="zones"
+            [(ngModel)]="selectedZone"
+            (onChange)="onFilterChange()"
+            class="toolbar-select"
+          ></p-select>
+          <p-select
+            [options]="statuses"
+            [(ngModel)]="selectedStatus"
+            (onChange)="onFilterChange()"
+            class="toolbar-select"
+          ></p-select>
+          <button class="refresh-btn" (click)="refreshWorkload()">
+            <i class="pi pi-refresh" [class.pi-spin]="loading"></i> Refresh
+          </button>
+        </div>
+      </div>
+
+      <!-- Agent Workload Overview Table -->
+      <div class="table-title-header">
+        <h3>Agent Workload Overview</h3>
+      </div>
+
+      <div class="table-container">
+        <div class="loading-overlay" *ngIf="loading">
+          <i class="pi pi-spin pi-spinner"></i>
+          <span>Updating workload data...</span>
+        </div>
+
+        <table class="workload-table" *ngIf="!loading">
+          <thead>
+            <tr>
+              <th>Agent</th>
+              <th>Zone / Area</th>
+              <th>Active Deliveries</th>
+              <th>Capacity</th>
+              <th>Workload</th>
+              <th>Status</th>
+              <th>Est. Next Available</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let agent of paginatedAgents">
+              <!-- Agent column -->
+              <td class="agent-cell">
+                <div class="agent-avatar-wrapper" style="background: transparent; border: none; width: 32px; height: 32px; box-shadow: none;">
+                  <svg viewBox="0 0 100 100" style="width: 100%; height: 100%;">
+                    <!-- Face -->
+                    <circle cx="42" cy="30" r="18" fill="#ffe0bd" />
+                    <!-- Cap dome -->
+                    <path d="M24,30 C24,15 60,15 60,30 Z" [attr.fill]="agent.color" />
+                    <!-- Visor -->
+                    <path d="M42,20 L72,12 C74,11 76,14 74,16 L56,28 Z" [attr.fill]="agent.color" />
+                    <!-- Body/Shoulders -->
+                    <path d="M10,85 C10,50 35,46 56,46 C70,46 80,55 80,85 Z" [attr.fill]="agent.color" />
+                    <!-- Bottom Arm -->
+                    <path d="M10,82 C10,95 85,95 85,82 C85,78 75,78 70,82 Z" fill="#ffe0bd" />
+                    <!-- Box -->
+                    <rect x="55" y="46" width="33" height="33" rx="8" [attr.fill]="agent.boxColor" />
+                    <!-- Stripes -->
+                    <rect x="55" y="54" width="33" height="5" [attr.fill]="agent.boxStripeColor" />
+                    <rect x="55" y="66" width="33" height="5" [attr.fill]="agent.boxStripeColor" />
+                  </svg>
+                </div>
+                <div class="agent-contact">
+                  <span class="agent-name-text">{{ agent.name }}</span>
+                  <span class="agent-phone-text">{{ agent.phone }}</span>
+                </div>
+              </td>
+              <!-- Zone / Area -->
+              <td class="zone-text">{{ agent.zone }}</td>
+              <!-- Active Deliveries -->
+              <td class="bold-text">{{ agent.active }}</td>
+              <!-- Capacity -->
+              <td class="capacity-text">{{ agent.capacity }}</td>
+              <!-- Workload Percentage & Progress Bar -->
+              <td class="workload-progress-cell">
+                <div class="workload-value-group">
+                  <span class="pct-val">{{ getWorkloadPercentage(agent) }}%</span>
+                  <div class="progress-bar-bg">
+                    <div
+                      class="progress-bar-fill"
+                      [style.width.%]="getWorkloadPercentage(agent)"
+                      [ngClass]="agent.status.toLowerCase()"
+                    ></div>
+                  </div>
+                </div>
+              </td>
+              <!-- Status Badge -->
+              <td>
+                <span class="status-badge" [ngClass]="agent.status.toLowerCase()">
+                  {{ agent.status }}
+                </span>
+              </td>
+              <!-- Est. Next Available -->
+              <td class="available-time-text">{{ agent.nextAvailable }}</td>
+              <!-- Actions -->
+              <td>
+                <div class="actions-group">
+                  <button class="reassign-btn" (click)="reassignDeliveries(agent)">Reassign</button>
+                  <button class="route-map-btn" title="View routing track">
+                    <i class="pi pi-map"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Empty State -->
+            <tr *ngIf="filteredAgents.length === 0">
+              <td colspan="8" class="empty-table-cell">
+                <div class="empty-state">
+                  <i class="pi pi-info-circle"></i>
+                  <p>No agent records found matching the filters.</p>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination Footer -->
+      <div class="pagination-bar" *ngIf="!loading && filteredAgents.length > 0">
+        <div class="pagination-info">
+          Showing {{ startIndex }} to {{ endIndex }} of {{ filteredAgents.length }} agents
+        </div>
+        <div class="pagination-controls">
+          <button class="pag-btn prev" [disabled]="currentPage === 1" (click)="prevPage()">
+            <i class="pi pi-chevron-left"></i>
+          </button>
+          <button
+            *ngFor="let page of pagesArray"
+            class="pag-btn page-num"
+            [class.active]="currentPage === page"
+            (click)="setPage(page)"
+          >
+            {{ page }}
+          </button>
+          <button class="pag-btn next" [disabled]="currentPage === totalPages" (click)="nextPage()">
+            <i class="pi pi-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Distribution & Insights -->
+    <div class="right-panel-cards">
+      <!-- Workload Distribution Card -->
+      <div class="panel-card distribution-card">
+        <h3>Workload Distribution</h3>
+        <div class="distribution-grid">
+          <!-- Large Multi-Colored SVG Donut -->
+          <div class="donut-chart-container">
+            <div class="donut-svg-wrapper">
+              <svg viewBox="0 0 36 36" class="large-donut-svg">
+                <!-- Background ring -->
+                <circle class="ring" cx="18" cy="18" r="15.9155" fill="none" stroke="#f1f5f9" stroke-width="4"></circle>
+                <!-- Segment 1: Available -->
+                <circle class="segment segment-available" cx="18" cy="18" r="15.9155" fill="none" stroke="#10b981" stroke-width="4" [attr.stroke-dasharray]="availableDashArray" stroke-dashoffset="0"></circle>
+                <!-- Segment 2: Busy -->
+                <circle class="segment segment-busy" cx="18" cy="18" r="15.9155" fill="none" stroke="#f76707" stroke-width="4" [attr.stroke-dasharray]="busyDashArray" [attr.stroke-dashoffset]="busyDashOffset"></circle>
+                <!-- Segment 3: Overloaded -->
+                <circle class="segment segment-overloaded" cx="18" cy="18" r="15.9155" fill="none" stroke="#ef4444" stroke-width="4" [attr.stroke-dasharray]="overloadedDashArray" [attr.stroke-dashoffset]="overloadedDashOffset"></circle>
+              </svg>
+              <div class="donut-center-content">
+                <span class="donut-total-count">{{ totalAgents }}</span>
+                <span class="donut-total-label">Total Agents</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Legend list -->
+          <div class="legend-list">
+            <div class="legend-item">
+              <span class="color-indicator green"></span>
+              <span class="label">Available ({{ availableAgents }})</span>
+              <span class="percent">{{ availablePercent }}%</span>
+            </div>
+            <div class="legend-item">
+              <span class="color-indicator orange"></span>
+              <span class="label">Busy ({{ busyAgents }})</span>
+              <span class="percent">{{ busyPercent }}%</span>
+            </div>
+            <div class="legend-item">
+              <span class="color-indicator red"></span>
+              <span class="label">Overloaded ({{ overloadedAgents }})</span>
+              <span class="percent">{{ overloadedPercent }}%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Insights Card -->
+      <div class="panel-card insights-card">
+        <h3>Insights</h3>
+        <div class="insights-list">
+          <!-- Insight 1: Overloaded -->
+          <div class="insight-alert-item red-alert">
+            <div class="alert-icon red-icon">
+              <i class="pi pi-exclamation-triangle"></i>
+            </div>
+            <div class="alert-content">
+              <h4 class="alert-title">{{ overloadedAgents }} agents are overloaded</h4>
+              <p class="alert-desc">Consider reassigning deliveries</p>
+            </div>
+          </div>
+
+          <!-- Insight 2: Busy -->
+          <div class="insight-alert-item orange-alert">
+            <div class="alert-icon orange-icon">
+              <i class="pi pi-clock"></i>
+            </div>
+            <div class="alert-content">
+              <h4 class="alert-title">{{ busyAgents }} agents are busy</h4>
+              <p class="alert-desc">Monitor to avoid delays</p>
+            </div>
+          </div>
+
+          <!-- Insight 3: Available -->
+          <div class="insight-alert-item green-alert">
+            <div class="alert-icon green-icon">
+              <i class="pi pi-check-circle"></i>
+            </div>
+            <div class="alert-content">
+              <h4 class="alert-title">{{ availableAgents }} agents are available</h4>
+              <p class="alert-desc">Good capacity for new assignments</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

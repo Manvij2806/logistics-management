@@ -1,0 +1,232 @@
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-color);
+  padding: 24px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--surface-color);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border-light);
+  padding: 32px;
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.login-header h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 8px;
+}
+
+.login-header p {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.login-btn {
+  width: 100%;
+  margin-top: 8px;
+  padding: 12px;
+}
+
+.login-hint {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* Animation Scene in Card Bottom White Space */
+.animation-scene-wrapper {
+  height: 80px;
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  margin-top: 16px;
+  margin-bottom: 8px;
+}
+
+.animation-scene {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+}
+
+/* Cardboard parcel box */
+.parcel-box {
+  width: 26px;
+  height: 26px;
+  background: #d97706;
+  border: 2px solid #b45309;
+  border-radius: 4px;
+  position: absolute;
+  bottom: 18px;
+  left: 140px;
+  z-index: 10;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  animation: parcelJump 3s forwards ease-in-out;
+}
+
+.tape-horizontal {
+  position: absolute;
+  top: 9px;
+  left: 0;
+  width: 100%;
+  height: 7px;
+  background: #78350f;
+  opacity: 0.8;
+}
+
+.shipping-label {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 8px;
+  height: 5px;
+  background: #ffffff;
+  border-radius: 1px;
+}
+
+/* Road Path */
+.road-path {
+  position: absolute;
+  bottom: 12px;
+  left: 0;
+  width: 100%;
+  height: 8px;
+  background: #475569;
+  border-top: 1px solid #64748b;
+  border-bottom: 1px solid #64748b;
+}
+
+.road-dashed-line {
+  position: absolute;
+  top: 3px;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: repeating-linear-gradient(90deg, #cbd5e1, #cbd5e1 6px, transparent 6px, transparent 12px);
+}
+
+/* Delivery Truck */
+.delivery-truck {
+  position: absolute;
+  bottom: 18px;
+  left: -100px;
+  width: 95px;
+  height: 44px;
+  z-index: 20;
+  animation: truckRoute 3s forwards ease-in-out;
+}
+
+.truck-cargo {
+  position: absolute;
+  bottom: 6px;
+  left: 0;
+  width: 62px;
+  height: 32px;
+  background: var(--primary-color);
+  border-radius: 3px;
+  border: 1.5px solid var(--primary-hover);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 800;
+  font-size: 7px;
+  letter-spacing: 0.1px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.door-line {
+  position: absolute;
+  top: 0;
+  right: 5px;
+  width: 1px;
+  height: 100%;
+  background: var(--primary-hover);
+}
+
+.truck-cabin {
+  position: absolute;
+  bottom: 6px;
+  left: 60px;
+  width: 24px;
+  height: 24px;
+  background: #1e3b8b;
+  border: 1.5px solid var(--primary-hover);
+  border-top-right-radius: 6px;
+  border-bottom-right-radius: 2px;
+}
+
+.window {
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  width: 10px;
+  height: 8px;
+  background: #bfdbfe;
+  border-top-right-radius: 3px;
+  border: 1px solid var(--primary-hover);
+}
+
+/* Wheels */
+.wheel {
+  position: absolute;
+  bottom: 0;
+  width: 12px;
+  height: 12px;
+  background: #0f172a;
+  border: 2px solid #94a3b8;
+  border-radius: 50%;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  animation: wheelSpin 3s forwards linear;
+}
+
+.wheel-front {
+  left: 68px;
+}
+
+.wheel-back {
+  left: 12px;
+}
+
+/* KEYFRAMES ANIMATIONS */
+@keyframes truckRoute {
+  0% { left: -100px; }
+  35% { left: 40px; }
+  50% { left: 40px; }
+  55% { left: 37px; }
+  100% { left: 380px; }
+}
+
+@keyframes parcelJump {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  35% { transform: translate(0, 0) scale(1); opacity: 1; }
+  42% { transform: translate(-30px, -24px) scale(0.85); opacity: 1; }
+  48% { transform: translate(-65px, -10px) scale(0.6); opacity: 0.7; }
+  50% { transform: translate(-75px, 0px) scale(0.1); opacity: 0; }
+  100% { transform: translate(-75px, 0px) scale(0.1); opacity: 0; }
+}
+
+@keyframes wheelSpin {
+  0% { transform: rotate(0deg); }
+  35% { transform: rotate(360deg); }
+  50% { transform: rotate(360deg); }
+  100% { transform: rotate(1440deg); }
+}
+
+

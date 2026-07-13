@@ -1,0 +1,125 @@
+.drivers-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px;
+}
+
+.view-header {
+  .header-title {
+    h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-color);
+      letter-spacing: -0.5px;
+    }
+    p {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+  }
+}
+
+.drivers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+::ng-deep .driver-profile-card {
+  .p-card-body {
+    padding: 20px !important;
+  }
+}
+
+.driver-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  
+  .driver-avatar {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 1.25rem;
+  }
+  
+  .driver-meta {
+    flex-grow: 1;
+    overflow: hidden;
+    
+    h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-color);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin: 0;
+    }
+    
+    .driver-id {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+  }
+}
+
+.driver-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+  
+  .body-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+    
+    .row-label {
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      
+      i {
+        font-size: 0.9rem;
+      }
+    }
+    
+    .row-value {
+      font-weight: 600;
+      color: var(--text-color);
+      
+      &.active-shipment {
+        color: var(--primary-color);
+        background-color: var(--status-transit-bg);
+        padding: 2px 8px;
+        border-radius: 6px;
+        font-size: 0.8rem;
+      }
+    }
+  }
+}
+
+.driver-card-footer {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+  border-top: 1px solid var(--border-color);
+  padding-top: 16px;
+  
+  .flex-1 {
+    flex: 1;
+  }
+}

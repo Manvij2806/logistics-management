@@ -1,0 +1,59 @@
+/* Audit Log Badges */
+.category-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.cat-security {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+.cat-status {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.cat-assignment {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.cat-user {
+  background-color: #f5f3ff;
+  color: #6d28d9;
+}
+
+.cell-id {
+  font-weight: 500;
+  color: #374151;
+  white-space: nowrap;
+}
+
+.cell-date {
+  white-space: nowrap;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.cell-user {
+  font-weight: 500;
+  color: #111827;
+}
+
+.cell-action {
+  color: #111827;
+}
+
+.cell-details {
+  color: #4b5563;
+  font-size: 13.5px;
+  max-width: 320px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

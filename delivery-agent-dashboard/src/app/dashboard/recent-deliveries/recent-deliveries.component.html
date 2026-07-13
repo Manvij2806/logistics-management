@@ -1,0 +1,101 @@
+<div class="past-deliveries-section">
+  <div class="section-header">
+    <h3 class="section-title">Past Deliveries</h3>
+  </div>
+
+  <div class="controls-row">
+    <div class="filters-group">
+      <div class="filters">
+        <span class="filter-label">Filter by Status</span>
+        <div class="filter-pills">
+          @for (filter of filters; track filter.value) {
+            <button
+              class="filter-pill"
+              [class.active]="activeFilter === filter.value"
+              (click)="setFilter(filter.value)"
+              [style.backgroundColor]="activeFilter === filter.value ? filter.color + '16' : ''"
+              [style.color]="activeFilter === filter.value ? filter.color : ''"
+              [style.borderColor]="activeFilter === filter.value ? filter.color + '44' : ''"
+            >
+              {{ filter.label }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="date-filter">
+        <span class="filter-label">Filter by Date</span>
+        <div class="date-input-wrapper">
+          <input
+            type="date"
+            [(ngModel)]="selectedDate"
+            (change)="applyFilters()"
+            class="calendar-input"
+          >
+          <button *ngIf="selectedDate" class="clear-date-btn" (click)="clearDateFilter()" title="Clear date filter">
+            <mat-icon>clear</mat-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="search-box">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input type="text" placeholder="Search" [(ngModel)]="searchText" (input)="onLocalSearchChange()">
+      <button *ngIf="searchText" type="button" class="clear-inline-btn" (click)="clearSearch()" aria-label="Clear table search">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <div class="table-container">
+    <table mat-table [dataSource]="dataSource" class="deliveries-table">
+      <ng-container matColumnDef="date">
+        <th mat-header-cell *matHeaderCellDef> Date </th>
+        <td mat-cell *matCellDef="let element"> {{element.date}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="deliveryId">
+        <th mat-header-cell *matHeaderCellDef> Delivery ID </th>
+        <td mat-cell *matCellDef="let element"> {{element.deliveryId}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="trackingNumber">
+        <th mat-header-cell *matHeaderCellDef> Tracking Number </th>
+        <td mat-cell *matCellDef="let element"> {{element.trackingNumber}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="deliveryIdAlt">
+        <th mat-header-cell *matHeaderCellDef> Reference </th>
+        <td mat-cell *matCellDef="let element"> {{element.trackingNumber}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="currentDistance">
+        <th mat-header-cell *matHeaderCellDef> Current Distance </th>
+        <td mat-cell *matCellDef="let element"> {{element.currentDistance}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="earnings">
+        <th mat-header-cell *matHeaderCellDef> Earnings </th>
+        <td mat-cell *matCellDef="let element"> {{element.earnings}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef> Status </th>
+        <td mat-cell *matCellDef="let element">
+          <span class="status-badge" [ngClass]="element.status.toLowerCase()">
+            {{element.status}}
+          </span>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+    <div class="empty-state" *ngIf="dataSource.length === 0">
+      <mat-icon>search_off</mat-icon>
+      <span>No deliveries match your filters.</span>
+      <button type="button" (click)="clearAllFilters()">Reset filters</button>
+    </div>
+  </div>
+</div>

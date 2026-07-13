@@ -1,0 +1,340 @@
+<div class="page-header">
+  <div class="header-text">
+    <h2>Delivery Management</h2>
+    <p>View and manage all deliveries</p>
+  </div>
+  <p-button label="+ Create Delivery" routerLink="/deliveries/create" styleClass="create-btn"></p-button>
+</div>
+
+<p-card>
+  <div class="filters">
+    <div class="search-wrapper">
+      <i class="pi pi-search search-icon"></i>
+      <input
+        type="text"
+        pInputText
+        placeholder="Search by ID, tracking number, address, or agent..."
+        [(ngModel)]="searchTerm"
+        class="search-input"
+      />
+    </div>
+    <div class="dropdown-wrapper">
+      <p-select [options]="statusOptions" optionLabel="label" optionValue="value" [(ngModel)]="selectedStatus" (onChange)="loadDeliveries()" placeholder="All Status" styleClass="w-full"></p-select>
+    </div>
+    <div class="dropdown-wrapper">
+      <p-select [options]="timeOptions" optionLabel="label" optionValue="value" [(ngModel)]="selectedTime" placeholder="All Time" styleClass="w-full"></p-select>
+    </div>
+  </div>
+
+  <p-table [value]="filteredDeliveries" [tableStyle]="{'min-width': '60rem'}">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Delivery ID</th>
+        <th>Tracking Number</th>
+        <th>Pickup Address</th>
+        <th>Drop Address</th>
+        <th>Status</th>
+        <th>Agent</th>
+        <th>Created</th>
+        <th>Actions</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-d>
+      <tr>
+        <td><b>{{d.id}}</b></td>
+        <td><b>{{d.trackingNumber}}</b></td>
+        <td>{{d.pickup}}</td>
+        <td>{{d.drop}}</td>
+        <td>
+          <p-tag [value]="d.status" [severity]="getSeverity(d.status)"></p-tag>
+        </td>
+        <td>{{d.agent}}</td>
+        <td>{{d.created}}</td>
+ <td>
+  <p-button
+    icon="pi pi-eye"
+    [text]="true"
+    (onClick)="router.navigate(['/deliveries', d.dbId, 'details'])"
+  ></p-button>
+  <p-button icon="pi pi-pencil" [text]="true" (onClick)="edit(d)"></p-button>
+  <p-button
+    icon="pi pi-user-plus"
+    [text]="true"
+    (onClick)="router.navigate(['/deliveries', d.dbId, 'details'])"
+[disabled]="d.status === 'Assigned' || d.status === 'Picked Up' || d.status === 'In Transit' || d.status === 'Delivered' || d.status === 'Cancelled'"    title="Assign Agent"
+  ></p-button>
+ </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="8">
+          <div class="empty-state">
+            <i class="pi pi-inbox empty-icon"></i>
+            <span class="empty-title">No Records Found</span>
+            <span class="empty-subtitle">Try adjusting your search or filters</span>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</p-card>
+
+<!-- ═══════════════════════════════════════════════════════════
+     VIEW DELIVERY DIALOG
+     ═══════════════════════════════════════════════════════════ -->
+<p-dialog
+  header="Delivery Details"
+  [(visible)]="showViewDialog"
+  [modal]="true"
+  [style]="{width: '500px'}"
+  [draggable]="false"
+  [resizable]="false">
+
+  <div class="dialog-body" *ngIf="viewedDelivery" style="display: flex; flex-direction: column; gap: 20px;">
+    <div class="section">
+      <h3 class="section-title">General Info</h3>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div><b>Delivery ID:</b> {{viewedDelivery.id}}</div>
+        <div><b>Tracking #:</b> {{viewedDelivery.trackingNumber}}</div>
+        <div><b>Created At:</b> {{viewedDelivery.created}}</div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <b>Status:</b>
+          <p-tag [value]="viewedDelivery.status" [severity]="getSeverity(viewedDelivery.status)"></p-tag>
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <h3 class="section-title">Addresses</h3>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div><b>Pickup Address:</b> {{viewedDelivery.pickup}}</div>
+        <div><b>Drop Address:</b> {{viewedDelivery.drop}}</div>
+      </div>
+    </div>
+    <div class="section">
+      <h3 class="section-title">Customer Info</h3>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div><b>Name:</b> {{viewedDelivery.customerName}}</div>
+        <div><b>Phone:</b> {{viewedDelivery.customerPhone}}</div>
+      </div>
+    </div>
+    <div class="section">
+      <h3 class="section-title">Package Details</h3>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div><b>Description:</b> {{viewedDelivery.packageDetails || '—'}}</div>
+      </div>
+    </div>
+    <div class="section">
+      <h3 class="section-title">Assignment & Notes</h3>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div><b>Agent:</b> {{viewedDelivery.agent}}</div>
+        <div><b>Notes:</b> {{viewedDelivery.notes || 'Notes are empty'}}</div>
+      </div>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <p-button label="Close" [outlined]="true" (onClick)="showViewDialog = false" styleClass="close-btn"></p-button>
+  </ng-template>
+</p-dialog>
+
+<!-- ═══════════════════════════════════════════════════════════
+     EDIT / VIEW-ONLY DELIVERY DIALOG
+     ═══════════════════════════════════════════════════════════ -->
+<p-dialog
+  [header]="isReadOnly ? 'Delivery Details (Read Only)' : 'Edit Delivery'"
+  [(visible)]="showEditDialog"
+  [modal]="true"
+  [style]="{width: '600px'}"
+  [draggable]="false"
+  [resizable]="false">
+
+  <div class="dialog-body">
+
+    <!-- ── Read-Only Banner ──────────────────────────────────────────── -->
+    <div class="readonly-banner" *ngIf="isReadOnly">
+      <i class="pi pi-lock"></i>
+      <div>
+        <strong>Editing is not allowed</strong>
+        <p>This delivery is currently <b>{{editDelivery.status}}</b>. Once processing has started, shipment details become read-only.</p>
+      </div>
+    </div>
+
+    <!-- Delivery Addresses -->
+    <div class="section">
+      <h3 class="section-title">Delivery Addresses</h3>
+      <div class="field-row">
+        <div class="field address-field">
+          <label>Pickup Address <span class="required" *ngIf="!isReadOnly">*</span></label>
+          <input
+            type="text"
+            pInputText
+            [(ngModel)]="editDelivery.pickupAddress"
+            placeholder="Enter Street Address"
+            class="w-full"
+            [readonly]="isReadOnly"
+            [class.input-error]="editFormErrors.pickupAddress"
+            [class.readonly-input]="isReadOnly"
+          />
+          <small class="error-msg" *ngIf="editFormErrors.pickupAddress">{{editFormErrors.pickupAddress}}</small>
+        </div>
+        <div class="field pincode-field">
+          <label>Pincode <span class="required" *ngIf="!isReadOnly">*</span></label>
+          <input
+            type="text"
+            pInputText
+            [(ngModel)]="editDelivery.pickupPincode"
+            placeholder="Enter PIN Code"
+            class="w-full"
+            maxlength="6"
+            [readonly]="isReadOnly"
+            [class.input-error]="editFormErrors.pickupPincode"
+            [class.readonly-input]="isReadOnly"
+          />
+          <small class="error-msg" *ngIf="editFormErrors.pickupPincode">{{editFormErrors.pickupPincode}}</small>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field address-field">
+          <label>Drop Address <span class="required" *ngIf="!isReadOnly">*</span></label>
+          <input
+            type="text"
+            pInputText
+            [(ngModel)]="editDelivery.dropAddress"
+            placeholder="Enter Street Address"
+            class="w-full"
+            [readonly]="isReadOnly"
+            [class.input-error]="editFormErrors.dropAddress"
+            [class.readonly-input]="isReadOnly"
+          />
+          <small class="error-msg" *ngIf="editFormErrors.dropAddress">{{editFormErrors.dropAddress}}</small>
+        </div>
+        <div class="field pincode-field">
+          <label>Pincode <span class="required" *ngIf="!isReadOnly">*</span></label>
+          <input
+            type="text"
+            pInputText
+            [(ngModel)]="editDelivery.dropPincode"
+            placeholder="Enter PIN Code"
+            class="w-full"
+            maxlength="6"
+            [readonly]="isReadOnly"
+            [class.input-error]="editFormErrors.dropPincode"
+            [class.readonly-input]="isReadOnly"
+          />
+          <small class="error-msg" *ngIf="editFormErrors.dropPincode">{{editFormErrors.dropPincode}}</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Customer Information -->
+    <div class="section">
+      <h3 class="section-title">Customer Information</h3>
+      <div class="field-row">
+        <div class="field">
+          <label>Customer Name <span class="required" *ngIf="!isReadOnly">*</span></label>
+          <input
+            type="text"
+            pInputText
+            [(ngModel)]="editDelivery.customerName"
+            placeholder="Enter Name"
+            class="w-full"
+            [readonly]="isReadOnly"
+            [class.input-error]="editFormErrors.customerName"
+            [class.readonly-input]="isReadOnly"
+          />
+          <small class="error-msg" *ngIf="editFormErrors.customerName">{{editFormErrors.customerName}}</small>
+        </div>
+        <div class="field">
+          <label>Customer Phone <span class="required" *ngIf="!isReadOnly">*</span></label>
+          <input
+            type="text"
+            pInputText
+            [(ngModel)]="editDelivery.customerPhone"
+            placeholder="+91 "
+            class="w-full"
+            maxlength="10"
+            [readonly]="isReadOnly"
+            [class.input-error]="editFormErrors.customerPhone"
+            [class.readonly-input]="isReadOnly"
+          />
+          <small class="error-msg" *ngIf="editFormErrors.customerPhone">{{editFormErrors.customerPhone}}</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Package Details -->
+    <div class="section">
+      <h3 class="section-title">Package Details</h3>
+      <div class="field">
+        <label>Description (Optional)</label>
+        <input
+          type="text"
+          pInputText
+          [(ngModel)]="editDelivery.packageDetails"
+          placeholder="e.g. 2kg parcel, fragile electronics"
+          class="w-full"
+          [readonly]="isReadOnly"
+          [class.readonly-input]="isReadOnly"
+        />
+      </div>
+    </div>
+
+    <!-- Status, Assignment & Notes -->
+    <div class="section">
+      <h3 class="section-title">Status, Assignment & Notes</h3>
+      <div class="field-row">
+        <div class="field">
+          <label>Status <span class="required" *ngIf="!isReadOnly">*</span></label>
+          <p-select
+            [options]="statusOptions.slice(1)"
+            optionLabel="label"
+            optionValue="value"
+            [(ngModel)]="editDelivery.status"
+            placeholder="Select Status"
+            styleClass="w-full"
+            [disabled]="isReadOnly">
+          </p-select>
+        </div>
+        <div class="field">
+          <label>Assign Agent</label>
+          <p-select
+            [options]="agentOptions"
+            optionLabel="label"
+            optionValue="value"
+            [(ngModel)]="editDelivery.agent"
+            placeholder="Select Agent"
+            styleClass="w-full"
+            [disabled]="isReadOnly">
+          </p-select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Notes (Optional)</label>
+        <textarea
+          pTextarea
+          [(ngModel)]="editDelivery.notes"
+          placeholder="Please take the required delivery."
+          rows="4"
+          class="w-full"
+          [readonly]="isReadOnly"
+          [class.readonly-input]="isReadOnly">
+        </textarea>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Footer: hide Save button when read-only -->
+  <ng-template pTemplate="footer">
+    <p-button label="Close" [outlined]="true" (onClick)="cancelEdit()" styleClass="cancel-btn"></p-button>
+    <p-button
+      *ngIf="!isReadOnly"
+      label="Save Changes"
+      (onClick)="updateDelivery()"
+      styleClass="create-btn">
+    </p-button>
+  </ng-template>
+
+</p-dialog>

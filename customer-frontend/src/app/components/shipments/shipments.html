@@ -1,0 +1,108 @@
+<div class="shipments-container">
+  <div class="view-header">
+    <div class="header-title">
+      <h2>Active Shipments</h2>
+      <p>View your active orders, tracking status, and complete payment on delivery</p>
+    </div>
+  </div>
+
+  <!-- Filters Row -->
+  <div class="filters-bar">
+    <div class="search-box">
+      <i class="pi pi-search"></i>
+      <input 
+        type="text" 
+        pInputText 
+        placeholder="Search by ID, route, agent..." 
+        [(ngModel)]="searchText"
+        (input)="onSearchChange()"
+        class="w-full" />
+    </div>
+
+    <p-select 
+      [options]="statusOptions" 
+      [(ngModel)]="selectedStatus" 
+      optionLabel="label" 
+      optionValue="value" 
+      (onChange)="onStatusChange()"
+      styleClass="status-select">
+    </p-select>
+  </div>
+
+  <!-- Shipments Table -->
+  <p-table 
+    [value]="filteredShipments" 
+    [paginator]="true" 
+    [rows]="8" 
+    [tableStyle]="{ 'min-width': '50rem' }"
+    styleClass="p-datatable-striped p-datatable-gridlines shipments-table">
+    <ng-template pTemplate="header">
+      <tr>
+        <th pSortableColumn="delivery_id">Tracking ID <p-sortIcon field="delivery_id"></p-sortIcon></th>
+        <th>Route</th>
+        <th pSortableColumn="status">Status <p-sortIcon field="status"></p-sortIcon></th>
+        <th pSortableColumn="payment_status">Payment <p-sortIcon field="payment_status"></p-sortIcon></th>
+        <th>Agent</th>
+        <th pSortableColumn="created_at">Created <p-sortIcon field="created_at"></p-sortIcon></th>
+        <th style="width: 8rem">Actions</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-shipment>
+      <tr>
+        <td class="font-semibold tracking-id-cell" (click)="openDetails(shipment)">
+          {{ shipment.delivery_id }}
+        </td>
+        <td class="route-cell">
+          <div class="route-point"><span class="dot green"></span>{{ shipment.pickup_address }}</div>
+          <div class="route-point"><span class="dot red"></span>{{ shipment.drop_address }}</div>
+        </td>
+        <td>
+          <p-tag [value]="shipment.status" [severity]="getSeverity(shipment.status)"></p-tag>
+        </td>
+        <td>
+          <p-tag [value]="shipment.payment_status || 'Unpaid'" [severity]="getPaymentSeverity(shipment.payment_status)"></p-tag>
+          <span style="font-size: 0.75rem; margin-left: 6px; color: var(--text-muted);" *ngIf="shipment.payment_method">
+            ({{ shipment.payment_method }})
+          </span>
+        </td>
+        <td>
+          @if (shipment.agent) {
+            <span class="driver-name"><i class="pi pi-user"></i> {{ shipment.agent }}</span>
+          } @else {
+            <span class="unassigned-text"><i class="pi pi-exclamation-triangle"></i> Unassigned</span>
+          }
+        </td>
+        <td>
+          {{ shipment.created_at | date: 'short' }}
+        </td>
+        <td>
+          <div class="table-actions">
+            <p-button 
+              icon="pi pi-eye" 
+              [rounded]="true" 
+              [text]="true" 
+              size="small" 
+              title="View Details"
+              (onClick)="openDetails(shipment)">
+            </p-button>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="7" class="text-center p-5 text-gray-500">
+          No shipments found matching the filters.
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+
+  <!-- Shipment Details Dialog/Drawer -->
+  <app-shipment-details 
+    [shipment]="selectedShipmentForDetails" 
+    [visible]="detailsVisible" 
+    (close)="detailsVisible = false">
+  </app-shipment-details>
+</div>
+

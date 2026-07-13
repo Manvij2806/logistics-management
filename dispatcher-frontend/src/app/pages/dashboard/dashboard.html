@@ -1,0 +1,127 @@
+<div class="dashboard-page">
+
+  <!-- Welcome / Page Header -->
+  <div class="page-title-header">
+    <div class="header-left">
+      <h1>Dashboard Overview</h1>
+      <p>Live summary of logistics, delivery statuses, and agent workloads.</p>
+    </div>
+    <div class="header-right">
+      <button class="refresh-btn" (click)="refreshStats()" [disabled]="isLoading()">
+        <i class="pi pi-refresh" [class.pi-spin]="isLoading()"></i> Refresh Live Stats
+      </button>
+    </div>
+  </div>
+
+  <!-- KPI Cards Grid -->
+  <div class="kpi-row">
+    <!-- Card 1: Total Deliveries -->
+    <div class="kpi-card">
+      <div class="kpi-icon-wrapper blue">
+        <i class="pi pi-box"></i>
+      </div>
+      <div class="kpi-content">
+        <span class="kpi-label">Total Deliveries</span>
+        <span class="kpi-value">{{ stats()?.total_deliveries ?? 0 }}</span>
+        <span class="kpi-subtext">All registered orders</span>
+      </div>
+    </div>
+
+    <!-- Card 2: Active Deliveries -->
+    <div class="kpi-card">
+      <div class="kpi-icon-wrapper info">
+        <i class="pi pi-truck"></i>
+      </div>
+      <div class="kpi-content">
+        <span class="kpi-label">Active Deliveries</span>
+        <span class="kpi-value text-blue">{{ stats()?.active_deliveries ?? 0 }}</span>
+        <span class="kpi-subtext">In transit or assigned</span>
+      </div>
+    </div>
+
+    <!-- Card 3: Total Agents -->
+    <div class="kpi-card">
+      <div class="kpi-icon-wrapper green">
+        <i class="pi pi-users"></i>
+      </div>
+      <div class="kpi-content">
+        <span class="kpi-label">Total Agents</span>
+        <span class="kpi-value">{{ stats()?.total_agents ?? 0 }}</span>
+        <span class="kpi-subtext">Registered delivery agents</span>
+      </div>
+    </div>
+
+    <!-- Card 4: Active Agents -->
+    <div class="kpi-card">
+      <div class="kpi-icon-wrapper orange">
+        <i class="pi pi-user-check"></i>
+      </div>
+      <div class="kpi-content">
+        <span class="kpi-label">Active Agents</span>
+        <span class="kpi-value text-orange">{{ stats()?.active_agents ?? 0 }}</span>
+        <span class="kpi-subtext">Currently online agents</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dashboard Action Shortcuts -->
+  <div class="dashboard-split-grid">
+    <!-- Quick Actions Panel -->
+    <div class="panel-card actions-card">
+      <h3>Quick Dispatcher Actions</h3>
+      <div class="actions-grid">
+        <div class="action-item" (click)="router.navigate(['/deliveries/create'])">
+          <div class="action-icon blue">
+            <i class="pi pi-plus-circle"></i>
+          </div>
+          <div class="action-details">
+            <h4>Create Delivery</h4>
+            <p>Initiate a new shipment order</p>
+          </div>
+        </div>
+
+        <div class="action-item" (click)="router.navigate(['/deliveries'])">
+          <div class="action-icon info">
+            <i class="pi pi-file"></i>
+          </div>
+          <div class="action-details">
+            <h4>Manage Deliveries</h4>
+            <p>Assign agents and track statuses</p>
+          </div>
+        </div>
+
+        <div class="action-item" (click)="router.navigate(['/agent-workload'])">
+          <div class="action-icon orange">
+            <i class="pi pi-chart-bar"></i>
+          </div>
+          <div class="action-details">
+            <h4>Agent Workloads</h4>
+            <p>Review and balance active tasks</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Help & Operations Card -->
+    <div class="panel-card operations-card">
+      <h3>System Operations</h3>
+      <div class="operations-list">
+        <div class="op-item">
+          <i class="pi pi-info-circle op-icon"></i>
+          <div class="op-content">
+            <h4>Live Updates Active</h4>
+            <p>Dispatcher stats are automatically synced with the main logistics backend.</p>
+          </div>
+        </div>
+        <div class="op-item">
+          <i class="pi pi-shield op-icon text-green"></i>
+          <div class="op-content">
+            <h4>Secure Portal Bridge</h4>
+            <p>Authentication token is bridged from port 4200. Logout will safely return you.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

@@ -1,0 +1,147 @@
+/* Active Orders Badge */
+.active-count-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.active-count-badge.has-active {
+  background-color: #ecfdf5;
+  color: #047857;
+  font-weight: 600;
+}
+
+/* Total orders badge */
+.total-count-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  background-color: #f0fdfa;
+  color: #0f766e;
+}
+
+/* Table styling */
+.cell-name.bold {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.cell-phone,
+.cell-date {
+  color: var(--text-secondary);
+}
+
+/* Drawer layout styles overlaying on the right */
+.drawer-content {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 480px;
+  max-width: 100%;
+  height: 100%;
+  border-radius: 0;
+  animation: slideIn 0.3s ease-out;
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* Jobs details list inside modal */
+.jobs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 8px 0;
+}
+
+.job-card {
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  background-color: #fafbfc;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.job-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  border-bottom: 1px dashed var(--border-light);
+  padding-bottom: 8px;
+}
+
+.job-id {
+  font-weight: 700;
+  color: var(--text-primary);
+  font-size: 15px;
+}
+
+/* Delivery status badge map styles */
+.delivery-status {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.status-delivered    { background: #d1fae5; color: #065f46; }
+.status-in-transit   { background: #dbeafe; color: #1e40af; }
+.status-picked-up    { background: #e0e7ff; color: #3730a3; }
+.status-assigned     { background: #fef3c7; color: #92400e; }
+.status-pending      { background: #f3f4f6; color: #374151; }
+.status-cancelled    { background: #fee2e2; color: #991b1b; }
+.status-unassigned   { background: #f3f4f6; color: #6b7280; }
+
+.job-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.job-detail {
+  display: flex;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.job-detail .label {
+  width: 120px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.job-detail .value {
+  color: var(--text-primary);
+}
+
+.job-detail .value.address-val {
+  font-weight: 500;
+}
+
+.job-detail .value.notes-val {
+  font-style: italic;
+  color: var(--text-secondary);
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 12px;
+}

@@ -1,0 +1,135 @@
+<div class="page-content">
+  <div class="page-header">
+    <div class="header-text">
+      <h2>Agents & Workloads</h2>
+      <p>Monitor agent availability, workloads, and real-time delivery performance</p>
+    </div>
+  </div>
+
+  <div class="user-management-container">
+    <div class="table-toolbar">
+      <div class="search-box">
+        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        </svg>
+        <input
+          type="text"
+          placeholder="Search by agent name, email, phone..."
+          [ngModel]="searchQuery()"
+          (ngModelChange)="searchQuery.set($event)"
+        />
+      </div>
+      <div class="api-error" *ngIf="loadError()">{{ loadError() }}</div>
+    </div>
+
+    <div class="table-container">
+      <div *ngIf="isLoading()" style="padding: 48px; text-align: center; color: var(--text-muted);">
+        Loading agents and workloads...
+      </div>
+
+      <table class="data-table" *ngIf="!isLoading()">
+        <thead>
+          <tr>
+            <th>Agent Name</th>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Phone No</th>
+            <th>Availability</th>
+            <th>Active Workload</th>
+            <th>Total Earnings</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="filteredAgents().length === 0">
+            <td colspan="7" class="empty-cell">No agents found.</td>
+          </tr>
+          <tr *ngFor="let agent of filteredAgents()">
+            <td class="cell-name bold">{{ agent.fullname }}</td>
+            <td class="cell-username">{{ agent.username }}</td>
+            <td class="cell-email">{{ agent.email }}</td>
+            <td class="cell-phone">{{ agent.phone_number ?? '—' }}</td>
+            <td>
+              <span class="status-badge" [ngClass]="getStatusClass(agent.status)">
+                {{ agent.status }}
+              </span>
+            </td>
+            <td>
+              <span class="workload-badge" 
+                    [class.high-workload]="(agent.active_deliveries ?? 0) > 5"
+                    [class.busy-workload]="(agent.active_deliveries ?? 0) > 2 && (agent.active_deliveries ?? 0) <= 5">
+                {{ agent.active_deliveries ?? 0 }} active jobs
+                <span class="workload-status-label" style="font-size: 10px; font-weight: 700; margin-left: 4px; text-transform: uppercase;">
+                  ({{ (agent.active_deliveries ?? 0) > 5 ? 'Overloaded' : (agent.active_deliveries ?? 0) > 2 ? 'Busy' : 'Available' }})
+                </span>
+              </span>
+            </td>
+            <td class="bold">
+              ₹{{ getAgentEarnings(agent.fullname) | number }}
+            </td>
+            <td>
+              <button 
+                class="btn btn-outline btn-sm" 
+                [disabled]="(agent.active_deliveries ?? 0) === 0"
+                (click)="viewAgentDetails(agent)"
+              >
+                View Jobs
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Drawer for Agent's Active Jobs -->
+<div class="modal-overlay" *ngIf="showAgentDeliveries()" (click)="closeDetails()">
+  <div class="modal-content drawer-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <h2>Active Jobs: {{ selectedAgent()?.fullname }}</h2>
+        <p style="color: var(--text-muted); font-size: 13px; margin: 4px 0 0 0;">
+          {{ selectedAgent()?.email }} | {{ selectedAgent()?.phone_number ?? 'No contact' }}
+        </p>
+      </div>
+      <button class="btn-close" (click)="closeDetails()">×</button>
+    </div>
+    
+    <div class="modal-body">
+      <div class="jobs-list">
+        <div class="job-card" *ngFor="let d of getAgentActiveDeliveries(selectedAgent()!.fullname)">
+          <div class="job-card-header">
+            <span class="job-id">{{ d.delivery_id }}</span>
+            <span class="delivery-status" [ngClass]="getDeliveryStatusClass(d.status)">
+              {{ d.status }}
+            </span>
+          </div>
+          <div class="job-card-body">
+            <div class="job-detail">
+              <span class="label">Customer:</span>
+              <span class="value">{{ d.customer_name }} ({{ d.customer_phone }})</span>
+            </div>
+            <div class="job-detail">
+              <span class="label">Pickup Address:</span>
+              <span class="value address-val">{{ d.pickup_address }}</span>
+            </div>
+            <div class="job-detail">
+              <span class="label">Drop Address:</span>
+              <span class="value address-val">{{ d.drop_address }}</span>
+            </div>
+            <div class="job-detail" *ngIf="d.notes">
+              <span class="label">Notes:</span>
+              <span class="value notes-val">{{ d.notes }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+      <button class="btn btn-outline" (click)="closeDetails()">Close</button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,101 @@
+<div class="profile-container">
+  <div class="profile-grid">
+    
+    <!-- Left Column: Personal Information Card -->
+    <mat-card class="profile-card info-card">
+      <mat-card-header>
+        <div mat-card-avatar class="avatar-circle">
+          <mat-icon class="avatar-icon">person</mat-icon>
+        </div>
+        <mat-card-title class="card-title">Personal Profile</mat-card-title>
+        <mat-card-subtitle class="card-subtitle">Your account information</mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content class="info-list">
+        <div class="info-item">
+          <label>Full Name</label>
+          <span class="info-value">{{ currentUser()?.full_name || 'N/A' }}</span>
+        </div>
+
+        <div class="info-item">
+          <label>Username</label>
+          <span class="info-value">{{ currentUser()?.username || 'N/A' }}</span>
+        </div>
+
+        <div class="info-item">
+          <label>Email Address</label>
+          <span class="info-value">{{ currentUser()?.email || 'N/A' }}</span>
+        </div>
+
+        <div class="info-item">
+          <label>Phone Number</label>
+          <span class="info-value">{{ currentUser()?.phone_number || 'Not Provided' }}</span>
+        </div>
+
+        <div class="info-item">
+          <label>Role</label>
+          <span class="badge role-badge">{{ currentUser()?.role || 'N/A' }}</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Right Column: Reset Password Card -->
+    <mat-card class="profile-card form-card">
+      <mat-card-header>
+        <mat-card-title class="card-title">Change Password</mat-card-title>
+        <mat-card-subtitle class="card-subtitle">Update your credentials securely</mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <form [formGroup]="passwordForm" (ngSubmit)="onSubmit()" class="password-form">
+          <div class="form-group">
+            <label for="oldPassword">Current Password</label>
+            <input
+              id="oldPassword"
+              type="password"
+              formControlName="oldPassword"
+              class="form-control"
+              [class.is-invalid]="f['oldPassword'].touched && f['oldPassword'].invalid"
+              placeholder="Enter current password"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="newPassword">New Password</label>
+            <input
+              id="newPassword"
+              type="password"
+              formControlName="newPassword"
+              class="form-control"
+              [class.is-invalid]="f['newPassword'].touched && f['newPassword'].invalid"
+              placeholder="Min. 6 characters"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="confirmPassword">Confirm New Password</label>
+            <input
+              id="confirmPassword"
+              type="password"
+              formControlName="confirmPassword"
+              class="form-control"
+              [class.is-invalid]="(f['confirmPassword'].touched && f['confirmPassword'].invalid) || (passwordForm.errors?.['mismatch'] && f['confirmPassword'].touched)"
+              placeholder="Re-enter new password"
+            />
+            <div class="error-text" *ngIf="passwordForm.errors?.['mismatch'] && f['confirmPassword'].touched">
+              Passwords do not match.
+            </div>
+          </div>
+
+          <div class="api-success" *ngIf="successMessage()">{{ successMessage() }}</div>
+          <div class="api-error" *ngIf="errorMessage()">{{ errorMessage() }}</div>
+
+          <button mat-flat-button color="primary" type="submit" class="submit-btn" [disabled]="passwordForm.invalid || isSubmitting()">
+            {{ isSubmitting() ? 'Updating...' : 'Change Password' }}
+          </button>
+        </form>
+      </mat-card-content>
+    </mat-card>
+
+  </div>
+</div>

@@ -1,0 +1,104 @@
+<div class="page-content">
+  <div class="page-header">
+    <div class="header-text">
+      <h2>User Management</h2>
+      <p>View and manage all users</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-primary" (click)="openModal()">
+        + Add User
+      </button>
+    </div>
+  </div>
+
+  <div class="user-management-container">
+  <div class="table-toolbar">
+    <div class="search-box">
+      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+      <input type="text" placeholder="Search by name, email, phone, or role..." [ngModel]="searchQuery()" (ngModelChange)="onSearchChange($event)">
+    </div>
+    <div class="api-error" *ngIf="actionError()">{{ actionError() }}</div>
+  </div>
+
+  <div class="table-container">
+    <div class="loading-state" *ngIf="isLoading()" style="padding: 32px; text-align: center; color: var(--text-muted);">
+      Loading users...
+    </div>
+
+    <table class="data-table" *ngIf="!isLoading()">
+      <thead>
+        <tr>
+          <th class="sortable" (click)="toggleSort('fullname')">Name{{ sortIndicator('fullname') }}</th>
+          <th class="sortable" (click)="toggleSort('email')">Email{{ sortIndicator('email') }}</th>
+          <th class="sortable" (click)="toggleSort('phone_number')">Phone No{{ sortIndicator('phone_number') }}</th>
+          <th class="sortable" >Role</th>
+          <th class="sortable" (click)="toggleSort('status')">Status{{ sortIndicator('status') }}</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="users().length === 0">
+          <td colspan="6" class="empty-cell">No users found.</td>
+        </tr>
+        <tr *ngFor="let user of users()">
+          <td class="cell-name">{{ user.full_name }}</td>
+          <td class="cell-email">{{ user.email }}</td>
+          <td class="cell-phone">{{ user.phone_number || '—' }}</td>
+          <td>
+            <span class="role-text" [ngClass]="'role-' + user.role.toLowerCase()">
+              {{ user.role }}
+            </span>
+          </td>
+          <td>
+            <span class="status-text" [ngClass]="'status-' + user.status.toLowerCase()">
+              {{ getStatusLabel(user.status) }}
+            </span>
+          </td>
+          <td class="actions">
+            <svg class="action-icon" width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" (click)="openEditModal(user)" title="Edit User"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+
+            <svg class="action-icon" width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" (click)="openResetPasswordModal(user)" title="Reset Password"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
+
+            <svg *ngIf="user.status === 'Active'" class="action-icon danger" width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" (click)="disableUser(user)" title="Disable User"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
+
+            <svg *ngIf="user.status === 'Inactive'" class="action-icon success" width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" (click)="enableUser(user)" title="Enable User"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+
+            <svg class="action-icon danger" width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" (click)="deleteUser(user)" title="Delete User"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="pagination" *ngIf="!isLoading() && total() > 0">
+    <span class="pagination-info">
+      Showing {{ (page() - 1) * pageSize() + 1 }}–{{ page() * pageSize() > total() ? total() : page() * pageSize() }} of {{ total() }}
+    </span>
+    <div class="pagination-controls">
+      <button class="btn btn-outline" [disabled]="page() <= 1" (click)="goToPage(page() - 1)">Previous</button>
+      <span class="page-number">Page {{ page() }} of {{ totalPages() }}</span>
+      <button class="btn btn-outline" [disabled]="page() >= totalPages()" (click)="goToPage(page() + 1)">Next</button>
+    </div>
+  </div>
+  </div>
+</div>
+
+<app-add-user-modal
+  *ngIf="isModalOpen()"
+  (closeEvent)="closeModal()"
+  (userAddedEvent)="onUserAdded()">
+</app-add-user-modal>
+
+<app-edit-user-modal
+  *ngIf="isEditModalOpen() && selectedUser()"
+  [user]="selectedUser()!"
+  (closeEvent)="closeEditModal()"
+  (userUpdatedEvent)="onUserUpdated()">
+</app-edit-user-modal>
+
+<app-reset-password-modal
+  *ngIf="isResetPasswordModalOpen() && selectedUser()"
+  [user]="selectedUser()!"
+  (closeEvent)="closeResetPasswordModal()"
+  (passwordResetEvent)="onPasswordReset()">
+</app-reset-password-modal>

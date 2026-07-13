@@ -1,0 +1,47 @@
+<div class="timeline-view-container">
+  
+  @if (shipment) {
+    <div class="timeline-screen-layout">
+      <!-- Back Arrow Navigation -->
+      <div class="timeline-nav-bar">
+        <i class="pi pi-arrow-left back-btn" (click)="goBack()"></i>
+      </div>
+
+      <!-- Title & Subtitle -->
+      <div class="timeline-header">
+        <h2>Delivery Timeline</h2>
+        <span class="tracking-id-text">{{ shipment.id }}</span>
+      </div>
+
+      <!-- Vertical Timeline List -->
+      <div class="timeline-steps-list">
+        @for (step of getTimelineSteps(shipment); track $index; let last = $last) {
+          <div class="timeline-step-row" [class.last-step]="last">
+            <!-- Icon Column with Vertical Line -->
+            <div class="timeline-left-col">
+              <div class="step-circle" [class]="step.colorClass">
+                <i [class]="step.icon"></i>
+              </div>
+              @if (!last) {
+                <div class="step-line" [class.completed-line]="step.status === 'completed'"></div>
+              }
+            </div>
+
+            <!-- Content Column -->
+            <div class="timeline-right-col" [class.step-pending]="step.status === 'pending'">
+              <h3 class="step-title">{{ step.title }}</h3>
+              <span class="step-time">{{ step.time }}</span>
+              <p class="step-desc">{{ step.description }}</p>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  } @else {
+    <div class="no-shipment-message">
+      <i class="pi pi-exclamation-circle"></i>
+      <p>No shipments available to display timeline.</p>
+    </div>
+  }
+
+</div>

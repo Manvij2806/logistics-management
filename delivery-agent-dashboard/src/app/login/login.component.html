@@ -1,0 +1,66 @@
+<div class="login-page">
+  <section class="login-shell">
+    <div class="brand-panel">
+      <div class="brand-lockup">
+        <span class="brand-mark">
+          <mat-icon>inventory_2</mat-icon>
+        </span>
+        <div>
+          <span class="brand-name">LogisticsPro</span>
+          <span class="brand-subtitle">Delivery Agent Portal</span>
+        </div>
+      </div>
+
+      <div class="portal-summary">
+        <h1>Agent Dashboard</h1>
+        <p>Track assigned deliveries, manage active routes, and keep your profile ready for dispatch.</p>
+      </div>
+    </div>
+
+    <form (ngSubmit)="onSubmit()" class="login-form">
+      <div class="form-heading">
+        <h2>Sign in</h2>
+        <p>Use your agent account to continue.</p>
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <div class="input-wrapper">
+          <mat-icon class="input-icon">email</mat-icon>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            [(ngModel)]="credentials.email"
+            required
+            placeholder="agent@logisticspro.com"
+          >
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <div class="input-wrapper">
+          <mat-icon class="input-icon">lock</mat-icon>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            [(ngModel)]="credentials.password"
+            required
+            placeholder="Enter password"
+          >
+        </div>
+      </div>
+
+      <div class="error-container" *ngIf="errorMessage">
+        {{ errorMessage }}
+      </div>
+
+      <button type="submit" class="login-btn">
+        <span>Sign In</span>
+        <mat-icon>arrow_forward</mat-icon>
+      </button>
+    </form>
+  </section>
+</div>

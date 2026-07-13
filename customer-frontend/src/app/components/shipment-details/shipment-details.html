@@ -1,0 +1,202 @@
+<p-dialog 
+  [(visible)]="visible" 
+  [modal]="true" 
+  [style]="{ width: '480px' }" 
+  [breakpoints]="{ '960px': '75vw', '641px': '90vw' }"
+  (onHide)="onHide()"
+  [draggable]="false"
+  [resizable]="false"
+  [showHeader]="false"
+  class="custom-details-dialog">
+  
+  @if (shipment) {
+    <div class="details-container">
+      
+      <!-- Navigation actions (Screen 3 style back button) -->
+      <div class="dialog-nav-bar">
+        <p-button icon="pi pi-arrow-left" [rounded]="true" [text]="true" severity="secondary" (onClick)="onHide()"></p-button>
+        <p-button icon="pi pi-share-alt" [rounded]="true" [text]="true" severity="secondary"></p-button>
+      </div>
+      
+      <!-- Header Row: ID & Status -->
+      <div class="details-header-row">
+        <span class="tracking-id">{{ shipment.delivery_id }}</span>
+        <p-tag [value]="shipment.status" [severity]="getSeverity(shipment.status)"></p-tag>
+      </div>
+
+      <!-- Estimated Delivery -->
+      <div class="estimate-section">
+        <span class="section-label">Estimated Delivery</span>
+        <h3 class="delivery-time">{{ shipment.status === 'Delivered' ? 'Delivered' : 'ETA: 18:00' }}</h3>
+      </div>
+
+      <!-- Route Path Timeline -->
+      <div class="route-timeline">
+        <div class="timeline-item">
+          <div class="timeline-marker green">
+            <span class="inner-dot"></span>
+          </div>
+          <div class="timeline-content">
+            <h4>{{ shipment.pickup_address }}</h4>
+            <span class="timeline-desc">Pickup Address</span>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-marker blue">
+            <span class="inner-dot"></span>
+          </div>
+          <div class="timeline-content">
+            <h4>{{ shipment.drop_address }}</h4>
+            <span class="timeline-desc">Drop Address</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Delivery Agent info -->
+      @if (shipment.agent) {
+        <div class="driver-card">
+          <div class="driver-avatar" style="background-color: #6366f1;">
+            {{ shipment.agent.substring(0, 1) }}
+          </div>
+          <div class="driver-info">
+            <h4>{{ shipment.agent }}</h4>
+            <div class="driver-rating">
+              <i class="pi pi-star-fill" style="color: #f59e0b; margin-right: 4px;"></i>
+              <span>4.8</span>
+              <span class="vehicle-type">• Assigned Agent</span>
+            </div>
+          </div>
+          <div class="driver-actions">
+            <p-button icon="pi pi-phone" [rounded]="true" [text]="true" severity="secondary" (onClick)="callDriver(shipment.agent)"></p-button>
+            <p-button icon="pi pi-comments" [rounded]="true" [text]="true" severity="secondary" (onClick)="messageDriver(shipment.agent)"></p-button>
+          </div>
+        </div>
+
+        <!-- Delivery Verification PIN (OTP) -->
+        @if (shipment.verification_pin && getUserRoleInDelivery(shipment) === 'Receiver') {
+          <div class="otp-card" style="margin-top: 16px; padding: 14px; background: #e0e7ff; border: 1px solid #c7d2fe; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <i class="pi pi-shield" style="font-size: 20px; color: #4338ca;"></i>
+              <div>
+                <h5 style="margin: 0 0 2px 0; font-family: 'Outfit', sans-serif; font-size: 13px; color: #1e1b4b; text-align: left;">Delivery Verification PIN</h5>
+                <p style="margin: 0; font-size: 11px; color: #4338ca; text-align: left;">Share this PIN with the agent to verify delivery.</p>
+              </div>
+            </div>
+            <div style="font-size: 20px; font-weight: 800; color: #4338ca; letter-spacing: 2px; padding: 6px 12px; background: white; border-radius: 8px; border: 1px dashed #4338ca;">
+              {{ shipment.verification_pin }}
+            </div>
+          </div>
+        }
+      } @else {
+        <div class="driver-card unassigned">
+          <div class="warning-icon">
+            <i class="pi pi-exclamation-triangle"></i>
+          </div>
+          <div class="driver-info">
+            <h4>Awaiting Assignment</h4>
+            <span class="vehicle-type">We are matching your shipment with a delivery agent.</span>
+          </div>
+        </div>
+      }
+
+      <!-- Bottom Info Grid -->
+      <div class="info-grid" style="grid-template-columns: repeat(4, 1fr);">
+        <div class="info-cell">
+          <span class="cell-label">Status</span>
+          <span class="cell-value">{{ shipment.status }}</span>
+        </div>
+        <div class="info-cell">
+          <span class="cell-label">Priority</span>
+          <span class="cell-value" style="font-weight: 700; color: #1e1b4b;">{{ shipment.priority || 'Normal' }}</span>
+        </div>
+        <div class="info-cell">
+          <span class="cell-label">Your Role</span>
+          <span class="cell-value" [style.background-color]="getUserRoleInDelivery(shipment) === 'Sender' ? '#e0e7ff' : '#d1fae5'" [style.color]="getUserRoleInDelivery(shipment) === 'Sender' ? '#4338ca' : '#065f46'" style="font-weight: 700;">
+            {{ getUserRoleInDelivery(shipment) }}
+          </span>
+        </div>
+        <div class="info-cell">
+          <span class="cell-label">Tracking Number</span>
+          <span class="cell-value-dist" style="font-size: 11px; font-weight: 600; color: #1e1b4b;">{{ shipment.tracking_number || '—' }}</span>
+        </div>
+      </div>
+
+      <!-- Payment Option Section -->
+      @if (shipment.status === 'Delivered' && (shipment.payment_status || 'Unpaid') === 'Unpaid' && !paymentSuccess()) {
+        <div class="payment-section" style="margin-top: 20px; padding: 16px; background: #f9fafb; border-radius: 12px; border: 1px solid #e5e7eb;">
+          <h4 style="margin: 0 0 12px 0; font-family: 'Outfit', sans-serif; font-size: 15px; color: #1f2937;">Payment Required (Flat Rate)</h4>
+          <div style="font-size: 18px; font-weight: 700; color: #1e1b4b; margin-bottom: 16px;">
+            Amount Due: ₹2,000
+          </div>
+          
+          <span style="font-size: 12px; color: #6b7280; display: block; margin-bottom: 8px;">Select Payment Method</span>
+          <div class="payment-methods-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px;">
+            <button 
+              type="button"
+              (click)="selectPaymentMethod('QR Code')"
+              [style.border-color]="selectedMethod() === 'QR Code' ? '#4f46e5' : '#e5e7eb'"
+              [style.background]="selectedMethod() === 'QR Code' ? '#f5f3ff' : 'white'"
+              style="padding: 10px; border-radius: 8px; border: 1px solid; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; font-family: inherit; font-size: 13px;">
+              <i class="pi pi-qrcode" style="font-size: 16px;"></i>
+              <span>QR Code</span>
+            </button>
+            <button 
+              type="button"
+              (click)="selectPaymentMethod('Card')"
+              [style.border-color]="selectedMethod() === 'Card' ? '#4f46e5' : '#e5e7eb'"
+              [style.background]="selectedMethod() === 'Card' ? '#f5f3ff' : 'white'"
+              style="padding: 10px; border-radius: 8px; border: 1px solid; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; font-family: inherit; font-size: 13px;">
+              <i class="pi pi-credit-card" style="font-size: 16px;"></i>
+              <span>Card</span>
+            </button>
+            @if (!shipment.agent_deactivating) {
+              <button 
+                type="button"
+                (click)="selectPaymentMethod('COD')"
+                [style.border-color]="selectedMethod() === 'COD' ? '#4f46e5' : '#e5e7eb'"
+                [style.background]="selectedMethod() === 'COD' ? '#f5f3ff' : 'white'"
+                style="padding: 10px; border-radius: 8px; border: 1px solid; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; font-family: inherit; font-size: 13px;">
+                <i class="pi pi-money-bill" style="font-size: 16px;"></i>
+                <span>COD</span>
+              </button>
+            }
+          </div>
+
+          <!-- QR Code Display -->
+          @if (selectedMethod() === 'QR Code') {
+            <div style="text-align: center; margin-bottom: 16px; padding: 12px; background: white; border: 1px dashed #d1d5db; border-radius: 8px;">
+              <img src="/qr_code.png" alt="Payment QR Code" style="width: 130px; height: 130px; display: block; margin: 0 auto 8px auto;" />
+              <span style="font-size: 11px; color: #6b7280;">Scan this QR code using any UPI app to pay.</span>
+            </div>
+          }
+
+          <!-- Proceed Button -->
+          <button 
+            (click)="processPayment()" 
+            [disabled]="paymentProcessing()"
+            style="width: 100%; padding: 12px; border-radius: 8px; background: #4f46e5; color: white; border: none; font-weight: 600; font-size: 14px; cursor: pointer; font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <i class="pi pi-spin pi-spinner" *ngIf="paymentProcessing()"></i>
+            <span>{{ paymentProcessing() ? 'Processing...' : 'Proceed Payment' }}</span>
+          </button>
+        </div>
+      }
+
+      <!-- Payment Success State (Overlay/Message) -->
+      @if (paymentSuccess() || shipment.payment_status === 'Paid') {
+        <div class="payment-success-banner" style="margin-top: 20px; padding: 16px; background: #ecfdf5; border-radius: 12px; border: 1px solid #a7f3d0; display: flex; align-items: center; gap: 12px;">
+          <div style="width: 36px; height: 36px; border-radius: 50%; background: #10b981; display: flex; align-items: center; justify-content: center; color: white;">
+            <i class="pi pi-check" style="font-size: 18px; font-weight: bold;"></i>
+          </div>
+          <div>
+            <h4 style="margin: 0; font-family: 'Outfit', sans-serif; font-size: 15px; color: #065f46;">Payment Successful</h4>
+            <p style="margin: 2px 0 0 0; font-size: 12px; color: #047857;">
+              ₹2,000 received via {{ shipment.payment_method || selectedMethod() }}
+            </p>
+          </div>
+        </div>
+      }
+
+    </div>
+  }
+</p-dialog>

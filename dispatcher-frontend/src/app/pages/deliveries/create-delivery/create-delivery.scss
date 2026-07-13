@@ -1,0 +1,467 @@
+.create-delivery-page {
+  padding: 24px 32px;
+  background: #f5f6fa;
+  min-height: 100vh;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+// ── Page Header ─────────────────────────────────────────────────────────────
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .back-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid #e5e7eb;
+    background: #ffffff;
+    color: #4b5563;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+
+    i {
+      font-size: 0.9rem;
+    }
+
+    &:hover {
+      background: #f9fafb;
+      color: #3b4fd8;
+      border-color: #d1d5db;
+      transform: translateX(-2px);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+  }
+
+  h1 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1e2130;
+    margin: 0;
+  }
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.875rem;
+  color: #6b7280;
+
+  .breadcrumb-link {
+    color: #6b7280;
+    cursor: pointer;
+    &:hover { color: #3b4fd8; }
+  }
+
+  .breadcrumb-separator {
+    color: #9ca3af;
+    font-size: 1rem;
+  }
+
+  .breadcrumb-current {
+    color: #374151;
+    font-weight: 500;
+  }
+}
+
+// ── Form Wrapper ─────────────────────────────────────────────────────────────
+.form-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+// ── Form Section Card ────────────────────────────────────────────────────────
+.form-section {
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f0f0f0;
+  background: #fafafa;
+}
+
+.section-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+
+  &.location-icon {
+    background: #eef2ff;
+    color: #3b4fd8;
+  }
+
+  &.person-icon {
+    background: #eef2ff;
+    color: #3b4fd8;
+  }
+
+  &.package-icon {
+    background: #f0fdf4;
+    color: #16a34a;
+  }
+
+  &.notes-icon {
+    background: #eef2ff;
+    color: #3b4fd8;
+  }
+}
+
+.section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+
+.section-body {
+  padding: 20px;
+}
+
+// ── Two-column section layout ────────────────────────────────────────────────
+.two-col-sections {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// ── Delivery Info Grid ───────────────────────────────────────────────────────
+.delivery-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 16px;
+  align-items: start;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr 1fr;
+    .priority-field { grid-column: 1 / -1; }
+  }
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// ── Priority ─────────────────────────────────────────────────────────────────
+.priority-field {
+  min-width: 130px;
+}
+
+.priority-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.priority-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+
+  .priority-label {
+    font-size: 0.9rem;
+    color: #374151;
+    cursor: pointer;
+    margin: 0;
+  }
+}
+
+// ── Two field row (inside sender/recipient) ───────────────────────────────────
+.two-field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+
+  @media (max-width: 500px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// ── Package Grid ─────────────────────────────────────────────────────────────
+.package-grid {
+  display: grid;
+  grid-template-columns: 200px 1fr 130px;
+  gap: 16px;
+  align-items: start;
+  margin-bottom: 20px;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr 1fr;
+    .weight-field { grid-column: 1; }
+  }
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// ── Special Handling Chips ───────────────────────────────────────────────────
+.handling-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 10px;
+}
+
+.handling-hint {
+  font-weight: 400;
+  color: #9ca3af;
+  font-size: 0.8rem;
+  margin-left: 4px;
+}
+
+.handling-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.handling-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  user-select: none;
+
+  &:hover {
+    border-color: #93c5fd;
+    background: #eef2ff;
+  }
+
+  &.selected {
+    border-color: #3b4fd8;
+    background: #eef2ff;
+  }
+
+  .chip-checkbox {
+    width: 16px;
+    height: 16px;
+    border: 1.5px solid #d1d5db;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    flex-shrink: 0;
+    transition: all 0.15s;
+    font-size: 0.65rem;
+    color: #fff;
+
+    &.checked {
+      background: #3b4fd8;
+      border-color: #3b4fd8;
+    }
+  }
+
+  .chip-icon {
+    font-size: 0.95rem;
+  }
+
+  .chip-label {
+    font-size: 0.875rem;
+    color: #374151;
+    white-space: nowrap;
+  }
+}
+
+// ── Fields ───────────────────────────────────────────────────────────────────
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+  }
+}
+
+.required {
+  color: #ef4444;
+  margin-left: 2px;
+}
+
+.optional-hint {
+  font-weight: 400;
+  color: #9ca3af;
+  font-size: 0.8rem;
+  margin-left: 4px;
+}
+
+.w-full {
+  width: 100%;
+}
+
+.error-msg {
+  color: #ef4444;
+  font-size: 0.78rem;
+}
+
+.input-error {
+  border-color: #ef4444 !important;
+
+  &:focus {
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2) !important;
+  }
+}
+
+// PrimeNG overrides for textarea
+:host ::ng-deep {
+  textarea.p-inputtextarea {
+    resize: vertical;
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 0.9rem;
+    border-radius: 8px;
+    border-color: #e5e7eb;
+
+    &:focus {
+      border-color: #3b4fd8;
+      box-shadow: 0 0 0 2px rgba(59, 79, 216, 0.15);
+    }
+
+    &.input-error {
+      border-color: #ef4444;
+    }
+  }
+
+  .p-inputtext {
+    border-radius: 8px;
+    border-color: #e5e7eb;
+    font-size: 0.9rem;
+
+    &:focus {
+      border-color: #3b4fd8;
+      box-shadow: 0 0 0 2px rgba(59, 79, 216, 0.15);
+    }
+  }
+
+  .p-select {
+    border-radius: 8px;
+    border-color: #e5e7eb;
+
+    &:hover { border-color: #93c5fd; }
+    &.p-focus { border-color: #3b4fd8; box-shadow: 0 0 0 2px rgba(59, 79, 216, 0.15); }
+  }
+
+  .p-inputnumber .p-inputtext {
+    border-radius: 8px;
+    border-color: #e5e7eb;
+    width: 100%;
+  }
+
+  .p-radiobutton .p-radiobutton-box {
+    border-color: #d1d5db;
+    &.p-highlight {
+      border-color: #3b4fd8;
+      background: #3b4fd8;
+    }
+  }
+}
+
+// ── Footer ───────────────────────────────────────────────────────────────────
+.form-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0 16px;
+}
+
+// ── Address Card Custom Styling ──────────────────────────────────────────────
+.address-card {
+  .section-header {
+    background: #ffffff;
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+}
+
+.address-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.address-row-3col {
+  display: grid;
+  grid-template-columns: 1.2fr 1.2fr 1fr;
+  gap: 16px;
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.priority-options-horizontal {
+  display: flex;
+  flex-direction: row;
+  gap: 24px;
+  margin-top: 6px;
+}
+
+:host ::ng-deep {
+  .reset-btn {
+    border-color: #d1d5db !important;
+    color: #374151 !important;
+    background: #fff !important;
+    border-radius: 8px !important;
+    padding: 10px 24px !important;
+    font-weight: 500 !important;
+
+    &:hover {
+      background: #f9fafb !important;
+      border-color: #9ca3af !important;
+    }
+  }
+
+  .create-order-btn {
+    background: #3b4fd8 !important;
+    border-color: #3b4fd8 !important;
+    border-radius: 8px !important;
+    padding: 10px 24px !important;
+    font-weight: 600 !important;
+
+    &:hover {
+      background: #2f3fb5 !important;
+      border-color: #2f3fb5 !important;
+    }
+  }
+}
