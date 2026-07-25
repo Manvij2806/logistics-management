@@ -154,74 +154,212 @@ export class TrackDelivery implements OnInit, OnDestroy {
     if (!dateStr) return 'Pending';
     try {
       const d = new Date(dateStr);
-      return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+      const datePart = d.toLocaleDateString([], { day: '2-digit', month: 'short' });
+      const timePart = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+      return `${datePart}, ${timePart}`;
     } catch {
       return 'Pending';
     }
   }
 
+  isIntercity(shipment: any): boolean {
+    const pLoc = (shipment.pickupLocation || '').toLowerCase();
+    const dLoc = (shipment.deliveryLocation || '').toLowerCase();
+    
+    const parts1 = pLoc.split(',').map((x: string) => x.trim());
+    const parts2 = dLoc.split(',').map((x: string) => x.trim());
+    
+    if (parts1.length >= 2 && parts2.length >= 2) {
+      const city1 = parts1[parts1.length - 2];
+      const city2 = parts2[parts2.length - 2];
+      if (city1 && city2 && city1 !== city2) return true;
+    }
+    
+    const cities = ['delhi', 'noida', 'gurugram', 'gurgaon', 'faridabad', 'ghaziabad', 'agra', 'mumbai', 'bangalore', 'bengaluru', 'chennai', 'kolkata', 'pune', 'hyderabad', 'jaipur', 'lucknow', 'kanpur'];
+    const city1 = cities.find(c => pLoc.includes(c));
+    const city2 = cities.find(c => dLoc.includes(c));
+    if (city1 && city2 && city1 !== city2) return true;
+    
+    return false;
+  }
+
+  getStatusIndex(status: string | undefined): number {
+    if (!status) return 0;
+    const s = status.toLowerCase();
+    if (s === 'created' || s === 'pending') return 0;
+    if (s === 'picked up') return 1;
+    if (s.includes('hub-to-hub')) return 2;
+    if (s.includes('destination hub')) return 3;
+    if (s === 'assigned') return 4;
+    if (s === 'in transit' || s === 'out for delivery') return 5;
+    if (s === 'delivered') return 6;
+    return 0;
+  }
+
+  getLastUpdateTime(shipment: any): string {
+    if (shipment.status === 'Delivered') return this.formatTime(shipment.delivered_at);
+    if (shipment.status === 'In Transit' || shipment.status === 'Out for Delivery') return this.formatTime(shipment.in_transit_at);
+    if (shipment.status === 'Arrived at Destination Hub') return this.formatTime(shipment.in_transit_at);
+    if (shipment.status === 'In Transit (Hub-to-Hub)') return this.formatTime(shipment.in_transit_at);
+    if (shipment.status === 'Picked Up') return this.formatTime(shipment.picked_up_at);
+    if (shipment.status === 'Assigned') return this.formatTime(shipment.assigned_at);
+    return this.formatTime(shipment.created_at);
+  }
+
   getTimelineSteps(shipment: any): any[] {
     const steps: any[] = [];
+    const idx = this.getStatusIndex(shipment.status);
+    const intercity = this.isIntercity(shipment);
 
-    // Step 1: Order Created
-    steps.push({
-      title: 'Order Created',
-      time: this.formatTime(shipment.created_at),
-      description: 'Your order has been created',
-      status: 'completed',
-      icon: 'pi pi-check',
-      colorClass: 'completed'
-    });
+    if (!intercity) {
+      // Local Delivery (5 steps)
+      steps.push({
+        title: 'Order Created',
+        time: this.formatTime(shipment.created_at),
+        description: 'Your order has been created',
+        status: 'completed',
+        icon: 'pi pi-check',
+        colorClass: 'completed'
+      });
 
-    // Step 2: Assigned to Agent
-    const hasAgent = !!shipment.agentName;
-    const isAssigned = ['Assigned', 'Picked Up', 'In Transit', 'Delivered'].includes(shipment.status);
-    steps.push({
-      title: 'Assigned to Agent',
-      time: isAssigned ? this.formatTime(shipment.assigned_at) : 'Pending',
-      description: hasAgent ? `${shipment.agentName} has been assigned` : 'Awaiting agent assignment',
-      status: isAssigned ? 'completed' : 'pending',
-      icon: 'pi pi-check',
-      colorClass: isAssigned ? 'completed' : 'pending'
-    });
+      const isAssigned = (idx === 4 || idx === 1 || idx === 5 || idx === 6);
+      steps.push({
+        title: 'Assigned to Agent',
+        time: isAssigned ? this.formatTime(shipment.assigned_at) : 'Pending',
+        description: isAssigned ? `${shipment.agent || 'Agent'} has been assigned` : 'Awaiting agent assignment',
+        status: isAssigned ? 'completed' : 'pending',
+        icon: 'pi pi-user',
+        colorClass: isAssigned ? 'completed' : 'pending'
+      });
 
-    // Step 3: Picked Up
-    const isPickedUp = ['Picked Up', 'In Transit', 'Delivered'].includes(shipment.status);
-    steps.push({
-      title: 'Picked Up',
-      time: isPickedUp ? this.formatTime(shipment.picked_up_at) : 'Pending',
-      description: isPickedUp ? 'Package picked up from source' : 'Awaiting pickup',
-      status: isPickedUp ? 'completed' : 'pending',
-      icon: 'pi pi-check',
-      colorClass: isPickedUp ? 'completed' : 'pending'
-    });
+      const isPickedUp = (idx === 1 || idx === 5 || idx === 6);
+      steps.push({
+        title: 'Picked Up',
+        time: isPickedUp ? this.formatTime(shipment.picked_up_at) : 'Pending',
+        description: isPickedUp ? 'Package picked up from source' : 'Awaiting pickup',
+        status: isPickedUp ? 'completed' : 'pending',
+        icon: 'pi pi-box',
+        colorClass: isPickedUp ? 'completed' : 'pending'
+      });
 
-    // Step 4: In Transit
-    let transitStatus: 'completed' | 'active' | 'pending' = 'pending';
-    if (shipment.status === 'In Transit') {
-      transitStatus = 'active';
-    } else if (shipment.status === 'Delivered') {
-      transitStatus = 'completed';
+      let transitStatus: 'completed' | 'active' | 'pending' = 'pending';
+      if (idx === 5) transitStatus = 'active';
+      else if (idx === 6) transitStatus = 'completed';
+      steps.push({
+        title: 'Out for Delivery',
+        time: (transitStatus === 'completed' || transitStatus === 'active') ? this.formatTime(shipment.in_transit_at) : 'Pending',
+        description: 'Package is on the way to your doorstep',
+        status: transitStatus,
+        icon: 'pi pi-truck',
+        colorClass: transitStatus === 'completed' ? 'completed' : (transitStatus === 'active' ? 'transit' : 'pending')
+      });
+
+      const isDelivered = idx === 6;
+      steps.push({
+        title: 'Delivered',
+        time: isDelivered ? this.formatTime(shipment.delivered_at) : 'Pending',
+        description: isDelivered ? 'Package delivered successfully' : 'Package will be delivered soon',
+        status: isDelivered ? 'completed' : 'pending',
+        icon: 'pi pi-check-circle',
+        colorClass: isDelivered ? 'completed' : 'pending'
+      });
+    } else {
+      // Long-Distance Delivery (8 steps)
+      steps.push({
+        title: 'Order Created',
+        time: this.formatTime(shipment.created_at),
+        description: 'Your order has been created',
+        status: 'completed',
+        icon: 'pi pi-check',
+        colorClass: 'completed'
+      });
+
+      const isAssigned = (idx >= 1 || idx === 4);
+      steps.push({
+        title: 'Pickup Agent Assigned',
+        time: isAssigned ? this.formatTime(shipment.assigned_at) : 'Pending',
+        description: isAssigned ? 'Pickup agent assigned to fetch parcel' : 'Awaiting pickup assignment',
+        status: isAssigned ? 'completed' : 'pending',
+        icon: 'pi pi-user',
+        colorClass: isAssigned ? 'completed' : 'pending'
+      });
+
+      const isPickedUp = (idx >= 1 && idx !== 4);
+      steps.push({
+        title: 'Picked Up for Hub Transit',
+        time: isPickedUp ? this.formatTime(shipment.picked_up_at) : 'Pending',
+        description: isPickedUp ? 'Package picked up from source' : 'Awaiting pickup',
+        status: isPickedUp ? 'completed' : 'pending',
+        icon: 'pi pi-box',
+        colorClass: isPickedUp ? 'completed' : 'pending'
+      });
+
+      const arrivedOrigin = idx >= 2;
+      steps.push({
+        title: 'Arrived at Origin Hub',
+        time: arrivedOrigin ? this.formatTime(shipment.picked_up_at) : 'Pending',
+        description: arrivedOrigin ? 'Package received at origin sorting facility' : 'Awaiting origin hub arrival',
+        status: arrivedOrigin ? 'completed' : 'pending',
+        icon: 'pi pi-home',
+        colorClass: arrivedOrigin ? 'completed' : 'pending'
+      });
+
+      let transitStatus: 'completed' | 'active' | 'pending' = 'pending';
+      if (idx === 2) transitStatus = 'active';
+      else if (idx > 2) transitStatus = 'completed';
+      steps.push({
+        title: 'In Hub-to-Hub Transit',
+        time: (transitStatus === 'completed' || transitStatus === 'active') ? this.formatTime(shipment.in_transit_at) : 'Pending',
+        description: transitStatus === 'active' ? 'Package is in transit between states/cities' : (transitStatus === 'completed' ? 'Package completed intercity transit' : 'Awaiting dispatch'),
+        status: transitStatus,
+        icon: 'pi pi-truck',
+        colorClass: transitStatus === 'completed' ? 'completed' : (transitStatus === 'active' ? 'transit' : 'pending')
+      });
+
+      let destHubStatus: 'completed' | 'active' | 'pending' = 'pending';
+      if (idx === 3) destHubStatus = 'active';
+      else if (idx > 3) destHubStatus = 'completed';
+      steps.push({
+        title: 'Arrived at Destination Hub',
+        time: (destHubStatus === 'completed' || destHubStatus === 'active') ? this.formatTime(shipment.in_transit_at) : 'Pending',
+        description: destHubStatus === 'active' ? 'Package received at receiver city facility' : (destHubStatus === 'completed' ? 'Arrived at destination city hub' : 'Awaiting arrival at destination hub'),
+        status: destHubStatus,
+        icon: 'pi pi-building',
+        colorClass: destHubStatus === 'completed' ? 'completed' : (destHubStatus === 'active' ? 'transit' : 'pending')
+      });
+
+      const deliveryAssigned = idx >= 4;
+      steps.push({
+        title: 'Local Delivery Agent Assigned',
+        time: deliveryAssigned ? this.formatTime(shipment.assigned_at) : 'Pending',
+        description: deliveryAssigned ? `${shipment.agent || 'Local agent'} assigned for doorstep delivery` : 'Awaiting final delivery assignment',
+        status: deliveryAssigned ? 'completed' : 'pending',
+        icon: 'pi pi-user',
+        colorClass: deliveryAssigned ? 'completed' : 'pending'
+      });
+
+      let localDeliveryStatus: 'completed' | 'active' | 'pending' = 'pending';
+      if (idx === 5) localDeliveryStatus = 'active';
+      else if (idx === 6) localDeliveryStatus = 'completed';
+      steps.push({
+        title: 'Out for Delivery',
+        time: (localDeliveryStatus === 'completed' || localDeliveryStatus === 'active') ? this.formatTime(shipment.in_transit_at) : 'Pending',
+        description: 'Package is on the way to your doorstep',
+        status: localDeliveryStatus,
+        icon: 'pi pi-truck',
+        colorClass: localDeliveryStatus === 'completed' ? 'completed' : (localDeliveryStatus === 'active' ? 'transit' : 'pending')
+      });
+
+      const isDelivered = idx === 6;
+      steps.push({
+        title: 'Delivered',
+        time: isDelivered ? this.formatTime(shipment.delivered_at) : 'Pending',
+        description: isDelivered ? 'Package delivered successfully' : 'Package will be delivered soon',
+        status: isDelivered ? 'completed' : 'pending',
+        icon: 'pi pi-check-circle',
+        colorClass: isDelivered ? 'completed' : 'pending'
+      });
     }
-    steps.push({
-      title: 'In Transit',
-      time: (transitStatus === 'completed' || transitStatus === 'active') ? this.formatTime(shipment.in_transit_at) : 'Pending',
-      description: 'Package is on the way',
-      status: transitStatus,
-      icon: 'pi pi-truck',
-      colorClass: transitStatus === 'completed' ? 'completed' : (transitStatus === 'active' ? 'transit' : 'pending')
-    });
-
-    // Step 5: Delivered
-    const isDelivered = shipment.status === 'Delivered';
-    steps.push({
-      title: 'Delivered',
-      time: isDelivered ? this.formatTime(shipment.delivered_at) : 'Pending',
-      description: isDelivered ? `Package delivered successfully` : 'Package will be delivered soon',
-      status: isDelivered ? 'completed' : 'pending',
-      icon: 'pi pi-check',
-      colorClass: isDelivered ? 'completed' : 'pending'
-    });
 
     return steps;
   }

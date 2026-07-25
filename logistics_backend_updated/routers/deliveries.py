@@ -3,7 +3,7 @@ routers/deliveries.py - Full CRUD for the deliveries table
 """
 import random
 import string
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import List, Optional
 from pydantic import BaseModel
 
@@ -26,6 +26,119 @@ router = APIRouter(
 
 def _gen_tracking() -> str:
     return "TRK" + "".join(random.choices(string.digits, k=7))
+
+
+def get_address_offset_hours(pickup: str, drop: str) -> int:
+    if not pickup or not drop:
+        return 0
+    import re
+    p1 = re.findall(r'\b\d{6}\b', pickup)
+    p2 = re.findall(r'\b\d{6}\b', drop)
+    
+    # Check by pincodes
+    if p1 and p2:
+        pin1, pin2 = p1[0], p2[0]
+        if pin1[0] != pin2[0] or pin1[:2] != pin2[:2]:
+            return 96 # different states (+4 days)
+            
+    # Check by city name text comparison
+    def clean_words(addr: str):
+        words = re.findall(r'[a-zA-Z]+', addr.lower())
+        ignore = {'street', 'colony', 'road', 'plot', 'floor', 'near', 'opp', 'contact', 'phone', 'india', 'residency', 'professor'}
+        return [w for w in words if w not in ignore and len(w) > 2]
+        
+    words1 = clean_words(pickup)
+    words2 = clean_words(drop)
+    
+    cities = {'delhi', 'noida', 'gurugram', 'gurgaon', 'faridabad', 'ghaziabad', 'agra', 'mumbai', 'bangalore', 'bengaluru', 'chennai', 'kolkata', 'pune', 'hyderabad', 'jaipur', 'lucknow', 'kanpur'}
+    
+    city1 = next((w for w in words1 if w in cities), None)
+    city2 = next((w for w in words2 if w in cities), None)
+    
+    if city1 and city2 and city1 != city2:
+        state_map = {
+            'delhi': 'delhi',
+            'noida': 'up',
+            'ghaziabad': 'up',
+            'agra': 'up',
+            'lucknow': 'up',
+            'kanpur': 'up',
+            'gurugram': 'haryana',
+            'gurgaon': 'haryana',
+            'faridabad': 'haryana',
+        }
+        st1 = state_map.get(city1)
+        st2 = state_map.get(city2)
+        if st1 and st2 and st1 != st2:
+            return 96 # different states (+4 days)
+        return 48 # different cities (+2 days)
+        
+    # Check string similarity/last parts
+    parts1 = [p.strip().lower() for p in pickup.split(',')]
+    parts2 = [p.strip().lower() for p in drop.split(',')]
+    
+    c1 = parts1[-2] if len(parts1) >= 2 else ""
+    c2 = parts2[-2] if len(parts2) >= 2 else ""
+    
+    c1_clean = re.sub(r'\d+', '', c1).strip()
+    c2_clean = re.sub(r'\d+', '', c2).strip()
+    
+    if c1_clean and c2_clean and c1_clean != c2_clean:
+        return 48 # different cities (+2 days)
+        
+    return 0
+
+
+def calculate_dynamic_eta(delivery: Delivery) -> datetime:
+    base_time = delivery.created_at or datetime.now(timezone.utc)
+    
+    # 1. Base time offset from addresses
+    offset_hours = get_address_offset_hours(delivery.pickup_address, delivery.drop_address)
+    
+    if offset_hours == 96:
+        base_hours = 96
+    elif offset_hours == 48:
+        base_hours = 48
+    else:
+        base_hours = 4
+        
+    # 2. Priority adjustments
+    priority_offset = 0
+    if delivery.priority:
+        p_lower = delivery.priority.lower()
+        if "express" in p_lower:
+            priority_offset = -1 if base_hours <= 4 else -12
+        elif "high" in p_lower:
+            priority_offset = -2 if base_hours <= 4 else -6
+        elif "low" in p_lower:
+            priority_offset = 4 if base_hours <= 4 else 12
+            
+    total_transit_hours = max(1, base_hours + priority_offset)
+    
+    # 3. Status-based real-time reductions
+    status_lower = delivery.status.lower() if delivery.status else ""
+    now_utc = datetime.now(timezone.utc)
+    
+    if status_lower == "delivered":
+        return delivery.delivered_at or now_utc
+    elif status_lower == "out for delivery":
+        ref = delivery.in_transit_at or now_utc
+        return ref + timedelta(hours=2)
+    elif "destination hub" in status_lower:
+        ref = delivery.in_transit_at or now_utc
+        return ref + timedelta(hours=6)
+    elif "hub-to-hub" in status_lower:
+        dispatch_time = delivery.in_transit_at or now_utc
+        elapsed = (now_utc - dispatch_time).total_seconds() / 3600.0
+        remaining = max(3, total_transit_hours - elapsed)
+        return now_utc + timedelta(hours=remaining)
+    elif status_lower == "picked up":
+        pickup_time = delivery.picked_up_at or now_utc
+        elapsed = (now_utc - pickup_time).total_seconds() / 3600.0
+        remaining = max(4, total_transit_hours - elapsed)
+        return now_utc + timedelta(hours=remaining)
+        
+    return base_time + timedelta(hours=total_transit_hours)
 
 
 def validate_delivery_phones(db: Session, sender_name: str, sender_phone: str, recipient_name: str, recipient_phone: str, customer_phone: str = None):
@@ -174,6 +287,7 @@ def create_delivery(
     )
 
 
+    new_delivery.estimated_delivery_at = calculate_dynamic_eta(new_delivery)
     update_status_timestamps(new_delivery, new_delivery.status)
     db.add(new_delivery)
     db.commit()
@@ -315,27 +429,41 @@ def update_delivery(
     delivery.drop_address   = payload.drop_address
     delivery.customer_name  = payload.customer_name
     delivery.customer_phone = payload.customer_phone
-    delivery.status         = payload.status.value if payload.status else delivery.status
-    # Let's apply our agent assignment logic!
-    if payload.agent != delivery.agent:
-        delivery.agent = payload.agent
-        if payload.agent:
-            agent_user = db.query(User).filter(User.fullname == payload.agent, User.role_id == 2).first()
-            if agent_user:
-                delivery.agent_id = agent_user.id
-            else:
-                delivery.agent_id = payload.agent_id
-        else:
-            delivery.agent_id = None
+    new_status = payload.status.value if payload.status else delivery.status
+    new_status_lower = new_status.lower() if new_status else ""
+    is_intercity = get_address_offset_hours(delivery.pickup_address, delivery.drop_address) > 0
+    if is_intercity and (payload.agent or payload.agent_id):
+        if new_status_lower in ("picked up", "in transit (hub-to-hub)"):
+            raise HTTPException(
+                status_code=400,
+                detail="For intercity/interstate shipments, a delivery agent can only be assigned once the package has arrived at the destination hub."
+            )
+
+    delivery.status = new_status
+
+    if new_status == "In Transit (Hub-to-Hub)":
+        delivery.agent = None
+        delivery.agent_id = None
         delivery.accepted = "Pending"
     else:
-        if payload.agent_id is not None:
-            delivery.agent_id = payload.agent_id
-        elif payload.agent and not delivery.agent_id:
-            # Fallback if agent_id was missing but agent name is present
-            agent_user = db.query(User).filter(User.fullname == payload.agent, User.role_id == 2).first()
-            if agent_user:
-                delivery.agent_id = agent_user.id
+        if payload.agent != delivery.agent:
+            delivery.agent = payload.agent
+            if payload.agent:
+                agent_user = db.query(User).filter(User.fullname == payload.agent, User.role_id == 2).first()
+                if agent_user:
+                    delivery.agent_id = agent_user.id
+                else:
+                    delivery.agent_id = payload.agent_id
+            else:
+                delivery.agent_id = None
+            delivery.accepted = "Pending"
+        else:
+            if payload.agent_id is not None:
+                delivery.agent_id = payload.agent_id
+            elif payload.agent and not delivery.agent_id:
+                agent_user = db.query(User).filter(User.fullname == payload.agent, User.role_id == 2).first()
+                if agent_user:
+                    delivery.agent_id = agent_user.id
     
     delivery.notes          = payload.notes if payload.notes and payload.notes.strip() else "Notes are empty"
     delivery.recipient_name = payload.recipient_name
@@ -351,6 +479,8 @@ def update_delivery(
     delivery.package_weight = payload.package_weight
     delivery.package_dimensions = payload.package_dimensions
     delivery.priority = payload.priority if payload.priority else "Normal"
+    
+    delivery.estimated_delivery_at = calculate_dynamic_eta(delivery)
     delivery.payment_status = payload.payment_status if payload.payment_status else delivery.payment_status
     delivery.payment_method = payload.payment_method if payload.payment_method else delivery.payment_method
 
@@ -427,12 +557,34 @@ def patch_delivery(
                 delivery.customer_name = payload.customer_name
             if payload.customer_phone is not None:
                 delivery.customer_phone = payload.customer_phone
+            target_status = payload.status.value if payload.status is not None else delivery.status
+            target_status_lower = target_status.lower() if target_status else ""
+            
+            is_intercity = get_address_offset_hours(
+                payload.pickup_address if payload.pickup_address is not None else delivery.pickup_address,
+                payload.drop_address if payload.drop_address is not None else delivery.drop_address
+            ) > 0
+            
+            has_agent_assignment = (payload.agent is not None and payload.agent != "") or (payload.agent_id is not None)
+            if is_intercity and has_agent_assignment:
+                if target_status_lower in ("picked up", "in transit (hub-to-hub)"):
+                    raise HTTPException(
+                        status_code=400,
+                        detail="For intercity/interstate shipments, a delivery agent can only be assigned once the package has arrived at the destination hub."
+                    )
+
             if payload.status is not None:
                 delivery.status = payload.status.value
-            if payload.agent is not None:
-                delivery.agent = payload.agent
-            if payload.agent_id is not None:
-                delivery.agent_id = payload.agent_id
+            
+            if target_status == "In Transit (Hub-to-Hub)":
+                delivery.agent = None
+                delivery.agent_id = None
+                delivery.accepted = "Pending"
+            else:
+                if payload.agent is not None:
+                    delivery.agent = payload.agent
+                if payload.agent_id is not None:
+                    delivery.agent_id = payload.agent_id
             if payload.notes is not None:
                 delivery.notes = payload.notes if payload.notes.strip() else "Notes are empty"
             if payload.recipient_name is not None:
@@ -468,6 +620,7 @@ def patch_delivery(
             if payload.payment_method is not None:
                 delivery.payment_method = payload.payment_method
 
+    delivery.estimated_delivery_at = calculate_dynamic_eta(delivery)
     update_status_timestamps(delivery, delivery.status)
     db.commit()
     db.refresh(delivery)

@@ -117,6 +117,7 @@ class Delivery(Base):
     picked_up_at       = Column(DateTime(timezone=True), nullable=True)
     in_transit_at      = Column(DateTime(timezone=True), nullable=True)
     delivered_at       = Column(DateTime(timezone=True), nullable=True)
+    estimated_delivery_at = Column(DateTime(timezone=True), nullable=True)
 
 
 
@@ -204,6 +205,14 @@ def init_db():
                 conn.execute(text("ALTER TABLE deliveries ADD COLUMN delivered_at TIMESTAMP WITH TIME ZONE DEFAULT NULL"))
                 conn.commit()
                 print("Migration: 'delivered_at' column added successfully.")
+            if "estimated_delivery_at" not in existing_cols:
+                conn.execute(text("ALTER TABLE deliveries ADD COLUMN estimated_delivery_at TIMESTAMP WITH TIME ZONE DEFAULT NULL"))
+                try:
+                    conn.execute(text("UPDATE deliveries SET estimated_delivery_at = datetime(created_at, '+4 hours') WHERE estimated_delivery_at IS NULL"))
+                except Exception:
+                    conn.execute(text("UPDATE deliveries SET estimated_delivery_at = created_at + INTERVAL '4 hours' WHERE estimated_delivery_at IS NULL"))
+                conn.commit()
+                print("Migration: 'estimated_delivery_at' column added successfully.")
 
             # Migration for newusers table
             try:

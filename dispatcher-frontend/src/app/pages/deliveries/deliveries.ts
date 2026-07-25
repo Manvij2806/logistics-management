@@ -49,10 +49,16 @@ export class Deliveries implements OnInit {
   editFormErrors: any = {};
 
   // ── READ-ONLY statuses (cannot edit) ──────────────────────────────────
-  readOnlyStatuses = ['Assigned', 'Picked Up', 'In Transit', 'Delivered', 'Cancelled'];
+  readOnlyStatuses = ['Assigned', 'Picked Up', 'In Transit', 'In Transit (Hub-to-Hub)', 'Arrived at Destination Hub', 'Delivered', 'Cancelled'];
 
   isReadOnlyStatus(status: string): boolean {
     return this.readOnlyStatuses.includes(status);
+  }
+
+  isStatusReadOnly = false;
+
+  isStatusReadOnlyStatus(status: string): boolean {
+    return ['Delivered', 'Cancelled'].includes(status);
   }
 
   newDelivery = {
@@ -99,6 +105,8 @@ export class Deliveries implements OnInit {
     { label: 'Pending', value: 'Pending' },
     { label: 'Delivered', value: 'Delivered' },
     { label: 'Cancelled', value: 'Cancelled' },
+    { label: 'In Transit (Hub-to-Hub)', value: 'In Transit (Hub-to-Hub)' },
+    { label: 'Arrived at Destination Hub', value: 'Arrived at Destination Hub' }
   ];
 
   timeOptions = [
@@ -342,12 +350,13 @@ export class Deliveries implements OnInit {
 
     // ── Set read-only mode based on status ────────────────────────────
     this.isReadOnly = this.isReadOnlyStatus(d.status);
+    this.isStatusReadOnly = this.isStatusReadOnlyStatus(d.status);
     this.editFormErrors = {};
     this.showEditDialog = true;
   }
 
   updateDelivery() {
-    if (this.isReadOnly) return;
+    if (this.isStatusReadOnly) return;
     if (!this.validateEditForm()) return;
 
     const payload: DeliveryCreate = {

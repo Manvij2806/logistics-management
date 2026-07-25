@@ -294,7 +294,7 @@
             [(ngModel)]="editDelivery.status"
             placeholder="Select Status"
             styleClass="w-full"
-            [disabled]="isReadOnly">
+            [disabled]="isStatusReadOnly">
           </p-select>
         </div>
         <div class="field">
@@ -306,7 +306,7 @@
             [(ngModel)]="editDelivery.agent"
             placeholder="Select Agent"
             styleClass="w-full"
-            [disabled]="isReadOnly">
+            [disabled]="isStatusReadOnly">
           </p-select>
         </div>
       </div>

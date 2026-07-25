@@ -16,6 +16,8 @@ class StatusEnum(str, Enum):
     delivered  = "Delivered"
     cancelled  = "Cancelled"
     unassigned = "Unassigned"
+    hub_transit = "In Transit (Hub-to-Hub)"
+    dest_hub   = "Arrived at Destination Hub"
 
 
 class DeliveryCreate(BaseModel):
@@ -39,6 +41,7 @@ class DeliveryCreate(BaseModel):
     picked_up_at: Optional[datetime] = None
     in_transit_at: Optional[datetime] = None
     delivered_at: Optional[datetime] = None
+    estimated_delivery_at: Optional[datetime] = None
 
 
     package_description: Optional[str] = None
@@ -117,6 +120,7 @@ class DeliveryUpdate(BaseModel):
     picked_up_at: Optional[datetime] = None
     in_transit_at: Optional[datetime] = None
     delivered_at: Optional[datetime] = None
+    estimated_delivery_at: Optional[datetime] = None
 
 
     package_description: Optional[str] = None
@@ -154,6 +158,7 @@ class DeliveryResponse(BaseModel):
     picked_up_at: Optional[datetime] = None
     in_transit_at: Optional[datetime] = None
     delivered_at: Optional[datetime] = None
+    estimated_delivery_at: Optional[datetime] = None
 
 
 

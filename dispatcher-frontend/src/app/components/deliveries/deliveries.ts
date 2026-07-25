@@ -51,6 +51,8 @@ export class Deliveries implements OnInit {
     'Assigned',
     'Picked Up',
     'In Transit',
+    'In Transit (Hub-to-Hub)',
+    'Arrived at Destination Hub',
     'Delivered',
     'Cancelled',
   ];
