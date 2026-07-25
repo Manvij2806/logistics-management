@@ -38,6 +38,7 @@ export interface Delivery {
   payment_status?: string;
   payment_method?: string | null;
   agent_deactivating?: boolean;
+  estimated_delivery_at?: string | null;
 }
 
 export interface DeliveryListResponse {

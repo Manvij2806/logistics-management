@@ -27,7 +27,7 @@
       <!-- Estimated Delivery -->
       <div class="estimate-section">
         <span class="section-label">Estimated Delivery</span>
-        <h3 class="delivery-time">{{ shipment.status === 'Delivered' ? 'Delivered' : 'ETA: 18:00' }}</h3>
+        <h3 class="delivery-time">{{ shipment.status === 'Delivered' ? 'Delivered' : (shipment.estimated_delivery_at ? (shipment.estimated_delivery_at | date:'medium') : 'ETA: 18:00') }}</h3>
       </div>
 
       <!-- Route Path Timeline -->

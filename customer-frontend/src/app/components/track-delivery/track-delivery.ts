@@ -58,8 +58,10 @@ export class TrackDelivery implements OnInit, OnDestroy {
           this.shipment = {
             id: found.delivery_id,
             status: found.status,
-            eta: found.status === 'Delivered' ? 'Delivered' : 'ETA: 18:00',
-            distanceLeft: found.status === 'Delivered' ? 0 : 5,
+             eta: found.status === 'Delivered' ? 'Delivered' : 
+                  (found.estimated_delivery_at ? new Date(found.estimated_delivery_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : 'ETA: 18:00'),
+             estimated_delivery_at: found.estimated_delivery_at,
+             distanceLeft: found.status === 'Delivered' ? 0 : 5,
             pickupLocation: found.pickup_address,
             deliveryLocation: found.drop_address,
             pickupCoords: { x: 120, y: 150 },
