@@ -207,9 +207,9 @@ def init_db():
                 print("Migration: 'delivered_at' column added successfully.")
             if "estimated_delivery_at" not in existing_cols:
                 conn.execute(text("ALTER TABLE deliveries ADD COLUMN estimated_delivery_at TIMESTAMP WITH TIME ZONE DEFAULT NULL"))
-                try:
+                if conn.dialect.name == "sqlite":
                     conn.execute(text("UPDATE deliveries SET estimated_delivery_at = datetime(created_at, '+4 hours') WHERE estimated_delivery_at IS NULL"))
-                except Exception:
+                else:
                     conn.execute(text("UPDATE deliveries SET estimated_delivery_at = created_at + INTERVAL '4 hours' WHERE estimated_delivery_at IS NULL"))
                 conn.commit()
                 print("Migration: 'estimated_delivery_at' column added successfully.")
