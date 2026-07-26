@@ -142,7 +142,7 @@
      EDIT / VIEW-ONLY DELIVERY DIALOG
      ═══════════════════════════════════════════════════════════ -->
 <p-dialog
-  [header]="isReadOnly ? 'Delivery Details (Read Only)' : 'Edit Delivery'"
+  [header]="isStatusReadOnly ? 'Delivery Details (Read Only)' : 'Edit Delivery'"
   [(visible)]="showEditDialog"
   [modal]="true"
   [style]="{width: '600px'}"
@@ -152,11 +152,18 @@
   <div class="dialog-body">
 
     <!-- ── Read-Only Banner ──────────────────────────────────────────── -->
-    <div class="readonly-banner" *ngIf="isReadOnly">
+    <div class="readonly-banner" *ngIf="isStatusReadOnly">
       <i class="pi pi-lock"></i>
       <div>
         <strong>Editing is not allowed</strong>
-        <p>This delivery is currently <b>{{editDelivery.status}}</b>. Once processing has started, shipment details become read-only.</p>
+        <p>This delivery is currently <b>{{editDelivery.status}}</b>. Once a delivery is completed or cancelled, its details cannot be modified.</p>
+      </div>
+    </div>
+    <div class="readonly-banner warning-banner" *ngIf="isReadOnly && !isStatusReadOnly" style="background: #fffbeb; border: 1px solid #fef3c7; color: #b45309; padding: 12px; border-radius: 6px; margin-bottom: 16px; display: flex; gap: 8px; align-items: flex-start;">
+      <i class="pi pi-exclamation-triangle" style="font-size: 1.25rem; margin-top: 2px;"></i>
+      <div>
+        <strong>General details are read-only</strong>
+        <p style="margin: 0; font-size: 0.875rem; color: #78350f;">This delivery is currently <b>{{editDelivery.status}}</b>. General shipment details cannot be changed, but you can still update the Status and Assign Agent below.</p>
       </div>
     </div>
 
@@ -330,7 +337,7 @@
   <ng-template pTemplate="footer">
     <p-button label="Close" [outlined]="true" (onClick)="cancelEdit()" styleClass="cancel-btn"></p-button>
     <p-button
-      *ngIf="!isReadOnly"
+      *ngIf="!isStatusReadOnly"
       label="Save Changes"
       (onClick)="updateDelivery()"
       styleClass="create-btn">
