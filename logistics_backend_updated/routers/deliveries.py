@@ -432,7 +432,14 @@ def update_delivery(
     new_status = payload.status.value if payload.status else delivery.status
     new_status_lower = new_status.lower() if new_status else ""
     is_intercity = get_address_offset_hours(delivery.pickup_address, delivery.drop_address) > 0
-    if is_intercity and (payload.agent or payload.agent_id):
+    # Check if agent is actually changing or newly assigned
+    agent_is_changing = False
+    if payload.agent != delivery.agent:
+        agent_is_changing = True
+    if payload.agent_id is not None and payload.agent_id != delivery.agent_id:
+        agent_is_changing = True
+
+    if is_intercity and agent_is_changing:
         if new_status_lower in ("picked up", "in transit (hub-to-hub)"):
             raise HTTPException(
                 status_code=400,
@@ -565,8 +572,14 @@ def patch_delivery(
                 payload.drop_address if payload.drop_address is not None else delivery.drop_address
             ) > 0
             
-            has_agent_assignment = (payload.agent is not None and payload.agent != "") or (payload.agent_id is not None)
-            if is_intercity and has_agent_assignment:
+            # Check if agent is actually changing or newly assigned
+            agent_is_changing = False
+            if payload.agent is not None and payload.agent != delivery.agent:
+                agent_is_changing = True
+            if payload.agent_id is not None and payload.agent_id != delivery.agent_id:
+                agent_is_changing = True
+
+            if is_intercity and agent_is_changing:
                 if target_status_lower in ("picked up", "in transit (hub-to-hub)"):
                     raise HTTPException(
                         status_code=400,
