@@ -134,7 +134,7 @@ def validate_delivery_phones(db: Session, sender_name: str, sender_phone: str, r
 
 
     # Check sender phone
-    if s_phone:
+    if s_phone and s_phone != "0000000000":
         user = db.query(User).filter(User.phone_number == s_phone).first()
         if user:
             if user.role and user.role.name in ("Admin", "Agent"):
@@ -149,7 +149,7 @@ def validate_delivery_phones(db: Session, sender_name: str, sender_phone: str, r
                 )
 
     # Check recipient phone
-    if r_phone:
+    if r_phone and r_phone != "0000000000":
         user = db.query(User).filter(User.phone_number == r_phone).first()
         if user:
             if user.role and user.role.name in ("Admin", "Agent"):
@@ -164,7 +164,7 @@ def validate_delivery_phones(db: Session, sender_name: str, sender_phone: str, r
                 )
 
     # Check customer phone
-    if c_phone:
+    if c_phone and c_phone != "0000000000":
         user = db.query(User).filter(User.phone_number == c_phone).first()
         if user:
             if user.role and user.role.name in ("Admin", "Agent"):
