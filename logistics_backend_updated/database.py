@@ -120,9 +120,6 @@ class Delivery(Base):
     estimated_delivery_at = Column(DateTime(timezone=True), nullable=True)
 
 
-
-
-
 class Package(Base):
     """Mirrors the 'packages' table."""
     __tablename__ = "packages"
@@ -157,14 +154,14 @@ def get_db():
 def init_db():
     """Create all tables if they don't exist."""
     Base.metadata.create_all(bind=engine)
-    
+
     # Auto-migration for columns
     from sqlalchemy import text
     try:
         with engine.connect() as conn:
             result = conn.execute(text("SELECT column_name FROM information_schema.columns WHERE table_name='deliveries'"))
             existing_cols = {row[0] for row in result.fetchall()}
-            
+
             if "accepted" not in existing_cols:
                 conn.execute(text("ALTER TABLE deliveries ADD COLUMN accepted VARCHAR DEFAULT 'Pending'"))
                 conn.commit()
@@ -230,8 +227,6 @@ def init_db():
                     print("Migration (SQLite fallback): 'deactivate_after_delivery' column added successfully.")
                 except Exception:
                     pass
-
-
 
     except Exception as e:
         print("Error running migration:", e)

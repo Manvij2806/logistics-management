@@ -43,7 +43,6 @@ class DeliveryCreate(BaseModel):
     delivered_at: Optional[datetime] = None
     estimated_delivery_at: Optional[datetime] = None
 
-
     package_description: Optional[str] = None
     package_weight: Optional[str] = None
     package_dimensions: Optional[str] = None
@@ -73,7 +72,6 @@ class DeliveryCreate(BaseModel):
         if len(digits) != 10:
             raise ValueError("Phone number must be exactly 10 digits")
         return digits
-
 
     @field_validator("customer_name")
     @classmethod
@@ -122,7 +120,6 @@ class DeliveryUpdate(BaseModel):
     delivered_at: Optional[datetime] = None
     estimated_delivery_at: Optional[datetime] = None
 
-
     package_description: Optional[str] = None
     package_weight: Optional[str] = None
     package_dimensions: Optional[str] = None
@@ -159,8 +156,6 @@ class DeliveryResponse(BaseModel):
     in_transit_at: Optional[datetime] = None
     delivered_at: Optional[datetime] = None
     estimated_delivery_at: Optional[datetime] = None
-
-
 
     package_description: Optional[str] = None
     package_weight: Optional[str] = None
