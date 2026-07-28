@@ -206,7 +206,7 @@ export class Dashboard implements OnInit, OnDestroy {
 
   private calculateKPIs() {
     this.activeShipmentsCount = this.shipments.filter(s => 
-      ['Created', 'Pending', 'Assigned', 'Picked Up', 'In Transit'].includes(s.status)
+      ['Created', 'Pending', 'Assigned', 'Picked Up', 'In Transit', 'In Transit (Hub-to-Hub)', 'Arrived at Destination Hub', 'Arrived at Origin Hub'].includes(s.status)
     ).length;
 
     this.deliveredOrdersCount = this.shipments.filter(s => s.status === 'Delivered').length;
@@ -215,7 +215,7 @@ export class Dashboard implements OnInit, OnDestroy {
 
   getActiveShipments(): Delivery[] {
     return this.shipments.filter(s => 
-      ['Created', 'Pending', 'Assigned', 'Picked Up', 'In Transit'].includes(s.status)
+      ['Created', 'Pending', 'Assigned', 'Picked Up', 'In Transit', 'In Transit (Hub-to-Hub)', 'Arrived at Destination Hub', 'Arrived at Origin Hub'].includes(s.status)
     );
   }
 
