@@ -183,14 +183,16 @@ export class TrackDelivery implements OnInit, OnDestroy {
     return false;
   }
 
-  getStatusIndex(status: string | undefined): number {
-    if (!status) return 0;
-    const s = status.toLowerCase();
+  getStatusIndex(shipment: any): number {
+    if (!shipment || !shipment.status) return 0;
+    const s = shipment.status.toLowerCase();
     if (s === 'created' || s === 'pending') return 0;
     if (s === 'picked up') return 1;
     if (s.includes('hub-to-hub')) return 2;
     if (s.includes('destination hub')) return 3;
-    if (s === 'assigned') return 4;
+    if (s === 'assigned') {
+      return shipment.picked_up_at ? 4 : 0.5;
+    }
     if (s === 'in transit' || s === 'out for delivery') return 5;
     if (s === 'delivered') return 6;
     return 0;
@@ -208,7 +210,7 @@ export class TrackDelivery implements OnInit, OnDestroy {
 
   getTimelineSteps(shipment: any): any[] {
     const steps: any[] = [];
-    const idx = this.getStatusIndex(shipment.status);
+    const idx = this.getStatusIndex(shipment);
     const intercity = this.isIntercity(shipment);
 
     if (!intercity) {
@@ -222,7 +224,7 @@ export class TrackDelivery implements OnInit, OnDestroy {
         colorClass: 'completed'
       });
 
-      const isAssigned = (idx === 4 || idx === 1 || idx === 5 || idx === 6);
+      const isAssigned = (idx === 4 || idx === 1 || idx === 5 || idx === 6 || idx === 0.5);
       steps.push({
         title: 'Assigned to Agent',
         time: isAssigned ? this.formatTime(shipment.assigned_at) : 'Pending',
@@ -274,7 +276,7 @@ export class TrackDelivery implements OnInit, OnDestroy {
         colorClass: 'completed'
       });
 
-      const isAssigned = (idx >= 1 || idx === 4);
+      const isAssigned = (idx >= 1 || idx === 4 || idx === 0.5);
       steps.push({
         title: 'Pickup Agent Assigned',
         time: isAssigned ? this.formatTime(shipment.assigned_at) : 'Pending',
@@ -284,7 +286,7 @@ export class TrackDelivery implements OnInit, OnDestroy {
         colorClass: isAssigned ? 'completed' : 'pending'
       });
 
-      const isPickedUp = (idx >= 1 && idx !== 4);
+      const isPickedUp = (idx >= 1 && idx !== 4 && idx !== 0.5);
       steps.push({
         title: 'Picked Up for Hub Transit',
         time: isPickedUp ? this.formatTime(shipment.picked_up_at) : 'Pending',
