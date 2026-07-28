@@ -90,7 +90,7 @@ def get_address_offset_hours(pickup: str, drop: str) -> int:
 
 
 def calculate_dynamic_eta(delivery: Delivery) -> datetime:
-    start_time = delivery.assigned_at if delivery.assigned_at else (delivery.created_at or datetime.now(timezone.utc))
+    start_time = delivery.created_at if delivery.created_at else datetime.now(timezone.utc)
     
     offset_hours = get_address_offset_hours(delivery.pickup_address, delivery.drop_address)
     if offset_hours == 96:
