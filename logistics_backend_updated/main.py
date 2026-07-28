@@ -27,6 +27,11 @@ app.add_middleware(
         "http://127.0.0.1:4202",
         "http://localhost:4203",
         "http://127.0.0.1:4203",
+        "http://logistics-management-admin.s3-website.ap-south-1.amazonaws.com",
+        "http://logistics-management-customer.s3-website.ap-south-1.amazonaws.com",
+        "http://dispatcherside.s3-website.ap-south-1.amazonaws.com",
+        "https://d2txxjfwitx6cr.cloudfront.net",
+        "http://d2txxjfwitx6cr.cloudfront.net"
     ],
     allow_credentials=True,
     allow_methods=["*"],
