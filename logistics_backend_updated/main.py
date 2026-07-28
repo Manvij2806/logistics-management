@@ -31,7 +31,8 @@ app.add_middleware(
         "http://logistics-management-customer.s3-website.ap-south-1.amazonaws.com",
         "http://dispatcherside.s3-website.ap-south-1.amazonaws.com",
         "https://d2txxjfwitx6cr.cloudfront.net",
-        "http://d2txxjfwitx6cr.cloudfront.net"
+        "http://d2txxjfwitx6cr.cloudfront.net",
+        "http://delivery-agent-frontend.s3-website.ap-south-1.amazonaws.com"
     ],
     allow_credentials=True,
     allow_methods=["*"],
