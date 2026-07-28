@@ -227,7 +227,7 @@ export class TrackDelivery implements OnInit, OnDestroy {
       const isAssigned = (idx === 4 || idx === 1 || idx === 5 || idx === 6 || idx === 0.5);
       steps.push({
         title: 'Assigned to Agent',
-        time: isAssigned ? this.formatTime(shipment.assigned_at) : 'Pending',
+        time: isAssigned ? this.formatTime(shipment.assigned_at || shipment.created_at) : 'Pending',
         description: isAssigned ? `${shipment.agent || 'Agent'} has been assigned` : 'Awaiting agent assignment',
         status: isAssigned ? 'completed' : 'pending',
         icon: 'pi pi-user',
@@ -237,7 +237,7 @@ export class TrackDelivery implements OnInit, OnDestroy {
       const isPickedUp = (idx === 1 || idx === 5 || idx === 6);
       steps.push({
         title: 'Picked Up',
-        time: isPickedUp ? this.formatTime(shipment.picked_up_at) : 'Pending',
+        time: isPickedUp ? this.formatTime(shipment.picked_up_at || shipment.assigned_at || shipment.created_at) : 'Pending',
         description: isPickedUp ? 'Package picked up from source' : 'Awaiting pickup',
         status: isPickedUp ? 'completed' : 'pending',
         icon: 'pi pi-box',
@@ -249,7 +249,7 @@ export class TrackDelivery implements OnInit, OnDestroy {
       else if (idx === 6) transitStatus = 'completed';
       steps.push({
         title: 'Out for Delivery',
-        time: (transitStatus === 'completed' || transitStatus === 'active') ? this.formatTime(shipment.in_transit_at) : 'Pending',
+        time: (transitStatus === 'completed' || transitStatus === 'active') ? this.formatTime(shipment.in_transit_at || shipment.picked_up_at || shipment.created_at) : 'Pending',
         description: 'Package is on the way to your doorstep',
         status: transitStatus,
         icon: 'pi pi-truck',
@@ -259,7 +259,7 @@ export class TrackDelivery implements OnInit, OnDestroy {
       const isDelivered = idx === 6;
       steps.push({
         title: 'Delivered',
-        time: isDelivered ? this.formatTime(shipment.delivered_at) : 'Pending',
+        time: isDelivered ? this.formatTime(shipment.delivered_at || shipment.in_transit_at || shipment.created_at) : 'Pending',
         description: isDelivered ? 'Package delivered successfully' : 'Package will be delivered soon',
         status: isDelivered ? 'completed' : 'pending',
         icon: 'pi pi-check-circle',
@@ -279,7 +279,7 @@ export class TrackDelivery implements OnInit, OnDestroy {
       const isAssigned = (idx >= 1 || idx === 4 || idx === 0.5);
       steps.push({
         title: 'Pickup Agent Assigned',
-        time: isAssigned ? this.formatTime(shipment.assigned_at) : 'Pending',
+        time: isAssigned ? this.formatTime(shipment.assigned_at || shipment.created_at) : 'Pending',
         description: isAssigned ? 'Pickup agent assigned to fetch parcel' : 'Awaiting pickup assignment',
         status: isAssigned ? 'completed' : 'pending',
         icon: 'pi pi-user',
@@ -289,7 +289,7 @@ export class TrackDelivery implements OnInit, OnDestroy {
       const isPickedUp = (idx >= 1 && idx !== 4 && idx !== 0.5);
       steps.push({
         title: 'Picked Up for Hub Transit',
-        time: isPickedUp ? this.formatTime(shipment.picked_up_at) : 'Pending',
+        time: isPickedUp ? this.formatTime(shipment.picked_up_at || shipment.assigned_at || shipment.created_at) : 'Pending',
         description: isPickedUp ? 'Package picked up from source' : 'Awaiting pickup',
         status: isPickedUp ? 'completed' : 'pending',
         icon: 'pi pi-box',
@@ -299,7 +299,7 @@ export class TrackDelivery implements OnInit, OnDestroy {
       const arrivedOrigin = idx >= 2;
       steps.push({
         title: 'Arrived at Origin Hub',
-        time: arrivedOrigin ? this.formatTime(shipment.picked_up_at) : 'Pending',
+        time: arrivedOrigin ? this.formatTime(shipment.picked_up_at || shipment.assigned_at || shipment.created_at) : 'Pending',
         description: arrivedOrigin ? 'Package received at origin sorting facility' : 'Awaiting origin hub arrival',
         status: arrivedOrigin ? 'completed' : 'pending',
         icon: 'pi pi-home',
@@ -311,7 +311,7 @@ export class TrackDelivery implements OnInit, OnDestroy {
       else if (idx > 2) transitStatus = 'completed';
       steps.push({
         title: 'In Hub-to-Hub Transit',
-        time: (transitStatus === 'completed' || transitStatus === 'active') ? this.formatTime(shipment.in_transit_at) : 'Pending',
+        time: (transitStatus === 'completed' || transitStatus === 'active') ? this.formatTime(shipment.in_transit_at || shipment.picked_up_at || shipment.created_at) : 'Pending',
         description: transitStatus === 'active' ? 'Package is in transit between states/cities' : (transitStatus === 'completed' ? 'Package completed intercity transit' : 'Awaiting dispatch'),
         status: transitStatus,
         icon: 'pi pi-truck',
@@ -323,7 +323,7 @@ export class TrackDelivery implements OnInit, OnDestroy {
       else if (idx > 3) destHubStatus = 'completed';
       steps.push({
         title: 'Arrived at Destination Hub',
-        time: (destHubStatus === 'completed' || destHubStatus === 'active') ? this.formatTime(shipment.in_transit_at) : 'Pending',
+        time: (destHubStatus === 'completed' || destHubStatus === 'active') ? this.formatTime(shipment.in_transit_at || shipment.picked_up_at || shipment.created_at) : 'Pending',
         description: destHubStatus === 'active' ? 'Package received at receiver city facility' : (destHubStatus === 'completed' ? 'Arrived at destination city hub' : 'Awaiting arrival at destination hub'),
         status: destHubStatus,
         icon: 'pi pi-building',
@@ -333,7 +333,7 @@ export class TrackDelivery implements OnInit, OnDestroy {
       const deliveryAssigned = idx >= 4;
       steps.push({
         title: 'Local Delivery Agent Assigned',
-        time: deliveryAssigned ? this.formatTime(shipment.assigned_at) : 'Pending',
+        time: deliveryAssigned ? this.formatTime(shipment.assigned_at || shipment.in_transit_at || shipment.created_at) : 'Pending',
         description: deliveryAssigned ? `${shipment.agent || 'Local agent'} assigned for doorstep delivery` : 'Awaiting final delivery assignment',
         status: deliveryAssigned ? 'completed' : 'pending',
         icon: 'pi pi-user',
@@ -345,7 +345,7 @@ export class TrackDelivery implements OnInit, OnDestroy {
       else if (idx === 6) localDeliveryStatus = 'completed';
       steps.push({
         title: 'Out for Delivery',
-        time: (localDeliveryStatus === 'completed' || localDeliveryStatus === 'active') ? this.formatTime(shipment.in_transit_at) : 'Pending',
+        time: (localDeliveryStatus === 'completed' || localDeliveryStatus === 'active') ? this.formatTime(shipment.in_transit_at || shipment.assigned_at || shipment.created_at) : 'Pending',
         description: 'Package is on the way to your doorstep',
         status: localDeliveryStatus,
         icon: 'pi pi-truck',
@@ -355,7 +355,7 @@ export class TrackDelivery implements OnInit, OnDestroy {
       const isDelivered = idx === 6;
       steps.push({
         title: 'Delivered',
-        time: isDelivered ? this.formatTime(shipment.delivered_at) : 'Pending',
+        time: isDelivered ? this.formatTime(shipment.delivered_at || shipment.in_transit_at || shipment.created_at) : 'Pending',
         description: isDelivered ? 'Package delivered successfully' : 'Package will be delivered soon',
         status: isDelivered ? 'completed' : 'pending',
         icon: 'pi pi-check-circle',

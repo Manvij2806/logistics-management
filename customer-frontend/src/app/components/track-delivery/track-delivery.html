@@ -119,9 +119,6 @@
           <div class="result-estimate-section">
             <span class="estimate-label">Estimated Delivery</span>
             <h3 class="estimate-time">{{ shipment.eta }}</h3>
-            <span class="estimate-duration" *ngIf="shipment.status !== 'Delivered'">
-              (In {{ shipment.distanceLeft > 0 ? (shipment.distanceLeft / 40 * 60).toFixed(0) : '0' }} mins)
-            </span>
           </div>
 
           <!-- Timeline details (Simple 2-dot timeline) -->
