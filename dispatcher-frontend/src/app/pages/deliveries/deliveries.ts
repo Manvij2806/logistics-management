@@ -49,7 +49,7 @@ export class Deliveries implements OnInit {
   editFormErrors: any = {};
 
   // ── READ-ONLY statuses (cannot edit) ──────────────────────────────────
-  readOnlyStatuses = ['Assigned', 'Picked Up', 'In Transit', 'In Transit (Hub-to-Hub)', 'Arrived at Destination Hub', 'Delivered', 'Cancelled'];
+  readOnlyStatuses = ['Assigned', 'Picked Up', 'In Transit', 'In Transit (Hub-to-Hub)', 'Arrived at Destination Hub', 'Arrived at Origin Hub', 'Delivered', 'Cancelled'];
 
   isReadOnlyStatus(status: string): boolean {
     return this.readOnlyStatuses.includes(status);
@@ -106,7 +106,8 @@ export class Deliveries implements OnInit {
     { label: 'Delivered', value: 'Delivered' },
     { label: 'Cancelled', value: 'Cancelled' },
     { label: 'In Transit (Hub-to-Hub)', value: 'In Transit (Hub-to-Hub)' },
-    { label: 'Arrived at Destination Hub', value: 'Arrived at Destination Hub' }
+    { label: 'Arrived at Destination Hub', value: 'Arrived at Destination Hub' },
+    { label: 'Arrived at Origin Hub', value: 'Arrived at Origin Hub' }
   ];
 
   timeOptions = [

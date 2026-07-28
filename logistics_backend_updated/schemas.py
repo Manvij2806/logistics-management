@@ -18,6 +18,7 @@ class StatusEnum(str, Enum):
     unassigned = "Unassigned"
     hub_transit = "In Transit (Hub-to-Hub)"
     dest_hub   = "Arrived at Destination Hub"
+    origin_hub = "Arrived at Origin Hub"
 
 
 class DeliveryCreate(BaseModel):
