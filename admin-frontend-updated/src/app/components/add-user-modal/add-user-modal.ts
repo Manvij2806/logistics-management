@@ -45,11 +45,13 @@ export class AddUserModal {
       Validators.pattern(/^[\d\s\-+()]{7,20}$/)
     ]],
     role: ['', [Validators.required]],
+    city: [''],
     password: ['', [Validators.required, Validators.minLength(6)]],
     confirmPassword: ['', [Validators.required]]
   });
 
   roles = ['Admin', 'Dispatcher', 'Agent', 'Customer'];
+  cities = ['Agra', 'Mumbai', 'Delhi', 'Noida', 'Gwalior'];
 
   close(): void {
     this.closeEvent.emit();

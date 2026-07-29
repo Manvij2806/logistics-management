@@ -35,6 +35,7 @@ class UserCreate(BaseModel):
     email: EmailStr
     phone_number: str = Field(..., min_length=7, max_length=15)
     role_id: Optional[int] = None
+    city: Optional[str] = None
     password: str = Field(..., min_length=6)
 
     @field_validator("fullname")
@@ -67,6 +68,7 @@ class UserUpdate(BaseModel):
     phone_number: Optional[str] = Field(None, min_length=7, max_length=15)
     role_id: Optional[int] = None
     email: Optional[EmailStr] = None
+    city: Optional[str] = None
 
     @field_validator("fullname")
     @classmethod
@@ -106,6 +108,7 @@ class UserResponse(BaseModel):
     role: Optional[RoleResponse] = None
     created_at: Optional[str] = None
     active_deliveries: Optional[int] = 0
+    city: Optional[str] = None
 
     model_config = {"from_attributes": True}
 
@@ -181,11 +184,16 @@ AGENT_ROLE_ID = 2   # roles.id where name = 'agent'
 @agents_router.get(
     "/agents",
     response_model=List[UserResponse],
-    dependencies=[Depends(require_role("Admin", "Dispatcher"))],
 )
-def list_agents(db: Session = Depends(get_db)):
+def list_agents(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
     """Return all users with role_id = 2 (agent)."""
-    agents = db.query(User).filter(User.role_id == AGENT_ROLE_ID).all()
+    query = db.query(User).filter(User.role_id == AGENT_ROLE_ID)
+    if current_user.role and current_user.role.name == "Dispatcher" and current_user.city:
+        query = query.filter(User.city == current_user.city)
+    agents = query.all()
     for agent in agents:
         active_count = db.query(Delivery).filter(
             or_(Delivery.agent == agent.fullname, Delivery.agent_id == agent.id),
@@ -199,11 +207,16 @@ def list_agents(db: Session = Depends(get_db)):
 @agents_router.get(
     "/agents/active",
     response_model=List[UserResponse],
-    dependencies=[Depends(require_role("Admin", "Dispatcher"))],
 )
-def list_active_agents(db: Session = Depends(get_db)):
+def list_active_agents(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
     """Return all users with role_id = 2 (agent) whose status is Active."""
-    agents = db.query(User).filter(User.role_id == AGENT_ROLE_ID, User.status == "Active").all()
+    query = db.query(User).filter(User.role_id == AGENT_ROLE_ID, User.status == "Active")
+    if current_user.role and current_user.role.name == "Dispatcher" and current_user.city:
+        query = query.filter(User.city == current_user.city)
+    agents = query.all()
     for agent in agents:
         active_count = db.query(Delivery).filter(
             or_(Delivery.agent == agent.fullname, Delivery.agent_id == agent.id),
@@ -244,6 +257,7 @@ def create_user(payload: UserCreate, db: Session = Depends(get_db)):
         phone_number=payload.phone_number,
         role_id=payload.role_id,
         status="Active",
+        city=payload.city,
         hashed_password=hash_password(payload.password),
     )
     db.add(new_user)
@@ -273,6 +287,8 @@ def update_user(user_id: int, payload: UserUpdate, db: Session = Depends(get_db)
         if existing:
             raise HTTPException(status_code=409, detail="Email already in use.")
         user.email = payload.email
+    if payload.city is not None:
+        user.city = payload.city
 
     db.commit()
     db.refresh(user)

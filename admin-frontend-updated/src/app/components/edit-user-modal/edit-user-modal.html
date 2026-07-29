@@ -50,6 +50,15 @@
           </select>
         </div>
 
+        <!-- City (Working City) -->
+        <div class="form-group" *ngIf="userForm.get('role')?.value !== 'Admin'">
+          <label for="edit_city">Working City</label>
+          <select id="edit_city" formControlName="city" class="form-control">
+            <option value="">None / All Cities</option>
+            <option *ngFor="let c of cities" [value]="c">{{ c }}</option>
+          </select>
+        </div>
+
         <div class="api-error" *ngIf="submitError()">{{ submitError() }}</div>
       </div>
 

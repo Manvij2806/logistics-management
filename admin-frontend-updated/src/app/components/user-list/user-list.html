@@ -32,13 +32,14 @@
           <th class="sortable" (click)="toggleSort('email')">Email{{ sortIndicator('email') }}</th>
           <th class="sortable" (click)="toggleSort('phone_number')">Phone No{{ sortIndicator('phone_number') }}</th>
           <th class="sortable" >Role</th>
+          <th>City</th>
           <th class="sortable" (click)="toggleSort('status')">Status{{ sortIndicator('status') }}</th>
           <th>Actions</th>
         </tr>
       </thead>
       <tbody>
         <tr *ngIf="users().length === 0">
-          <td colspan="6" class="empty-cell">No users found.</td>
+          <td colspan="7" class="empty-cell">No users found.</td>
         </tr>
         <tr *ngFor="let user of users()">
           <td class="cell-name">{{ user.full_name }}</td>
@@ -49,6 +50,7 @@
               {{ user.role }}
             </span>
           </td>
+          <td>{{ user.city || '—' }}</td>
           <td>
             <span class="status-text" [ngClass]="'status-' + user.status.toLowerCase()">
               {{ getStatusLabel(user.status) }}

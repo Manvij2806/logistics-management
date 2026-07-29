@@ -100,6 +100,12 @@ export class TopbarComponent implements OnInit {
               icon = 'pi pi-times-circle';
               color = '#ef4444';
               break;
+            case 'Arrived at Destination Hub':
+              title = 'Arrived at Destination Hub';
+              message = `Delivery ${d.delivery_id} has arrived at the destination hub. Please assign a delivery agent.`;
+              icon = 'pi pi-building';
+              color = '#10b981';
+              break;
             default:
               title = 'Status Update';
               message = `Delivery ${d.delivery_id} status is ${d.status}.`;

@@ -55,9 +55,11 @@ export class EditUserModal implements OnChanges {
       ],
     ],
     role: ['', [Validators.required]],
+    city: [''],
   });
 
   roles = ['Admin', 'Dispatcher', 'Agent', 'Customer'];
+  cities = ['Agra', 'Mumbai', 'Delhi', 'Noida', 'Gwalior'];
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['user'] && this.user) {
@@ -66,6 +68,7 @@ export class EditUserModal implements OnChanges {
         email: this.user.email,
         phone_number: this.user.phone_number ?? '',
         role: this.user.role,
+        city: this.user.city ?? '',
       });
     }
   }
@@ -83,9 +86,9 @@ export class EditUserModal implements OnChanges {
     this.isSubmitting.set(true);
     this.submitError.set(null);
 
-    const { full_name, email, phone_number, role } = this.userForm.value;
+    const { full_name, email, phone_number, role, city } = this.userForm.value;
 
-    this.userService.updateUser(this.user.id, { full_name, phone_number, role, email }).subscribe({
+    this.userService.updateUser(this.user.id, { full_name, phone_number, role, email, city }).subscribe({
       next: () => {
         this.isSubmitting.set(false);
         

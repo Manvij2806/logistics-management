@@ -9,11 +9,11 @@ from pydantic import BaseModel
 
 
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
 
-from database import get_db, Delivery, User
+from database import get_db, Delivery, User, SessionLocal
 from schemas import DeliveryCreate, DeliveryResponse, DeliveryUpdate, DeliveryListResponse
 from auth import require_role, get_current_user
 
@@ -203,6 +203,24 @@ def populate_agent_deactivating(res_d: DeliveryResponse, d: Delivery, db: Sessio
         res_d.agent_deactivating = False
 
 
+def auto_arrive_at_destination_task(delivery_id: int):
+    import time
+    time.sleep(120)
+    db = SessionLocal()
+    try:
+        delivery = db.query(Delivery).filter(Delivery.id == delivery_id).first()
+        if delivery and delivery.status == "In Transit (Hub-to-Hub)":
+            delivery.status = "Arrived at Destination Hub"
+            delivery.estimated_delivery_at = calculate_dynamic_eta(delivery)
+            update_status_timestamps(delivery, delivery.status)
+            db.commit()
+            print(f"Auto-arrive simulation: Delivery {delivery_id} marked as Arrived at Destination Hub.")
+    except Exception as e:
+        print(f"Error in auto_arrive_at_destination_task: {e}")
+    finally:
+        db.close()
+
+
 # ── CREATE ────────────────────────────────────────────────────────────────────
 
 @router.post("/", response_model=DeliveryResponse, status_code=201)
@@ -300,6 +318,14 @@ def list_deliveries(
                 Delivery.recipient_phone == current_user.phone_number
             )
         )
+    elif current_user.role and current_user.role.name == 'Dispatcher' and current_user.city:
+        city_lower = f"%{current_user.city.strip().lower()}%"
+        query = query.filter(
+            or_(
+                Delivery.pickup_address.ilike(city_lower),
+                Delivery.drop_address.ilike(city_lower)
+            )
+        )
 
 
     if status:
@@ -369,6 +395,13 @@ def get_delivery(
             delivery.recipient_phone != current_user.phone_number):
             raise HTTPException(status_code=403, detail="Not authorized to view this delivery")
 
+    if current_user.role and current_user.role.name == 'Dispatcher' and current_user.city:
+        city_lower = current_user.city.strip().lower()
+        p_addr = (delivery.pickup_address or "").lower()
+        d_addr = (delivery.drop_address or "").lower()
+        if city_lower not in p_addr and city_lower not in d_addr:
+            raise HTTPException(status_code=403, detail="Not authorized to view deliveries outside your hub city")
+
 
     res_d = DeliveryResponse.from_orm(delivery)
     is_agent = current_user.role_id == 2 or (current_user.role and current_user.role.name == 'Agent')
@@ -385,12 +418,20 @@ def get_delivery(
 def update_delivery(
     delivery_id: int,
     payload: DeliveryCreate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role("Admin", "Dispatcher", "Agent")),
 ):
     delivery = db.query(Delivery).filter(Delivery.id == delivery_id).first()
     if not delivery:
         raise HTTPException(status_code=404, detail="Delivery not found")
+
+    if current_user.role and current_user.role.name == 'Dispatcher' and current_user.city:
+        city_lower = current_user.city.strip().lower()
+        p_addr = (delivery.pickup_address or "").lower()
+        d_addr = (delivery.drop_address or "").lower()
+        if city_lower not in p_addr and city_lower not in d_addr:
+            raise HTTPException(status_code=403, detail="Not authorized to edit deliveries outside your hub city")
 
     validate_delivery_phones(
         db,
@@ -423,6 +464,7 @@ def update_delivery(
                 detail="For intercity/interstate shipments, a delivery agent can only be assigned once the package has arrived at the destination hub."
             )
 
+    status_changed_to_transit = (new_status == "In Transit (Hub-to-Hub)" and delivery.status != "In Transit (Hub-to-Hub)")
     delivery.status = new_status
 
     if new_status == "In Transit (Hub-to-Hub)":
@@ -448,6 +490,8 @@ def update_delivery(
                 agent_user = db.query(User).filter(User.fullname == payload.agent, User.role_id == 2).first()
                 if agent_user:
                     delivery.agent_id = agent_user.id
+                else:
+                    delivery.agent_id = None
     
     delivery.notes          = payload.notes if payload.notes and payload.notes.strip() else "Notes are empty"
     delivery.recipient_name = payload.recipient_name
@@ -472,6 +516,9 @@ def update_delivery(
     db.commit()
     db.refresh(delivery)
     
+    if status_changed_to_transit:
+        background_tasks.add_task(auto_arrive_at_destination_task, delivery.id)
+
     res_d = DeliveryResponse.from_orm(delivery)
     is_agent = current_user.role_id == 2 or (current_user.role and current_user.role.name == 'Agent')
     if is_agent:
@@ -487,12 +534,22 @@ def update_delivery(
 def patch_delivery(
     delivery_id: int,
     payload: DeliveryUpdate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     delivery = db.query(Delivery).filter(Delivery.id == delivery_id).first()
     if not delivery:
         raise HTTPException(status_code=404, detail="Delivery not found")
+
+    if current_user.role and current_user.role.name == 'Dispatcher' and current_user.city:
+        city_lower = current_user.city.strip().lower()
+        p_addr = (delivery.pickup_address or "").lower()
+        d_addr = (delivery.drop_address or "").lower()
+        if city_lower not in p_addr and city_lower not in d_addr:
+            raise HTTPException(status_code=403, detail="Not authorized to edit deliveries outside your hub city")
+
+    status_changed_to_transit = False
 
     if payload.payment_method == "COD":
         agent_user = None
@@ -564,6 +621,7 @@ def patch_delivery(
                     )
 
             if payload.status is not None:
+                status_changed_to_transit = (payload.status.value == "In Transit (Hub-to-Hub)" and delivery.status != "In Transit (Hub-to-Hub)")
                 delivery.status = payload.status.value
             
             if target_status == "In Transit (Hub-to-Hub)":
@@ -615,6 +673,9 @@ def patch_delivery(
     db.commit()
     db.refresh(delivery)
     
+    if status_changed_to_transit:
+        background_tasks.add_task(auto_arrive_at_destination_task, delivery.id)
+
     res_d = DeliveryResponse.from_orm(delivery)
     is_agent = current_user.role_id == 2 or (current_user.role and current_user.role.name == 'Agent')
     if is_agent:

@@ -29,6 +29,7 @@ export interface User {
   role_id?: number | null;
   status: 'Active' | 'Inactive';
   created_at?: string;
+  city?: string | null;
 }
 
 // ── Backend response shapes ──────────────────────────────────────────────────
@@ -42,6 +43,7 @@ interface BackendUser {
   role_id?: number | null;
   role?: { id: number; name: string; description?: string | null } | null;
   created_at?: string;
+  city?: string | null;
 }
 
 function mapUser(u: BackendUser): User {
@@ -56,6 +58,7 @@ function mapUser(u: BackendUser): User {
     role: (roleName ?? 'Customer') as User['role'],
     role_id: u.role_id ?? null,
     created_at: u.created_at,
+    city: u.city ?? null,
   };
 }
 
@@ -109,6 +112,7 @@ export class UserService {
     phone_number: string;
     role: User['role'];
     password: string;
+    city?: string;
   }): Observable<User> {
     const payload = {
       fullname: userData.full_name,
@@ -117,6 +121,7 @@ export class UserService {
       phone_number: userData.phone_number,
       role_id: ROLE_NAME_TO_ID[userData.role] ?? null,
       password: userData.password,
+      city: userData.city ?? null,
     };
     return this.http.post<BackendUser>(`${this.apiUrl}/`, payload).pipe(map(mapUser));
   }
@@ -129,12 +134,13 @@ export class UserService {
 
   updateUser(
     id: string,
-    userData: { full_name: string; phone_number: string; role: User['role']; email?: string },
+    userData: { full_name: string; phone_number: string; role: User['role']; email?: string; city?: string },
   ): Observable<User> {
     const payload: Record<string, unknown> = {
       fullname: userData.full_name,
       phone_number: userData.phone_number,
       role_id: ROLE_NAME_TO_ID[userData.role] ?? null,
+      city: userData.city ?? null,
     };
     if (userData.email) payload['email'] = userData.email;
 

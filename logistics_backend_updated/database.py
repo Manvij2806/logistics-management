@@ -68,6 +68,7 @@ class User(Base):
     created_at      = Column(DateTime(timezone=True), server_default=func.now())
     active_deliveries = Column(Integer, nullable=True, default=0)
     deactivate_after_delivery = Column(Boolean, nullable=True, default=False)
+    city            = Column(String(100), nullable=True)
 
     role = relationship("Role", foreign_keys=[role_id])
 
@@ -219,14 +220,39 @@ def init_db():
                     conn.execute(text("ALTER TABLE newusers ADD COLUMN deactivate_after_delivery BOOLEAN DEFAULT FALSE"))
                     conn.commit()
                     print("Migration: 'deactivate_after_delivery' column added successfully.")
+                if "city" not in existing_user_cols:
+                    conn.execute(text("ALTER TABLE newusers ADD COLUMN city VARCHAR(100) DEFAULT NULL"))
+                    conn.commit()
+                    print("Migration: 'city' column added successfully.")
             except Exception as e_info:
                 # SQLite fallback
                 try:
                     conn.execute(text("ALTER TABLE newusers ADD COLUMN deactivate_after_delivery BOOLEAN DEFAULT FALSE"))
                     conn.commit()
-                    print("Migration (SQLite fallback): 'deactivate_after_delivery' column added successfully.")
                 except Exception:
                     pass
+                try:
+                    conn.execute(text("ALTER TABLE newusers ADD COLUMN city VARCHAR(100) DEFAULT NULL"))
+                    conn.commit()
+                except Exception:
+                    pass
+
+            # Backfill random cities for existing users who do not have a city yet (excluding Admins)
+            try:
+                db_session = SessionLocal()
+                db_users = db_session.query(User).filter(User.city == None).all()
+                import random
+                cities_list = ["Agra", "Mumbai", "Delhi", "Noida", "Gwalior"]
+                for u in db_users:
+                    if u.role_id == 1 or (u.role and u.role.name == "Admin"):
+                        continue
+                    u.city = random.choice(cities_list)
+                db_session.commit()
+                print("Migration: Backfilled users with random cities.")
+            except Exception as e_backfill:
+                print("Error backfilling user cities:", e_backfill)
+            finally:
+                db_session.close()
 
     except Exception as e:
         print("Error running migration:", e)
