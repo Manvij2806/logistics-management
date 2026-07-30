@@ -12,6 +12,7 @@ export interface User {
   status: 'Active' | 'Inactive';
   role: 'Admin' | 'Dispatcher' | 'Agent' | 'Customer';
   role_id: number | null;
+  city?: string | null;
 }
 
 const TOKEN_KEY = 'agent_auth_token';
@@ -76,6 +77,7 @@ export class AuthService {
           status: me.status as 'Active' | 'Inactive',
           role: role as User['role'],
           role_id: me.role_id ?? null,
+          city: me.city ?? null,
         };
         return user;
       }),

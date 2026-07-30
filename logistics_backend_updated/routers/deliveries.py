@@ -185,7 +185,7 @@ def update_status_timestamps(delivery: Delivery, new_status: str):
         delivery.assigned_at = now
     elif status_lower == "picked up" and delivery.picked_up_at is None:
         delivery.picked_up_at = now
-    elif status_lower == "in transit" and delivery.in_transit_at is None:
+    elif status_lower in ("in transit", "in transit (hub-to-hub)") and delivery.in_transit_at is None:
         delivery.in_transit_at = now
     elif status_lower == "delivered" and delivery.delivered_at is None:
         delivery.delivered_at = now
@@ -195,12 +195,157 @@ def populate_agent_deactivating(res_d: DeliveryResponse, d: Delivery, db: Sessio
     agent_user = None
     if d.agent_id:
         agent_user = db.query(User).filter(User.id == d.agent_id).first()
-    if not agent_user and d.agent:
-        agent_user = db.query(User).filter(User.fullname == d.agent, User.role_id == 2).first()
     if agent_user and getattr(agent_user, "deactivate_after_delivery", False):
         res_d.agent_deactivating = True
     else:
         res_d.agent_deactivating = False
+
+
+def get_city_from_address(address: str) -> Optional[str]:
+    if not address:
+        return None
+    addr_lower = address.lower()
+    known_cities = ["agra", "mumbai", "delhi", "noida", "gwalior"]
+    for city in known_cities:
+        if city in addr_lower:
+            return city
+    return None
+
+
+def verify_status_transition(
+    delivery: Delivery,
+    current_user: User,
+    new_status: str,
+    payload_agent_id: Optional[int],
+    db: Session
+):
+    if not new_status:
+        return
+
+    # Admins have full access
+    if current_user.role and current_user.role.name.lower() == "admin":
+        return
+
+    role_name = current_user.role.name if current_user.role else ""
+    is_agent = (role_name == "Agent")
+    is_dispatcher = (role_name == "Dispatcher")
+    
+    pickup_city = get_city_from_address(delivery.pickup_address)
+    drop_city = get_city_from_address(delivery.drop_address)
+    is_intercity = get_address_offset_hours(delivery.pickup_address, delivery.drop_address) > 0
+
+    old_status = delivery.status or "Created"
+    
+    if is_agent:
+        # Agents can only modify deliveries assigned to them
+        if delivery.agent_id != current_user.id:
+            raise HTTPException(status_code=403, detail="You can only update deliveries assigned to you.")
+        
+        if is_intercity:
+            agent_city = current_user.city
+            agent_city_lower = agent_city.strip().lower() if agent_city else ""
+            is_source_agent = (agent_city_lower and pickup_city and agent_city_lower == pickup_city)
+            is_dest_agent = (agent_city_lower and drop_city and agent_city_lower == drop_city)
+            
+            if is_source_agent:
+                # Pickup Agent: can only transition:
+                # - to 'Picked Up' (from Assigned/Created/Pending)
+                # - to 'Arrived at Origin Hub' (from Picked Up)
+                allowed_transitions = {
+                    "Created": ["Picked Up"],
+                    "Pending": ["Picked Up"],
+                    "Assigned": ["Picked Up"],
+                    "Picked Up": ["Arrived at Origin Hub"]
+                }
+                valid = allowed_transitions.get(old_status, [])
+                if new_status != old_status and new_status not in valid:
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"As a pickup agent, you cannot change status from '{old_status}' to '{new_status}'."
+                    )
+            elif is_dest_agent:
+                # Delivery Agent: can only transition:
+                # - to 'Picked Up' or 'Out for Delivery' (from Assigned/Arrived at Destination Hub)
+                # - to 'Delivered' (from Picked Up/Out for Delivery)
+                allowed_transitions = {
+                    "Arrived at Destination Hub": ["Picked Up", "Out for Delivery"],
+                    "Assigned": ["Picked Up", "Out for Delivery"],
+                    "Picked Up": ["Delivered"],
+                    "Out for Delivery": ["Delivered"]
+                }
+                valid = allowed_transitions.get(old_status, [])
+                if new_status != old_status and new_status not in valid:
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"As a delivery agent, you cannot change status from '{old_status}' to '{new_status}'."
+                    )
+            else:
+                raise HTTPException(status_code=403, detail="You are not authorized to update this intercity delivery.")
+        else:
+            # Same city delivery
+            # Allowed statuses for local agent: Picked Up, In Transit, Out for Delivery, Delivered
+            allowed_transitions = {
+                "Created": ["Picked Up", "In Transit"],
+                "Pending": ["Picked Up", "In Transit"],
+                "Assigned": ["Picked Up", "In Transit"],
+                "Picked Up": ["In Transit", "Out for Delivery", "Delivered"],
+                "In Transit": ["Out for Delivery", "Delivered"],
+                "Out for Delivery": ["Delivered"]
+            }
+            valid = allowed_transitions.get(old_status, [])
+            if new_status != old_status and new_status not in valid:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"As an agent, you cannot transition status from '{old_status}' to '{new_status}'."
+                )
+
+    elif is_dispatcher:
+        disp_city = current_user.city
+        if not disp_city:
+            raise HTTPException(status_code=403, detail="Dispatcher has no working city assigned.")
+            
+        disp_city_lower = disp_city.strip().lower()
+        is_source_disp = (pickup_city and disp_city_lower == pickup_city)
+        is_dest_disp = (drop_city and disp_city_lower == drop_city)
+        
+        if is_intercity:
+            if not is_source_disp and not is_dest_disp:
+                raise HTTPException(status_code=403, detail="Not authorized to edit deliveries outside your hub city.")
+            
+            # Source dispatcher actions:
+            if new_status == "In Transit (Hub-to-Hub)":
+                if not is_source_disp:
+                    raise HTTPException(status_code=400, detail="Only the source city dispatcher can dispatch the shipment to hub-to-hub transit.")
+                if old_status != "Arrived at Origin Hub":
+                    raise HTTPException(status_code=400, detail="Can only set status to 'In Transit (Hub-to-Hub)' after the package has 'Arrived at Origin Hub'.")
+            
+            # Destination dispatcher actions:
+            if new_status == "Arrived at Destination Hub":
+                if not is_dest_disp:
+                    raise HTTPException(status_code=400, detail="Only the destination city dispatcher can mark the shipment as arrived at the destination hub.")
+            
+            # Validate agent assignment
+            if payload_agent_id is not None and payload_agent_id != delivery.agent_id:
+                agent = db.query(User).filter(User.id == payload_agent_id).first()
+                if not agent:
+                    raise HTTPException(status_code=404, detail="Agent not found.")
+                agent_city = agent.city or ""
+                agent_city_lower = agent_city.strip().lower()
+                
+                if old_status in ("Created", "Assigned", "Pending"):
+                    # Pickup agent assignment
+                    if not is_source_disp:
+                        raise HTTPException(status_code=400, detail="Only the source city dispatcher can assign the pickup agent.")
+                    if disp_city_lower != agent_city_lower:
+                        raise HTTPException(status_code=400, detail="Must assign an agent from the source city for pickup.")
+                elif old_status == "Arrived at Destination Hub":
+                    # Delivery agent assignment
+                    if not is_dest_disp:
+                        raise HTTPException(status_code=400, detail="Only the destination city dispatcher can assign the delivery agent.")
+                    if disp_city_lower != agent_city_lower:
+                        raise HTTPException(status_code=400, detail="Must assign an agent from the destination city for delivery.")
+                else:
+                    raise HTTPException(status_code=400, detail=f"Cannot assign an agent while shipment status is '{old_status}'.")
 
 
 def auto_arrive_at_destination_task(delivery_id: int):
@@ -448,21 +593,7 @@ def update_delivery(
     delivery.customer_name  = payload.customer_name
     delivery.customer_phone = payload.customer_phone
     new_status = payload.status.value if payload.status else delivery.status
-    new_status_lower = new_status.lower() if new_status else ""
-    is_intercity = get_address_offset_hours(delivery.pickup_address, delivery.drop_address) > 0
-    # Check if agent is actually changing or newly assigned
-    agent_is_changing = False
-    if payload.agent != delivery.agent:
-        agent_is_changing = True
-    if payload.agent_id is not None and payload.agent_id != delivery.agent_id:
-        agent_is_changing = True
-
-    if is_intercity and agent_is_changing:
-        if new_status_lower in ("picked up", "in transit (hub-to-hub)"):
-            raise HTTPException(
-                status_code=400,
-                detail="For intercity/interstate shipments, a delivery agent can only be assigned once the package has arrived at the destination hub."
-            )
+    verify_status_transition(delivery, current_user, new_status, payload.agent_id, db)
 
     status_changed_to_transit = (new_status == "In Transit (Hub-to-Hub)" and delivery.status != "In Transit (Hub-to-Hub)")
     delivery.status = new_status
@@ -599,26 +730,7 @@ def patch_delivery(
             if payload.customer_phone is not None:
                 delivery.customer_phone = payload.customer_phone
             target_status = payload.status.value if payload.status is not None else delivery.status
-            target_status_lower = target_status.lower() if target_status else ""
-            
-            is_intercity = get_address_offset_hours(
-                payload.pickup_address if payload.pickup_address is not None else delivery.pickup_address,
-                payload.drop_address if payload.drop_address is not None else delivery.drop_address
-            ) > 0
-            
-            # Check if agent is actually changing or newly assigned
-            agent_is_changing = False
-            if payload.agent is not None and payload.agent != delivery.agent:
-                agent_is_changing = True
-            if payload.agent_id is not None and payload.agent_id != delivery.agent_id:
-                agent_is_changing = True
-
-            if is_intercity and agent_is_changing:
-                if target_status_lower in ("picked up", "in transit (hub-to-hub)"):
-                    raise HTTPException(
-                        status_code=400,
-                        detail="For intercity/interstate shipments, a delivery agent can only be assigned once the package has arrived at the destination hub."
-                    )
+            verify_status_transition(delivery, current_user, target_status, payload.agent_id, db)
 
             if payload.status is not None:
                 status_changed_to_transit = (payload.status.value == "In Transit (Hub-to-Hub)" and delivery.status != "In Transit (Hub-to-Hub)")

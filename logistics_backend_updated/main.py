@@ -108,6 +108,7 @@ def get_me(current_user: User = Depends(get_current_user)):
         "status": current_user.status,
         "role_id": current_user.role_id,
         "phone_number": current_user.phone_number,
+        "city": current_user.city,
     }
 
 

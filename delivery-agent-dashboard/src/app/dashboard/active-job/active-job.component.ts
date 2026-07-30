@@ -2,6 +2,7 @@ import { Component, AfterViewInit, ElementRef, OnDestroy, OnInit, ViewChild, Cha
 import * as L from 'leaflet';
 import { DeliveryService, Delivery } from '../../services/delivery.service';
 import { Subscription } from 'rxjs';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-active-job',
@@ -58,6 +59,7 @@ export class ActiveJobComponent implements OnInit, AfterViewInit, OnDestroy {
   constructor(
     private deliveryService: DeliveryService,
     private cdr: ChangeDetectorRef,
+    private authService: AuthService,
   ) {}
 
 
@@ -264,25 +266,85 @@ export class ActiveJobComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   getNextStepButtonLabel(): string {
-    const status = this.activeJobRaw?.status;
-    if (status === 'Assigned') return 'CONFIRM PICKUP';
-    if (status === 'Picked Up') return 'START TRANSIT';
-    if (status === 'In Transit') return 'CONFIRM DELIVERY';
+    const d = this.activeJobRaw;
+    if (!d) return 'CONFIRM ACTION';
+    
+    // Check if intercity
+    const pickupAddr = d.pickup_address.toLowerCase();
+    const dropAddr = d.drop_address.toLowerCase();
+    const cities = ["delhi", "noida", "gurugram", "faridabad", "ghaziabad", "agra", "mumbai", "bangalore", "bengaluru", "chennai", "kolkata", "pune", "hyderabad", "jaipur", "lucknow", "gwalior"];
+    const city1 = cities.find(c => pickupAddr.includes(c));
+    const city2 = cities.find(c => dropAddr.includes(c));
+    const isIntercity = city1 && city2 && city1 !== city2;
+    
+    const user = this.authService.currentUser();
+    const agentCity = user?.city?.toLowerCase() || '';
+    const isSourceLeg = agentCity && pickupAddr.includes(agentCity);
+    
+    if (isIntercity) {
+      if (isSourceLeg) {
+        if (d.status === 'Assigned') return 'CONFIRM PICKUP';
+        if (d.status === 'Picked Up') return 'ARRIVED AT HUB';
+      } else {
+        // Destination leg
+        if (d.status === 'Assigned' || d.status === 'Arrived at Destination Hub') return 'START DELIVERY';
+        if (d.status === 'Picked Up' || d.status === 'Out for Delivery') return 'CONFIRM DELIVERY';
+      }
+    } else {
+      // Local same-city
+      if (d.status === 'Assigned') return 'CONFIRM PICKUP';
+      if (d.status === 'Picked Up') return 'START TRANSIT';
+      if (d.status === 'In Transit') return 'CONFIRM DELIVERY';
+    }
     return 'CONFIRM ACTION';
   }
 
   advanceStatus(): void {
     if (!this.activeJobRaw) return;
-    const currentStatus = this.activeJobRaw.status;
+    
+    const d = this.activeJobRaw;
+    const currentStatus = d.status;
+    
+    const pickupAddr = d.pickup_address.toLowerCase();
+    const dropAddr = d.drop_address.toLowerCase();
+    const cities = ["delhi", "noida", "gurugram", "faridabad", "ghaziabad", "agra", "mumbai", "bangalore", "bengaluru", "chennai", "kolkata", "pune", "hyderabad", "jaipur", "lucknow", "gwalior"];
+    const city1 = cities.find(c => pickupAddr.includes(c));
+    const city2 = cities.find(c => dropAddr.includes(c));
+    const isIntercity = city1 && city2 && city1 !== city2;
+    
+    const user = this.authService.currentUser();
+    const agentCity = user?.city?.toLowerCase() || '';
+    const isSourceLeg = agentCity && pickupAddr.includes(agentCity);
+    
     let nextStatus = '';
-    if (currentStatus === 'Assigned') nextStatus = 'Picked Up';
-    else if (currentStatus === 'Picked Up') nextStatus = 'In Transit';
-    else if (currentStatus === 'In Transit') nextStatus = 'Delivered';
-
-    if (currentStatus === 'In Transit') {
+    let triggersOtp = false;
+    
+    if (isIntercity) {
+      if (isSourceLeg) {
+        if (currentStatus === 'Assigned') nextStatus = 'Picked Up';
+        else if (currentStatus === 'Picked Up') nextStatus = 'Arrived at Origin Hub';
+      } else {
+        // Destination leg
+        if (currentStatus === 'Assigned' || currentStatus === 'Arrived at Destination Hub') nextStatus = 'Picked Up';
+        else if (currentStatus === 'Picked Up' || currentStatus === 'Out for Delivery') {
+          triggersOtp = true;
+          nextStatus = 'Delivered';
+        }
+      }
+    } else {
+      // Local same-city
+      if (currentStatus === 'Assigned') nextStatus = 'Picked Up';
+      else if (currentStatus === 'Picked Up') nextStatus = 'In Transit';
+      else if (currentStatus === 'In Transit') {
+        triggersOtp = true;
+        nextStatus = 'Delivered';
+      }
+    }
+    
+    if (triggersOtp) {
       this.otpError = '';
       this.otpPin = '';
-      this.deliveryService.requestOtp(this.activeJobRaw.id).subscribe({
+      this.deliveryService.requestOtp(d.id).subscribe({
         next: () => {
           this.showOtpModal = true;
           this.cdr.detectChanges();
@@ -293,10 +355,10 @@ export class ActiveJobComponent implements OnInit, AfterViewInit, OnDestroy {
       });
       return;
     }
-
+    
     if (nextStatus) {
       this.deliveryService
-        .updateDelivery(this.activeJobRaw.id, {
+        .updateDelivery(d.id, {
           status: nextStatus as any,
         })
         .subscribe({
