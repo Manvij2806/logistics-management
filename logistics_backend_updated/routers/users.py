@@ -359,4 +359,4 @@ def delete_user(user_id: int, db: Session = Depends(get_db)):
 @router.get("/debug-cities/all")
 def debug_cities(db: Session = Depends(get_db)):
     users = db.query(User).all()
-    return [{"id": u.id, "fullname": u.fullname, "role": u.role.name if u.role else None, "city": u.city} for u in users]
+    return [{"id": u.id, "fullname": u.fullname, "role": u.role.name if u.role else None, "city": u.city, "status": u.status} for u in users]
