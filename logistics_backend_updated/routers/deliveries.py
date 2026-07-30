@@ -185,7 +185,7 @@ def update_status_timestamps(delivery: Delivery, new_status: str):
         delivery.assigned_at = now
     elif status_lower == "picked up" and delivery.picked_up_at is None:
         delivery.picked_up_at = now
-    elif status_lower in ("in transit", "in transit (hub-to-hub)") and delivery.in_transit_at is None:
+    elif status_lower in ("in transit", "in transit (hub-to-hub)", "arrived at origin hub") and delivery.in_transit_at is None:
         delivery.in_transit_at = now
     elif status_lower == "delivered" and delivery.delivered_at is None:
         delivery.delivered_at = now

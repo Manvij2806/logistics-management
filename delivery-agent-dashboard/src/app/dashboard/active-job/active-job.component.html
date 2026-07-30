@@ -102,49 +102,14 @@
       <div class="info-card timeline-card" style="margin-top: 16px; padding: 16px; background: white; border-radius: 12px; border: 1px solid #eaecf0; box-shadow: 0 1px 2px rgba(0,0,0,0.05); width: 100%;">
         <h4 style="margin: 0 0 16px 0; font-family: 'Outfit', sans-serif; font-size: 15px; font-weight: 600; color: #1e1b4b; text-align: left;">Delivery Timeline</h4>
         <div class="agent-timeline-steps" style="display: flex; gap: 16px; justify-content: space-between; padding: 8px 0;">
-          <!-- Created -->
-          <div class="agent-timeline-step" style="display: flex; flex-direction: column; align-items: center; flex: 1; text-align: center;">
-            <div style="width: 28px; height: 28px; border-radius: 50%; background: #d1fae5; color: #065f46; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
-              <mat-icon style="font-size: 16px; width: 16px; height: 16px; display: block; line-height: 16px;">check</mat-icon>
+          <div class="agent-timeline-step" *ngFor="let step of timelineSteps" style="display: flex; flex-direction: column; align-items: center; flex: 1; text-align: center;">
+            <div [style.background]="step.completed ? '#d1fae5' : '#f2f4f7'" 
+                 [style.color]="step.completed ? '#065f46' : '#667085'" 
+                 style="width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+              <mat-icon style="font-size: 16px; width: 16px; height: 16px; display: block; line-height: 16px;">{{ step.completed ? 'check' : 'schedule' }}</mat-icon>
             </div>
-            <span style="font-size: 12px; font-weight: 600; color: #344054; display: block; margin-bottom: 2px; font-family: 'Outfit', sans-serif;">Created</span>
-            <span style="font-size: 11px; color: #667085; font-family: 'Roboto', sans-serif;">{{ activeJob.created_at }}</span>
-          </div>
-          
-          <!-- Assigned -->
-          <div class="agent-timeline-step" style="display: flex; flex-direction: column; align-items: center; flex: 1; text-align: center;">
-            <div [style.background]="activeJob.assigned_at !== '-' ? '#d1fae5' : '#f2f4f7'" [style.color]="activeJob.assigned_at !== '-' ? '#065f46' : '#667085'" style="width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
-              <mat-icon style="font-size: 16px; width: 16px; height: 16px; display: block; line-height: 16px;">{{ activeJob.assigned_at !== '-' ? 'check' : 'schedule' }}</mat-icon>
-            </div>
-            <span style="font-size: 12px; font-weight: 600; color: #344054; display: block; margin-bottom: 2px; font-family: 'Outfit', sans-serif;">Assigned</span>
-            <span style="font-size: 11px; color: #667085; font-family: 'Roboto', sans-serif;">{{ activeJob.assigned_at }}</span>
-          </div>
-          
-          <!-- Picked Up -->
-          <div class="agent-timeline-step" style="display: flex; flex-direction: column; align-items: center; flex: 1; text-align: center;">
-            <div [style.background]="activeJob.picked_up_at !== '-' ? '#d1fae5' : '#f2f4f7'" [style.color]="activeJob.picked_up_at !== '-' ? '#065f46' : '#667085'" style="width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
-              <mat-icon style="font-size: 16px; width: 16px; height: 16px; display: block; line-height: 16px;">{{ activeJob.picked_up_at !== '-' ? 'check' : 'schedule' }}</mat-icon>
-            </div>
-            <span style="font-size: 12px; font-weight: 600; color: #344054; display: block; margin-bottom: 2px; font-family: 'Outfit', sans-serif;">Picked Up</span>
-            <span style="font-size: 11px; color: #667085; font-family: 'Roboto', sans-serif;">{{ activeJob.picked_up_at }}</span>
-          </div>
-          
-          <!-- In Transit -->
-          <div class="agent-timeline-step" style="display: flex; flex-direction: column; align-items: center; flex: 1; text-align: center;">
-            <div [style.background]="activeJob.in_transit_at !== '-' ? '#d1fae5' : '#f2f4f7'" [style.color]="activeJob.in_transit_at !== '-' ? '#065f46' : '#667085'" style="width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
-              <mat-icon style="font-size: 16px; width: 16px; height: 16px; display: block; line-height: 16px;">{{ activeJob.in_transit_at !== '-' ? 'check' : 'schedule' }}</mat-icon>
-            </div>
-            <span style="font-size: 12px; font-weight: 600; color: #344054; display: block; margin-bottom: 2px; font-family: 'Outfit', sans-serif;">In Transit</span>
-            <span style="font-size: 11px; color: #667085; font-family: 'Roboto', sans-serif;">{{ activeJob.in_transit_at }}</span>
-          </div>
-          
-          <!-- Delivered -->
-          <div class="agent-timeline-step" style="display: flex; flex-direction: column; align-items: center; flex: 1; text-align: center;">
-            <div [style.background]="activeJob.delivered_at !== '-' ? '#d1fae5' : '#f2f4f7'" [style.color]="activeJob.delivered_at !== '-' ? '#065f46' : '#667085'" style="width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
-              <mat-icon style="font-size: 16px; width: 16px; height: 16px; display: block; line-height: 16px;">{{ activeJob.delivered_at !== '-' ? 'check' : 'schedule' }}</mat-icon>
-            </div>
-            <span style="font-size: 12px; font-weight: 600; color: #344054; display: block; margin-bottom: 2px; font-family: 'Outfit', sans-serif;">Delivered</span>
-            <span style="font-size: 11px; color: #667085; font-family: 'Roboto', sans-serif;">{{ activeJob.delivered_at }}</span>
+            <span style="font-size: 12px; font-weight: 600; color: #344054; display: block; margin-bottom: 2px; font-family: 'Outfit', sans-serif;">{{ step.label }}</span>
+            <span style="font-size: 11px; color: #667085; font-family: 'Roboto', sans-serif;">{{ step.time }}</span>
           </div>
         </div>
       </div>

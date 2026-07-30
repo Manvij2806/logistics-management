@@ -51,6 +51,8 @@ export class ActiveJobComponent implements OnInit, AfterViewInit, OnDestroy {
     delivered_at: '',
   };
 
+  timelineSteps: Array<{ label: string, time: string, completed: boolean }> = [];
+
   showOtpModal = false;
   otpPin = '';
   otpError = '';
@@ -108,21 +110,43 @@ export class ActiveJobComponent implements OnInit, AfterViewInit, OnDestroy {
           }
         };
 
-        const pickupCompleted = ['Picked Up', 'In Transit', 'Delivered'].includes(active.status);
+        const formatDateTime = (dateStr: string | null | undefined): string => {
+          if (!dateStr) return '-';
+          try {
+            const d = new Date(dateStr);
+            return d.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
+          } catch {
+            return '-';
+          }
+        };
+
+        // Check if intercity
+        const pickupAddr = active.pickup_address.toLowerCase();
+        const dropAddr = active.drop_address.toLowerCase();
+        const cities = ["delhi", "noida", "gurugram", "faridabad", "ghaziabad", "agra", "mumbai", "bangalore", "bengaluru", "chennai", "kolkata", "pune", "hyderabad", "jaipur", "lucknow", "gwalior"];
+        const city1 = cities.find(c => pickupAddr.includes(c));
+        const city2 = cities.find(c => dropAddr.includes(c));
+        const isIntercity = city1 && city2 && city1 !== city2;
+        
+        const user = this.authService.currentUser();
+        const agentCity = user?.city?.toLowerCase() || '';
+        const isSourceLeg = agentCity && pickupAddr.includes(agentCity);
+
+        const pickupCompleted = ['Picked Up', 'Arrived at Origin Hub', 'In Transit (Hub-to-Hub)', 'Arrived at Destination Hub', 'Delivered'].includes(active.status);
         const dropoffCompleted = active.status === 'Delivered';
 
         this.activeJob = {
           trackingNumber: active.tracking_number || '',
           orderId: active.delivery_id,
           pickup: {
-            location: getCityName(active.pickup_address),
-            address: active.pickup_address,
+            location: isIntercity && !isSourceLeg ? `${getCityName(active.drop_address)} Hub` : getCityName(active.pickup_address),
+            address: isIntercity && !isSourceLeg ? `${getCityName(active.drop_address)} Hub` : active.pickup_address,
             status: pickupCompleted ? 'Completed' : 'Pending',
             coords: pCoords as L.LatLngExpression,
           },
           dropoff: {
-            location: getCityName(active.drop_address),
-            address: active.drop_address,
+            location: isIntercity && isSourceLeg ? `${getCityName(active.pickup_address)} Hub` : getCityName(active.drop_address),
+            address: isIntercity && isSourceLeg ? `${getCityName(active.pickup_address)} Hub` : active.drop_address,
             status: dropoffCompleted ? 'Completed' : 'Pending',
             coords: dCoords as L.LatLngExpression,
           },
@@ -131,7 +155,7 @@ export class ActiveJobComponent implements OnInit, AfterViewInit, OnDestroy {
           senderPhone: active.sender_phone || '—',
           receiverName: active.recipient_name || active.customer_name || '—',
           receiverPhone: active.recipient_phone || active.customer_phone || '—',
-          eta: active.priority === 'High' ? 'Within 2 Hrs' : '18:00',
+          eta: active.estimated_delivery_at ? formatDateTime(active.estimated_delivery_at) : '18:00',
           totalRoute: `${calculatedDist} km`,
           totalDistance: `${calculatedDist} km`,
           payment_status: active.payment_status || 'Unpaid',
@@ -141,6 +165,35 @@ export class ActiveJobComponent implements OnInit, AfterViewInit, OnDestroy {
           in_transit_at: formatTime(active.in_transit_at),
           delivered_at: formatTime(active.delivered_at),
         };
+
+        if (isIntercity) {
+          if (isSourceLeg) {
+            // Leg 1: Pickup to Origin Hub
+            this.timelineSteps = [
+              { label: 'Created', time: formatTime(active.created_at), completed: true },
+              { label: 'Assigned', time: formatTime(active.assigned_at), completed: !!active.assigned_at },
+              { label: 'Picked Up', time: formatTime(active.picked_up_at), completed: ['Picked Up', 'Arrived at Origin Hub', 'In Transit (Hub-to-Hub)', 'Arrived at Destination Hub', 'Delivered'].includes(active.status) },
+              { label: 'Arrived at Origin Hub', time: formatTime(active.in_transit_at), completed: ['Arrived at Origin Hub', 'In Transit (Hub-to-Hub)', 'Arrived at Destination Hub', 'Delivered'].includes(active.status) }
+            ];
+          } else {
+            // Leg 2: Destination Hub to Delivery
+            this.timelineSteps = [
+              { label: 'Arrived at Hub', time: formatTime(active.in_transit_at || active.created_at), completed: true },
+              { label: 'Assigned', time: formatTime(active.assigned_at), completed: !!active.assigned_at },
+              { label: 'Out for Delivery', time: formatTime(active.picked_up_at), completed: ['Picked Up', 'Out for Delivery', 'Delivered'].includes(active.status) },
+              { label: 'Delivered', time: formatTime(active.delivered_at), completed: active.status === 'Delivered' }
+            ];
+          }
+        } else {
+          // Same-city delivery
+          this.timelineSteps = [
+            { label: 'Created', time: formatTime(active.created_at), completed: true },
+            { label: 'Assigned', time: formatTime(active.assigned_at), completed: !!active.assigned_at },
+            { label: 'Picked Up', time: formatTime(active.picked_up_at), completed: ['Picked Up', 'In Transit', 'Delivered'].includes(active.status) },
+            { label: 'In Transit', time: formatTime(active.in_transit_at), completed: ['In Transit', 'Delivered'].includes(active.status) },
+            { label: 'Delivered', time: formatTime(active.delivered_at), completed: active.status === 'Delivered' }
+          ];
+        }
 
         this.updateMap();
       } else {
