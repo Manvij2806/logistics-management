@@ -21,7 +21,7 @@
       <p-button
         label="Select Agent"
         icon="pi pi-user-plus"
-        (onClick)="goToSelectAgent()"
+        (click)="goToSelectAgent()"
         [disabled]="delivery.status === 'Picked Up' || delivery.status === 'In Transit' || delivery.status === 'Delivered' || delivery.status === 'Cancelled'"
       ></p-button>
     </div>

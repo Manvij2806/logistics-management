@@ -14,7 +14,7 @@
       
       <!-- Navigation actions (Screen 3 style back button) -->
       <div class="dialog-nav-bar">
-        <p-button icon="pi pi-arrow-left" [rounded]="true" [text]="true" severity="secondary" (onClick)="onHide()"></p-button>
+        <p-button icon="pi pi-arrow-left" [rounded]="true" [text]="true" severity="secondary" (click)="onHide()"></p-button>
         <p-button icon="pi pi-share-alt" [rounded]="true" [text]="true" severity="secondary"></p-button>
       </div>
       
@@ -68,8 +68,8 @@
             </div>
           </div>
           <div class="driver-actions">
-            <p-button icon="pi pi-phone" [rounded]="true" [text]="true" severity="secondary" (onClick)="callDriver(shipment.agent)"></p-button>
-            <p-button icon="pi pi-comments" [rounded]="true" [text]="true" severity="secondary" (onClick)="messageDriver(shipment.agent)"></p-button>
+            <p-button icon="pi pi-phone" [rounded]="true" [text]="true" severity="secondary" (click)="callDriver(shipment.agent)"></p-button>
+            <p-button icon="pi pi-comments" [rounded]="true" [text]="true" severity="secondary" (click)="messageDriver(shipment.agent)"></p-button>
           </div>
         </div>
 

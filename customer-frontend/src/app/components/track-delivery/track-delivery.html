@@ -33,7 +33,7 @@
         <p-button 
           label="Track Now" 
           styleClass="w-full track-btn" 
-          (onClick)="trackNow()">
+          (click)="trackNow()">
         </p-button>
       </div>
 
@@ -105,7 +105,7 @@
         <div class="result-screen-layout">
           <!-- Navigation actions -->
           <div class="result-nav-bar">
-            <p-button icon="pi pi-arrow-left" [rounded]="true" [text]="true" severity="secondary" styleClass="back-arrow-btn" (onClick)="goBack()"></p-button>
+            <p-button icon="pi pi-arrow-left" [rounded]="true" [text]="true" severity="secondary" styleClass="back-arrow-btn" (click)="goBack()"></p-button>
             <p-button icon="pi pi-share-alt" [rounded]="true" [text]="true" severity="secondary" styleClass="share-btn"></p-button>
           </div>
 
@@ -160,8 +160,8 @@
                 </div>
               </div>
               <div class="agent-actions">
-                <p-button icon="pi pi-phone" [rounded]="true" [outlined]="true" severity="secondary" styleClass="agent-btn" (onClick)="callDriver(driver.name)"></p-button>
-                <p-button icon="pi pi-comments" [rounded]="true" severity="secondary" styleClass="agent-btn" (onClick)="messageDriver(driver.name)"></p-button>
+                <p-button icon="pi pi-phone" [rounded]="true" [outlined]="true" severity="secondary" styleClass="agent-btn" (click)="callDriver(driver.name)"></p-button>
+                <p-button icon="pi pi-comments" [rounded]="true" severity="secondary" styleClass="agent-btn" (click)="messageDriver(driver.name)"></p-button>
               </div>
             </div>
           }

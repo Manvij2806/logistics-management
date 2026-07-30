@@ -54,13 +54,13 @@
   <p-button
     icon="pi pi-eye"
     [text]="true"
-    (onClick)="router.navigate(['/deliveries', d.dbId, 'details'])"
+    (click)="router.navigate(['/deliveries', d.dbId, 'details'])"
   ></p-button>
-  <p-button icon="pi pi-pencil" [text]="true" (onClick)="edit(d)"></p-button>
+  <p-button icon="pi pi-pencil" [text]="true" (click)="edit(d)"></p-button>
   <p-button
     icon="pi pi-user-plus"
     [text]="true"
-    (onClick)="router.navigate(['/deliveries', d.dbId, 'details'])"
+    (click)="router.navigate(['/deliveries', d.dbId, 'details'])"
 [disabled]="d.status === 'Assigned' || d.status === 'Picked Up' || d.status === 'In Transit' || d.status === 'Delivered' || d.status === 'Cancelled'"    title="Assign Agent"
   ></p-button>
  </td>
@@ -134,7 +134,7 @@
   </div>
 
   <ng-template pTemplate="footer">
-    <p-button label="Close" [outlined]="true" (onClick)="showViewDialog = false" styleClass="close-btn"></p-button>
+    <p-button label="Close" [outlined]="true" (click)="showViewDialog = false" styleClass="close-btn"></p-button>
   </ng-template>
 </p-dialog>
 
@@ -335,11 +335,11 @@
 
   <!-- Footer: hide Save button when read-only -->
   <ng-template pTemplate="footer">
-    <p-button label="Close" [outlined]="true" (onClick)="cancelEdit()" styleClass="cancel-btn"></p-button>
+    <p-button label="Close" [outlined]="true" (click)="cancelEdit()" styleClass="cancel-btn"></p-button>
     <p-button
       *ngIf="!isStatusReadOnly"
       label="Save Changes"
-      (onClick)="updateDelivery()"
+      (click)="updateDelivery()"
       styleClass="create-btn">
     </p-button>
   </ng-template>
