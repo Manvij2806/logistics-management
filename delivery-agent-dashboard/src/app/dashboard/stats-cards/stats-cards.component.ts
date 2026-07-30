@@ -25,10 +25,10 @@ export class StatsCardsComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    const user = this.authService.currentUser();
-    const agentName = user ? user.full_name : 'Agent';
-
     this.deliveriesSub = this.deliveryService.deliveries$.subscribe((deliveries) => {
+      const user = this.authService.currentUser();
+      const agentName = user ? user.full_name : 'Agent';
+
       let totalDistance = 0;
       let totalEarnings = 0;
 
