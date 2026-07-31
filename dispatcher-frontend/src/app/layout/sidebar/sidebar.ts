@@ -22,7 +22,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   isCollapsed = false;
   isDeliveriesExpanded = true;
   isAssignAgentExpanded = true;
-  currentDeliveryId = 1;
+  currentDeliveryId: number | null = null;
 
   ngOnInit() {
     const savedId = localStorage.getItem('lastActiveDeliveryId');
@@ -39,11 +39,12 @@ export class SidebarComponent implements OnInit, OnDestroy {
             localStorage.setItem('lastActiveDeliveryId', this.currentDeliveryId.toString());
           }
         } else {
-          this.currentDeliveryId = 1;
+          this.currentDeliveryId = null;
+          localStorage.removeItem('lastActiveDeliveryId');
         }
       },
       error: () => {
-        this.currentDeliveryId = targetId || 1;
+        this.currentDeliveryId = null;
       }
     });
 
@@ -70,6 +71,9 @@ export class SidebarComponent implements OnInit, OnDestroy {
       const id = Number(match[1]);
       this.currentDeliveryId = id;
       localStorage.setItem('lastActiveDeliveryId', id.toString());
+    } else if (url === '/deliveries') {
+      this.currentDeliveryId = null;
+      localStorage.removeItem('lastActiveDeliveryId');
     }
   }
 
