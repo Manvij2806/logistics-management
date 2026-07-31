@@ -242,6 +242,9 @@ export class Deliveries implements OnInit {
 
   validateEditForm(): boolean {
     this.editFormErrors = {};
+    if (this.isReadOnly) {
+      return true;
+    }
 
     if (!this.editDelivery.pickupAddress.trim())
       this.editFormErrors.pickupAddress = 'Pickup address is required';
@@ -360,16 +363,25 @@ export class Deliveries implements OnInit {
     if (this.isStatusReadOnly) return;
     if (!this.validateEditForm()) return;
 
-    const payload: DeliveryCreate = {
-      pickup_address: this.editDelivery.pickupAddress.trim() + ' - ' + this.editDelivery.pickupPincode.trim(),
-      drop_address: this.editDelivery.dropAddress.trim() + ' - ' + this.editDelivery.dropPincode.trim(),
-      customer_name: this.editDelivery.customerName.trim(),
-      customer_phone: this.editDelivery.customerPhone.trim(),
-      package_details: this.editDelivery.packageDetails.trim() || null,
-      status: this.editDelivery.status as any,
-      agent: this.editDelivery.agent || null,
-      notes: this.editDelivery.notes
-    };
+    let payload: any;
+    if (this.isReadOnly) {
+      payload = {
+        status: this.editDelivery.status as any,
+        agent: this.editDelivery.agent || null,
+        notes: this.editDelivery.notes
+      };
+    } else {
+      payload = {
+        pickup_address: this.editDelivery.pickupAddress.trim() + ' - ' + this.editDelivery.pickupPincode.trim(),
+        drop_address: this.editDelivery.dropAddress.trim() + ' - ' + this.editDelivery.dropPincode.trim(),
+        customer_name: this.editDelivery.customerName.trim(),
+        customer_phone: this.editDelivery.customerPhone.trim(),
+        package_details: this.editDelivery.packageDetails.trim() || null,
+        status: this.editDelivery.status as any,
+        agent: this.editDelivery.agent || null,
+        notes: this.editDelivery.notes
+      };
+    }
 
     this.deliveryService.updateDelivery(this.editDelivery.dbId, payload).subscribe({
       next: () => {
