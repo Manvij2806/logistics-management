@@ -347,6 +347,10 @@ export class ActiveJobComponent implements OnInit, AfterViewInit, OnDestroy {
     if (isIntercity) {
       if (!isSourceLeg) {
         // Destination agent can only advance status if it has reached the destination hub (i.e. status is Arrived at Destination Hub, Picked Up, or Out for Delivery)
+        // or if it is Assigned but has completed the transit leg (d.in_transit_at is set).
+        if (d.status === 'Assigned') {
+          return !!d.in_transit_at;
+        }
         return ['Arrived at Destination Hub', 'Picked Up', 'Out for Delivery'].includes(d.status);
       }
     }
