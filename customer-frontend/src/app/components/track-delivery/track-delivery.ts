@@ -188,10 +188,11 @@ export class TrackDelivery implements OnInit, OnDestroy {
     const s = shipment.status.toLowerCase();
     if (s === 'created' || s === 'pending') return 0;
     if (s === 'picked up') return 1;
-    if (s.includes('hub-to-hub')) return 2;
-    if (s.includes('destination hub')) return 3;
+    if (s === 'arrived at origin hub') return 2;
+    if (s.includes('hub-to-hub')) return 3;
+    if (s.includes('destination hub')) return 4;
     if (s === 'assigned') {
-      return shipment.picked_up_at ? 4 : 0.5;
+      return (shipment.in_transit_at || shipment.picked_up_at) ? 4.5 : 0.5;
     }
     if (s === 'in transit' || s === 'out for delivery') return 5;
     if (s === 'delivered') return 6;
@@ -307,8 +308,8 @@ export class TrackDelivery implements OnInit, OnDestroy {
       });
 
       let transitStatus: 'completed' | 'active' | 'pending' = 'pending';
-      if (idx === 2) transitStatus = 'active';
-      else if (idx > 2) transitStatus = 'completed';
+      if (idx === 3) transitStatus = 'active';
+      else if (idx > 3) transitStatus = 'completed';
       steps.push({
         title: 'In Hub-to-Hub Transit',
         time: (transitStatus === 'completed' || transitStatus === 'active') ? this.formatTime(shipment.in_transit_at || shipment.picked_up_at || shipment.created_at) : 'Pending',
@@ -319,8 +320,8 @@ export class TrackDelivery implements OnInit, OnDestroy {
       });
 
       let destHubStatus: 'completed' | 'active' | 'pending' = 'pending';
-      if (idx === 3) destHubStatus = 'active';
-      else if (idx > 3) destHubStatus = 'completed';
+      if (idx === 4) destHubStatus = 'active';
+      else if (idx > 4) destHubStatus = 'completed';
       steps.push({
         title: 'Arrived at Destination Hub',
         time: (destHubStatus === 'completed' || destHubStatus === 'active') ? this.formatTime(shipment.in_transit_at || shipment.picked_up_at || shipment.created_at) : 'Pending',
@@ -330,7 +331,7 @@ export class TrackDelivery implements OnInit, OnDestroy {
         colorClass: destHubStatus === 'completed' ? 'completed' : (destHubStatus === 'active' ? 'transit' : 'pending')
       });
 
-      const deliveryAssigned = idx >= 4;
+      const deliveryAssigned = idx >= 4.5;
       steps.push({
         title: 'Local Delivery Agent Assigned',
         time: deliveryAssigned ? this.formatTime(shipment.assigned_at || shipment.in_transit_at || shipment.created_at) : 'Pending',

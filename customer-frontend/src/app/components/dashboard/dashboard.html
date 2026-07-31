@@ -123,7 +123,7 @@
               <div class="route-loc dest">{{ shipment.drop_address }}</div>
             </div>
             <div class="item-eta-row">
-              <span class="item-eta">ETA: 18:00</span>
+              <span class="item-eta">ETA: {{ formatETA(shipment.estimated_delivery_at) }}</span>
             </div>
           </div>
         </div>

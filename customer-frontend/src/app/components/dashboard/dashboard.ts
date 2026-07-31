@@ -49,6 +49,16 @@ export class Dashboard implements OnInit, OnDestroy {
   toasts = signal<{ id: string; message: string }[]>([]);
   private pollSub?: Subscription;
 
+  formatETA(dateStr: string | null | undefined): string {
+    if (!dateStr) return 'N/A';
+    try {
+      const d = new Date(dateStr);
+      return d.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
+    } catch {
+      return 'N/A';
+    }
+  }
+
   getSeverity(status: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {
     switch (status) {
       case 'Delivered': return 'success';
