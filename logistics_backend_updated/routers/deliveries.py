@@ -267,6 +267,11 @@ def verify_status_transition(
                 # Delivery Agent: can only transition:
                 # - to 'Picked Up' or 'Out for Delivery' (from Assigned/Arrived at Destination Hub)
                 # - to 'Delivered' (from Picked Up/Out for Delivery)
+                if not delivery.in_transit_at:
+                    raise HTTPException(
+                        status_code=400,
+                        detail="You cannot update this delivery yet. It has not reached your city hub."
+                    )
                 allowed_transitions = {
                     "Arrived at Destination Hub": ["Picked Up", "Out for Delivery"],
                     "Assigned": ["Picked Up", "Out for Delivery"],

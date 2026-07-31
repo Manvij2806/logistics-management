@@ -126,7 +126,7 @@
                 style="padding: 6px 12px; border-radius: 999px; font-weight: 600; font-size: 13px; font-family: 'Outfit', sans-serif;">
             ₹2,000 - {{ activeJob.payment_status || 'Unpaid' }}
           </span>
-          <button class="confirm-btn" (click)="advanceStatus()">
+          <button class="confirm-btn" (click)="advanceStatus()" [disabled]="!canAdvanceStatus()">
             <mat-icon>check_box</mat-icon>
             {{ getNextStepButtonLabel() }}
           </button>

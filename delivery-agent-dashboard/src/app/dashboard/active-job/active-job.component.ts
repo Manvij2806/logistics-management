@@ -120,6 +120,16 @@ export class ActiveJobComponent implements OnInit, AfterViewInit, OnDestroy {
           }
         };
 
+        const getCityOnly = (addr: string): string => {
+          const addrLower = (addr || '').toLowerCase();
+          const cities = ["delhi", "noida", "gurugram", "faridabad", "ghaziabad", "agra", "mumbai", "bangalore", "bengaluru", "chennai", "kolkata", "pune", "hyderabad", "jaipur", "lucknow", "gwalior"];
+          const found = cities.find(c => addrLower.includes(c));
+          if (found) {
+            return found.charAt(0).toUpperCase() + found.slice(1);
+          }
+          return 'Hub';
+        };
+
         // Check if intercity
         const pickupAddr = active.pickup_address.toLowerCase();
         const dropAddr = active.drop_address.toLowerCase();
@@ -139,14 +149,14 @@ export class ActiveJobComponent implements OnInit, AfterViewInit, OnDestroy {
           trackingNumber: active.tracking_number || '',
           orderId: active.delivery_id,
           pickup: {
-            location: isIntercity && !isSourceLeg ? `${getCityName(active.drop_address)} Hub` : getCityName(active.pickup_address),
-            address: isIntercity && !isSourceLeg ? `${getCityName(active.drop_address)} Hub` : active.pickup_address,
+            location: isIntercity && !isSourceLeg ? `${getCityOnly(active.drop_address)} Hub` : getCityName(active.pickup_address),
+            address: isIntercity && !isSourceLeg ? `${getCityOnly(active.drop_address)} Hub` : active.pickup_address,
             status: pickupCompleted ? 'Completed' : 'Pending',
             coords: pCoords as L.LatLngExpression,
           },
           dropoff: {
-            location: isIntercity && isSourceLeg ? `${getCityName(active.pickup_address)} Hub` : getCityName(active.drop_address),
-            address: isIntercity && isSourceLeg ? `${getCityName(active.pickup_address)} Hub` : active.drop_address,
+            location: isIntercity && isSourceLeg ? `${getCityOnly(active.pickup_address)} Hub` : getCityName(active.drop_address),
+            address: isIntercity && isSourceLeg ? `${getCityOnly(active.pickup_address)} Hub` : active.drop_address,
             status: dropoffCompleted ? 'Completed' : 'Pending',
             coords: dCoords as L.LatLngExpression,
           },
@@ -316,6 +326,31 @@ export class ActiveJobComponent implements OnInit, AfterViewInit, OnDestroy {
         this.map = undefined;
       }
     }
+  }
+
+  canAdvanceStatus(): boolean {
+    const d = this.activeJobRaw;
+    if (!d) return false;
+    
+    // Check if intercity
+    const pickupAddr = d.pickup_address.toLowerCase();
+    const dropAddr = d.drop_address.toLowerCase();
+    const cities = ["delhi", "noida", "gurugram", "faridabad", "ghaziabad", "agra", "mumbai", "bangalore", "bengaluru", "chennai", "kolkata", "pune", "hyderabad", "jaipur", "lucknow", "gwalior"];
+    const city1 = cities.find(c => pickupAddr.includes(c));
+    const city2 = cities.find(c => dropAddr.includes(c));
+    const isIntercity = city1 && city2 && city1 !== city2;
+    
+    const user = this.authService.currentUser();
+    const agentCity = user?.city?.toLowerCase() || '';
+    const isSourceLeg = agentCity && pickupAddr.includes(agentCity);
+    
+    if (isIntercity) {
+      if (!isSourceLeg) {
+        // Destination agent can only advance status if it has reached the destination hub (i.e. status is Arrived at Destination Hub, Picked Up, or Out for Delivery)
+        return ['Arrived at Destination Hub', 'Picked Up', 'Out for Delivery'].includes(d.status);
+      }
+    }
+    return true;
   }
 
   getNextStepButtonLabel(): string {
