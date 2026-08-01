@@ -71,9 +71,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
       const id = Number(match[1]);
       this.currentDeliveryId = id;
       sessionStorage.setItem('lastActiveDeliveryId', id.toString());
-    } else if (url === '/deliveries') {
-      this.currentDeliveryId = null;
-      sessionStorage.removeItem('lastActiveDeliveryId');
     }
   }
 

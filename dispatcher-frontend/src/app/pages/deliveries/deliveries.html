@@ -295,7 +295,7 @@
         <div class="field">
           <label>Status <span class="required" *ngIf="!isReadOnly">*</span></label>
           <p-select
-            [options]="statusOptions.slice(1)"
+            [options]="getFilteredStatuses()"
             optionLabel="label"
             optionValue="value"
             [(ngModel)]="editDelivery.status"

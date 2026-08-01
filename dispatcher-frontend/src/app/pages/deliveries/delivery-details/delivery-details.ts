@@ -37,13 +37,30 @@ export class DeliveryDetails implements OnInit {
 
 
   ngOnInit() {
+    this.loadAllDeliveries();
     this.route.paramMap.subscribe(params => {
       const id = params.get('id');
-      if (id) {
-        this.loadDelivery(Number(id));
+      const numId = Number(id);
+      if (id && id !== 'null' && !isNaN(numId)) {
+        this.hasSelected = true;
+        this.loadDelivery(numId);
+      } else {
+        this.hasSelected = false;
+        this.autoSelectFirstDelivery();
       }
     });
-    this.loadAllDeliveries();
+  }
+
+  autoSelectFirstDelivery() {
+    this.deliveryService.getDeliveries().subscribe({
+      next: (res) => {
+        this.allDeliveries = res || [];
+        if (this.allDeliveries.length > 0 && !this.hasSelected) {
+          this.router.navigate(['/deliveries', this.allDeliveries[0].id, 'details']);
+        }
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   loadDelivery(numericId: number) {

@@ -2,6 +2,8 @@ import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../../environments/environment';
 
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
@@ -13,6 +15,7 @@ import { DialogModule } from 'primeng/dialog';
 import { TextareaModule } from 'primeng/textarea';
 
 import { DeliveryService, DeliveryCreate } from '../../services/delivery.service';
+import { AuthService } from '../../services/auth';
 
 @Component({
   selector: 'app-deliveries',
@@ -35,6 +38,8 @@ import { DeliveryService, DeliveryCreate } from '../../services/delivery.service
 })
 export class Deliveries implements OnInit {
   private deliveryService = inject(DeliveryService);
+  private authService = inject(AuthService);
+  private http = inject(HttpClient);
   public router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
 
@@ -59,6 +64,54 @@ export class Deliveries implements OnInit {
 
   isStatusReadOnlyStatus(status: string): boolean {
     return ['Delivered', 'Cancelled'].includes(status);
+  }
+
+  getFilteredStatuses(): { label: string; value: string }[] {
+    if (!this.editDelivery || !this.editDelivery.status) return [];
+
+    const currentStatus = this.editDelivery.status;
+    const dispatcherCity = this.authService.currentUser()?.city?.toLowerCase() || '';
+    
+    const pickupCity = (this.editDelivery.pickupAddress || '').toLowerCase();
+    const dropCity = (this.editDelivery.dropAddress || '').toLowerCase();
+    
+    const isOriginDisp = dispatcherCity && pickupCity.includes(dispatcherCity);
+    const isDestDisp = dispatcherCity && dropCity.includes(dispatcherCity);
+    const isLocal = pickupCity && dropCity && pickupCity.includes(dispatcherCity) && dropCity.includes(dispatcherCity);
+
+    if (isLocal) {
+      return [
+        { label: 'Created', value: 'Created' },
+        { label: 'Assigned', value: 'Assigned' },
+        { label: 'Picked Up', value: 'Picked Up' },
+        { label: 'In Transit', value: 'In Transit' },
+        { label: 'Delivered', value: 'Delivered' },
+        { label: 'Cancelled', value: 'Cancelled' }
+      ];
+    }
+
+    if (currentStatus === 'Arrived at Origin Hub') {
+      if (isOriginDisp) {
+        return [
+          { label: 'Arrived at Origin Hub', value: 'Arrived at Origin Hub' },
+          { label: 'In Transit (Hub-to-Hub)', value: 'In Transit (Hub-to-Hub)' }
+        ];
+      }
+    }
+
+    if (currentStatus === 'In Transit (Hub-to-Hub)') {
+      if (isDestDisp) {
+        return [
+          { label: 'In Transit (Hub-to-Hub)', value: 'In Transit (Hub-to-Hub)' },
+          { label: 'Arrived at Destination Hub', value: 'Arrived at Destination Hub' }
+        ];
+      }
+    }
+
+    // Otherwise, return only the current status so it's effectively read-only.
+    return [
+      { label: currentStatus, value: currentStatus }
+    ];
   }
 
   newDelivery = {
@@ -89,12 +142,24 @@ export class Deliveries implements OnInit {
     notes: ''
   };
 
-  agentOptions = [
-    { label: 'John Driver (Available)', value: 'John Driver' },
-    { label: 'Rahul Transport (Available)', value: 'Rahul Transport' },
-    { label: 'Mehhul Agent (Available)', value: 'Mehhul Agent' },
-    { label: 'Unassigned', value: null }
-  ];
+  agents: any[] = [];
+  agentOptions: { label: string; value: string | null }[] = [];
+
+  loadActiveAgents() {
+    this.http.get<any[]>(`${environment.apiUrl}/api/users/agents/active`).subscribe({
+      next: (res) => {
+        this.agents = res || [];
+        this.agentOptions = [
+          ...this.agents.map(a => ({ label: `${a.fullname} (Available)`, value: a.fullname })),
+          { label: 'Unassigned', value: null }
+        ];
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error loading active agents', err);
+      }
+    });
+  }
 
   statusOptions = [
     { label: 'All Status', value: null },
@@ -121,6 +186,7 @@ export class Deliveries implements OnInit {
 
   ngOnInit() {
     this.loadDeliveries();
+    this.loadActiveAgents();
   }
 
   loadDeliveries() {

@@ -49,8 +49,9 @@ export class SelectAgent implements OnInit {
 
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
-    if (id) {
-      this.deliveryService.getDelivery(Number(id)).subscribe({
+    const numId = Number(id);
+    if (id && id !== 'null' && !isNaN(numId)) {
+      this.deliveryService.getDelivery(numId).subscribe({
         next: (res) => {
           this.delivery = res;
           this.loadAgents();
@@ -63,7 +64,20 @@ export class SelectAgent implements OnInit {
         }
       });
     } else {
-      this.loadAgents();
+      this.deliveryService.getDeliveries().subscribe({
+        next: (deliveries) => {
+          if (deliveries && deliveries.length > 0) {
+            this.router.navigate(['/deliveries', deliveries[0].id, 'select-agent']);
+          } else {
+            this.loading = false;
+            this.loadAgents();
+          }
+        },
+        error: () => {
+          this.loading = false;
+          this.loadAgents();
+        }
+      });
     }
   }
 

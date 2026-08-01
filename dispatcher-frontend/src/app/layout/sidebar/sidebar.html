@@ -46,7 +46,7 @@
           </div>
 
           <!-- Submenu Level 2 -->
-          <div class="submenu-l2" *ngIf="isAssignAgentExpanded && currentDeliveryId !== null">
+          <div class="submenu-l2" *ngIf="isAssignAgentExpanded">
             <!-- Delivery Details -->
             <a [routerLink]="['/deliveries', currentDeliveryId, 'details']" routerLinkActive="active"
               class="nav-item submenu-item sub-sub-item">
