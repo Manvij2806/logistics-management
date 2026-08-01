@@ -25,7 +25,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   currentDeliveryId: number | null = null;
 
   ngOnInit() {
-    const savedId = localStorage.getItem('lastActiveDeliveryId');
+    const savedId = sessionStorage.getItem('lastActiveDeliveryId');
     const targetId = savedId && !isNaN(Number(savedId)) ? Number(savedId) : null;
 
     this.deliveryService.getDeliveries().subscribe({
@@ -36,11 +36,11 @@ export class SidebarComponent implements OnInit, OnDestroy {
             this.currentDeliveryId = targetId;
           } else {
             this.currentDeliveryId = deliveries[0].id;
-            localStorage.setItem('lastActiveDeliveryId', this.currentDeliveryId.toString());
+            sessionStorage.setItem('lastActiveDeliveryId', this.currentDeliveryId.toString());
           }
         } else {
           this.currentDeliveryId = null;
-          localStorage.removeItem('lastActiveDeliveryId');
+          sessionStorage.removeItem('lastActiveDeliveryId');
         }
       },
       error: () => {
@@ -70,10 +70,10 @@ export class SidebarComponent implements OnInit, OnDestroy {
     if (match) {
       const id = Number(match[1]);
       this.currentDeliveryId = id;
-      localStorage.setItem('lastActiveDeliveryId', id.toString());
+      sessionStorage.setItem('lastActiveDeliveryId', id.toString());
     } else if (url === '/deliveries') {
       this.currentDeliveryId = null;
-      localStorage.removeItem('lastActiveDeliveryId');
+      sessionStorage.removeItem('lastActiveDeliveryId');
     }
   }
 

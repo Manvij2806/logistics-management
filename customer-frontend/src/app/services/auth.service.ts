@@ -44,7 +44,7 @@ export class AuthService {
   currentUser = signal<User | null>(this.restoreCachedUser());
 
   private restoreCachedUser(): User | null {
-    const stored = localStorage.getItem(USER_KEY);
+    const stored = sessionStorage.getItem(USER_KEY);
     if (!stored) return null;
     try {
       return JSON.parse(stored) as User;
@@ -54,7 +54,7 @@ export class AuthService {
   }
 
   setToken(token: string): void {
-    localStorage.setItem(TOKEN_KEY, token);
+    sessionStorage.setItem(TOKEN_KEY, token);
   }
 
   loadCurrentUser(): Observable<User> {
@@ -75,14 +75,14 @@ export class AuthService {
       }),
       tap((user) => {
         this.currentUser.set(user);
-        localStorage.setItem(USER_KEY, JSON.stringify(user));
+        sessionStorage.setItem(USER_KEY, JSON.stringify(user));
       })
     );
   }
 
   logout(): void {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
+    sessionStorage.removeItem(TOKEN_KEY);
+    sessionStorage.removeItem(USER_KEY);
     this.currentUser.set(null);
     window.location.href = `${environment.adminAppUrl}/login?logout=true`;
   }
@@ -95,13 +95,13 @@ export class AuthService {
   }
 
   clearSessionSilently(): void {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
+    sessionStorage.removeItem(TOKEN_KEY);
+    sessionStorage.removeItem(USER_KEY);
     this.currentUser.set(null);
   }
 
   getToken(): string | null {
-    return localStorage.getItem(TOKEN_KEY);
+    return sessionStorage.getItem(TOKEN_KEY);
   }
 
   isLoggedIn(): boolean {

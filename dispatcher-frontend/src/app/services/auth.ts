@@ -32,7 +32,7 @@ export class AuthService {
   currentUser = signal<User | null>(this.restoreCachedUser());
 
   private restoreCachedUser(): User | null {
-    const stored = localStorage.getItem(USER_KEY);
+    const stored = sessionStorage.getItem(USER_KEY);
     if (!stored) return null;
     try {
       return JSON.parse(stored) as User;
@@ -49,7 +49,7 @@ export class AuthService {
       })
       .pipe(
         tap((res) => {
-          localStorage.setItem(TOKEN_KEY, res.access_token);
+          sessionStorage.setItem(TOKEN_KEY, res.access_token);
         }),
       );
   }
@@ -62,7 +62,7 @@ export class AuthService {
    * belongs to a Dispatcher.
    */
   setTokenFromBridge(token: string): void {
-    localStorage.setItem(TOKEN_KEY, token);
+    sessionStorage.setItem(TOKEN_KEY, token);
   }
 
   loadCurrentUser(): Observable<User> {
@@ -83,7 +83,7 @@ export class AuthService {
       }),
       tap((user) => {
         this.currentUser.set(user);
-        localStorage.setItem(USER_KEY, JSON.stringify(user));
+        sessionStorage.setItem(USER_KEY, JSON.stringify(user));
       }),
     );
   }
@@ -96,21 +96,21 @@ export class AuthService {
   }
 
   logout(): void {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
+    sessionStorage.removeItem(TOKEN_KEY);
+    sessionStorage.removeItem(USER_KEY);
     this.currentUser.set(null);
     window.location.href = `${environment.adminAppUrl}/login?logout=true`;
   }
 
   /** Clears the session without navigating — used when a login succeeds but the account's role isn't permitted in this portal. */
   clearSessionSilently(): void {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
+    sessionStorage.removeItem(TOKEN_KEY);
+    sessionStorage.removeItem(USER_KEY);
     this.currentUser.set(null);
   }
 
   getToken(): string | null {
-    return localStorage.getItem(TOKEN_KEY);
+    return sessionStorage.getItem(TOKEN_KEY);
   }
   isLoggedIn(): boolean {
     return !!this.getToken();

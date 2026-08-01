@@ -6,6 +6,9 @@
         @case ('dashboard') {
           <app-dashboard (viewChange)="onViewChange($event)" (trackShipment)="onTrackShipment($event)"></app-dashboard>
         }
+        @case ('book-shipment') {
+          <app-book-shipment></app-book-shipment>
+        }
         @case ('track-delivery') {
           <app-track-delivery [searchTrackingId]="selectedTrackingId" (searchTrackingIdChange)="selectedTrackingId = $event"></app-track-delivery>
         }

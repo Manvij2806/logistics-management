@@ -377,7 +377,7 @@ def auto_arrive_at_destination_task(delivery_id: int):
 def create_delivery(
     payload: DeliveryCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role("Admin", "Dispatcher")),
+    current_user: User = Depends(require_role("Admin", "Dispatcher", "Customer")),
 ):
     validate_delivery_phones(
         db,

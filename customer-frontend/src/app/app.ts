@@ -4,13 +4,14 @@ import { Sidebar } from './components/sidebar/sidebar';
 import { Dashboard } from './components/dashboard/dashboard';
 import { TrackDelivery } from './components/track-delivery/track-delivery';
 import { Profile } from './components/profile/profile';
+import { BookShipment } from './components/book-shipment/book-shipment';
 import { AuthService } from './services/auth.service';
 import { environment } from '../environments/environment';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, Sidebar, Dashboard, TrackDelivery, Profile],
+  imports: [CommonModule, Sidebar, Dashboard, TrackDelivery, Profile, BookShipment],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })

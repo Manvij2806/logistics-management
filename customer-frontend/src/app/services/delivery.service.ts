@@ -69,6 +69,10 @@ export class DeliveryService {
     return this.http.get<Delivery>(`${this.apiUrl}/${id}`);
   }
 
+  createDelivery(delivery: any): Observable<Delivery> {
+    return this.http.post<Delivery>(`${this.apiUrl}/`, delivery);
+  }
+
   updateDelivery(id: number, updates: Partial<Delivery>): Observable<Delivery> {
     return this.http.patch<Delivery>(`${this.apiUrl}/${id}`, updates);
   }

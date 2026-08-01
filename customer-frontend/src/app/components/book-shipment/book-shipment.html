@@ -1,0 +1,163 @@
+<div class="book-shipment-container">
+  <!-- Title / Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h2>Book a New Shipment</h2>
+      <p>Schedule a parcel pickup and doorstep delivery instantly.</p>
+    </div>
+  </div>
+
+  <!-- Success Toast Overlay -->
+  @if (submitSuccess()) {
+    <div class="success-banner">
+      <div class="success-icon">
+        <i class="pi pi-check-circle"></i>
+      </div>
+      <div class="success-text">
+        <h3>Shipment Booked Successfully!</h3>
+        <p>Your order has been created. Redirecting to dashboard...</p>
+      </div>
+    </div>
+  }
+
+  <!-- Error Alert -->
+  @if (submitError()) {
+    <div class="error-banner">
+      <i class="pi pi-exclamation-triangle"></i>
+      <span>{{ submitError() }}</span>
+    </div>
+  }
+
+  <form (submit)="onSubmit()" class="booking-form" [class.form-disabled]="isSubmitting() || submitSuccess()">
+    <!-- Grid Layout: Left Column (Addresses), Right Column (Package Details) -->
+    <div class="form-grid">
+      <!-- COLUMN 1: ADDRESS DETAILS -->
+      <div class="grid-column">
+        <!-- CARD 1: SENDER / PICKUP -->
+        <div class="form-card">
+          <div class="card-header">
+            <i class="pi pi-map-marker pin-pickup"></i>
+            <h3>1. Pickup Details</h3>
+          </div>
+          
+          <div class="form-group">
+            <label for="senderName">Sender Full Name *</label>
+            <input type="text" id="senderName" [(ngModel)]="form.senderName" name="senderName" [class.error]="errors['senderName']" placeholder="e.g. Surya Gupta" />
+            @if (errors['senderName']) { <span class="field-error">{{ errors['senderName'] }}</span> }
+          </div>
+
+          <div class="form-group">
+            <label for="senderPhone">Sender Mobile Number *</label>
+            <input type="text" id="senderPhone" [(ngModel)]="form.senderPhone" name="senderPhone" [class.error]="errors['senderPhone']" placeholder="10-digit mobile number" />
+            @if (errors['senderPhone']) { <span class="field-error">{{ errors['senderPhone'] }}</span> }
+          </div>
+
+          <div class="form-group">
+            <label for="pickupAddress">Pickup Street Address *</label>
+            <input type="text" id="pickupAddress" [(ngModel)]="form.pickupAddress" name="pickupAddress" [class.error]="errors['pickupAddress']" placeholder="House/Flat No, Building, Street Address" />
+            @if (errors['pickupAddress']) { <span class="field-error">{{ errors['pickupAddress'] }}</span> }
+          </div>
+
+          <div class="form-group">
+            <label for="pickupPincode">Pickup Pincode *</label>
+            <input type="text" id="pickupPincode" [(ngModel)]="form.pickupPincode" name="pickupPincode" maxlength="6" [class.error]="errors['pickupPincode']" placeholder="6-digit PIN code" />
+            @if (errors['pickupPincode']) { <span class="field-error">{{ errors['pickupPincode'] }}</span> }
+          </div>
+        </div>
+
+        <!-- CARD 2: RECIPIENT / DROPOFF -->
+        <div class="form-card">
+          <div class="card-header">
+            <i class="pi pi-flag pin-dropoff"></i>
+            <h3>2. Delivery Details</h3>
+          </div>
+
+          <div class="form-group">
+            <label for="recipientName">Recipient Full Name *</label>
+            <input type="text" id="recipientName" [(ngModel)]="form.recipientName" name="recipientName" [class.error]="errors['recipientName']" placeholder="e.g. Rajesh Kumar" />
+            @if (errors['recipientName']) { <span class="field-error">{{ errors['recipientName'] }}</span> }
+          </div>
+
+          <div class="form-group">
+            <label for="recipientPhone">Recipient Mobile Number *</label>
+            <input type="text" id="recipientPhone" [(ngModel)]="form.recipientPhone" name="recipientPhone" [class.error]="errors['recipientPhone']" placeholder="10-digit mobile number" />
+            @if (errors['recipientPhone']) { <span class="field-error">{{ errors['recipientPhone'] }}</span> }
+          </div>
+
+          <div class="form-group">
+            <label for="dropAddress">Delivery Street Address *</label>
+            <input type="text" id="dropAddress" [(ngModel)]="form.dropAddress" name="dropAddress" [class.error]="errors['dropAddress']" placeholder="House/Flat No, Building, Street Address" />
+            @if (errors['dropAddress']) { <span class="field-error">{{ errors['dropAddress'] }}</span> }
+          </div>
+
+          <div class="form-group">
+            <label for="dropPincode">Delivery Pincode *</label>
+            <input type="text" id="dropPincode" [(ngModel)]="form.dropPincode" name="dropPincode" maxlength="6" [class.error]="errors['dropPincode']" placeholder="6-digit PIN code" />
+            @if (errors['dropPincode']) { <span class="field-error">{{ errors['dropPincode'] }}</span> }
+          </div>
+        </div>
+      </div>
+
+      <!-- COLUMN 2: PACKAGE DETAILS & OPTIONS -->
+      <div class="grid-column">
+        <div class="form-card">
+          <div class="card-header">
+            <i class="pi pi-box icon-package"></i>
+            <h3>3. Package & Payment Details</h3>
+          </div>
+
+          <div class="form-group">
+            <label for="packageDescription">Package Description</label>
+            <input type="text" id="packageDescription" [(ngModel)]="form.packageDescription" name="packageDescription" placeholder="e.g. Electronics, Clothing, Documents" />
+          </div>
+
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="packageWeight">Estimated Weight (kg)</label>
+              <input type="text" id="packageWeight" [(ngModel)]="form.packageWeight" name="packageWeight" placeholder="e.g. 1.5" />
+            </div>
+
+            <div class="form-group">
+              <label for="packageDimensions">Dimensions (L x W x H cm)</label>
+              <input type="text" id="packageDimensions" [(ngModel)]="form.packageDimensions" name="packageDimensions" placeholder="e.g. 30x20x15" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="priority">Delivery Priority</label>
+            <select id="priority" [(ngModel)]="form.priority" name="priority">
+              <option value="Normal">Normal (Standard Delivery)</option>
+              <option value="Urgent">Urgent (Same-Day / Next-Day)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="paymentMethod">Payment Method</label>
+            <select id="paymentMethod" [(ngModel)]="form.paymentMethod" name="paymentMethod">
+              <option value="Cash on Delivery">Cash on Delivery (COD)</option>
+              <option value="Prepaid">Prepaid (Online Payment)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="notes">Special Instructions / Notes</label>
+            <textarea id="notes" [(ngModel)]="form.notes" name="notes" rows="4" placeholder="Any instructions for the delivery agent (e.g. door code, knock softly)..."></textarea>
+          </div>
+        </div>
+
+        <!-- Submit Button Card -->
+        <div class="action-card">
+          <button type="submit" class="submit-btn" [disabled]="isSubmitting() || submitSuccess()">
+            @if (isSubmitting()) {
+              <span class="spinner"></span>
+              <span>Processing Shipment...</span>
+            } @else {
+              <i class="pi pi-check"></i>
+              <span>Book Shipment Now</span>
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>

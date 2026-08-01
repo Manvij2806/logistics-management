@@ -28,6 +28,7 @@ export class Sidebar implements OnInit {
 
   private menuItemsList: MenuItem[] = [
     { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
+    { id: 'book-shipment', label: 'Book Shipment', icon: 'book-shipment' },
     { id: 'track-delivery', label: 'Track Delivery', icon: 'track' },
     { id: 'profile', label: 'Profile', icon: 'profile' }
   ];
