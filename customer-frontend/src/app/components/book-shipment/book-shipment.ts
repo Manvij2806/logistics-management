@@ -24,11 +24,13 @@ export class BookShipment implements OnInit {
     senderName: '',
     senderPhone: '',
     pickupAddress: '',
+    pickupCity: '',
     pickupPincode: '',
     
     recipientName: '',
     recipientPhone: '',
     dropAddress: '',
+    dropCity: '',
     dropPincode: '',
     
     packageDescription: '',
@@ -70,6 +72,10 @@ export class BookShipment implements OnInit {
       this.errors['pickupAddress'] = 'Pickup address is required';
     }
 
+    if (!this.form.pickupCity.trim()) {
+      this.errors['pickupCity'] = 'Pickup city is required';
+    }
+
     if (!this.form.pickupPincode.trim()) {
       this.errors['pickupPincode'] = 'Pincode is required';
     } else if (!/^\d{6}$/.test(this.form.pickupPincode)) {
@@ -90,6 +96,10 @@ export class BookShipment implements OnInit {
       this.errors['dropAddress'] = 'Drop address is required';
     }
 
+    if (!this.form.dropCity.trim()) {
+      this.errors['dropCity'] = 'Delivery city is required';
+    }
+
     if (!this.form.dropPincode.trim()) {
       this.errors['dropPincode'] = 'Pincode is required';
     } else if (!/^\d{6}$/.test(this.form.dropPincode)) {
@@ -108,8 +118,8 @@ export class BookShipment implements OnInit {
     this.submitError.set(null);
 
     // Build the addresses using standard formatted strings (matching the editor format)
-    const pickup_address = `${this.form.pickupAddress.trim()}, ${this.form.pickupPincode.trim()}`;
-    const drop_address = `${this.form.dropAddress.trim()}, ${this.form.dropPincode.trim()}`;
+    const pickup_address = `${this.form.pickupAddress.trim()}, ${this.form.pickupCity.trim()}, ${this.form.pickupPincode.trim()}`;
+    const drop_address = `${this.form.dropAddress.trim()}, ${this.form.dropCity.trim()}, ${this.form.dropPincode.trim()}`;
 
     const payload = {
       pickup_address,

@@ -58,10 +58,25 @@
             @if (errors['pickupAddress']) { <span class="field-error">{{ errors['pickupAddress'] }}</span> }
           </div>
 
-          <div class="form-group">
-            <label for="pickupPincode">Pickup Pincode *</label>
-            <input type="text" id="pickupPincode" [(ngModel)]="form.pickupPincode" name="pickupPincode" maxlength="6" [class.error]="errors['pickupPincode']" placeholder="6-digit PIN code" />
-            @if (errors['pickupPincode']) { <span class="field-error">{{ errors['pickupPincode'] }}</span> }
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="pickupCity">Pickup Hub City *</label>
+              <select id="pickupCity" [(ngModel)]="form.pickupCity" name="pickupCity" [class.error]="errors['pickupCity']">
+                <option value="" disabled>Select City</option>
+                <option value="Agra">Agra</option>
+                <option value="Mumbai">Mumbai</option>
+                <option value="Delhi">Delhi</option>
+                <option value="Noida">Noida</option>
+                <option value="Gwalior">Gwalior</option>
+              </select>
+              @if (errors['pickupCity']) { <span class="field-error">{{ errors['pickupCity'] }}</span> }
+            </div>
+
+            <div class="form-group">
+              <label for="pickupPincode">Pickup Pincode *</label>
+              <input type="text" id="pickupPincode" [(ngModel)]="form.pickupPincode" name="pickupPincode" maxlength="6" [class.error]="errors['pickupPincode']" placeholder="6-digit PIN code" />
+              @if (errors['pickupPincode']) { <span class="field-error">{{ errors['pickupPincode'] }}</span> }
+            </div>
           </div>
         </div>
 
@@ -90,10 +105,25 @@
             @if (errors['dropAddress']) { <span class="field-error">{{ errors['dropAddress'] }}</span> }
           </div>
 
-          <div class="form-group">
-            <label for="dropPincode">Delivery Pincode *</label>
-            <input type="text" id="dropPincode" [(ngModel)]="form.dropPincode" name="dropPincode" maxlength="6" [class.error]="errors['dropPincode']" placeholder="6-digit PIN code" />
-            @if (errors['dropPincode']) { <span class="field-error">{{ errors['dropPincode'] }}</span> }
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="dropCity">Delivery Hub City *</label>
+              <select id="dropCity" [(ngModel)]="form.dropCity" name="dropCity" [class.error]="errors['dropCity']">
+                <option value="" disabled>Select City</option>
+                <option value="Agra">Agra</option>
+                <option value="Mumbai">Mumbai</option>
+                <option value="Delhi">Delhi</option>
+                <option value="Noida">Noida</option>
+                <option value="Gwalior">Gwalior</option>
+              </select>
+              @if (errors['dropCity']) { <span class="field-error">{{ errors['dropCity'] }}</span> }
+            </div>
+
+            <div class="form-group">
+              <label for="dropPincode">Delivery Pincode *</label>
+              <input type="text" id="dropPincode" [(ngModel)]="form.dropPincode" name="dropPincode" maxlength="6" [class.error]="errors['dropPincode']" placeholder="6-digit PIN code" />
+              @if (errors['dropPincode']) { <span class="field-error">{{ errors['dropPincode'] }}</span> }
+            </div>
           </div>
         </div>
       </div>
