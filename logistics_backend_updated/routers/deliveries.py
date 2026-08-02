@@ -746,10 +746,22 @@ def patch_delivery(
                 delivery.agent_id = None
                 delivery.accepted = "Pending"
             else:
-                if payload.agent is not None:
+                agent_changed = False
+                if payload.agent is not None and payload.agent != delivery.agent:
                     delivery.agent = payload.agent
-                if payload.agent_id is not None:
+                    agent_changed = True
+                    # Resolve agent_id from agent fullname if agent_id is not provided
+                    if payload.agent_id is None and payload.agent:
+                        agent_user = db.query(User).filter(User.fullname == payload.agent, User.role_id == 2).first()
+                        if agent_user:
+                            delivery.agent_id = agent_user.id
+                if payload.agent_id is not None and payload.agent_id != delivery.agent_id:
                     delivery.agent_id = payload.agent_id
+                    agent_changed = True
+
+                if agent_changed and delivery.agent_id is not None:
+                    delivery.accepted = "Pending"
+
             if payload.notes is not None:
                 delivery.notes = payload.notes if payload.notes.strip() else "Notes are empty"
             if payload.recipient_name is not None:
