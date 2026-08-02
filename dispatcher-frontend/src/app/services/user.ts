@@ -24,5 +24,6 @@ export interface User {
   role: 'Admin' | 'Dispatcher' | 'Agent' | 'Customer';
   role_id?: number | null;
   status: 'Active' | 'Inactive';
+  city?: string | null;
   created_at?: string;
 }

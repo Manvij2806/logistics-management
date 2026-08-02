@@ -18,6 +18,7 @@ interface MeResponse {
   status: string;
   role_id: number | null;
   phone_number?: string | null;
+  city?: string | null;
 }
 
 const TOKEN_KEY = 'dispatcher_auth_token';
@@ -78,6 +79,7 @@ export class AuthService {
           status: me.status as 'Active' | 'Inactive',
           role: role as User['role'],
           role_id: me.role_id ?? null,
+          city: me.city ?? null,
         };
         return user;
       }),
