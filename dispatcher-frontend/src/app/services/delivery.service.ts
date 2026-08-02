@@ -29,6 +29,10 @@ export interface DeliveryCreate {
   assigned_at?: string | null;
   picked_up_at?: string | null;
   in_transit_at?: string | null;
+  arrived_origin_at?: string | null;
+  in_transit_hub_at?: string | null;
+  arrived_destination_at?: string | null;
+  out_for_delivery_at?: string | null;
   delivered_at?: string | null;
 }
 
@@ -59,6 +63,10 @@ export interface DeliveryResponse {
   assigned_at?: string | null;
   picked_up_at?: string | null;
   in_transit_at?: string | null;
+  arrived_origin_at?: string | null;
+  in_transit_hub_at?: string | null;
+  arrived_destination_at?: string | null;
+  out_for_delivery_at?: string | null;
   delivered_at?: string | null;
   agent_deactivating?: boolean;
 }
