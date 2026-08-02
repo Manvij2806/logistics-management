@@ -237,6 +237,20 @@ def init_db():
                 except Exception:
                     pass
 
+                # Backfill city names in deliveries table if they are missing but pincodes match
+                try:
+                    # For Agra (282001-282006)
+                    conn.execute(text("UPDATE deliveries SET pickup_address = pickup_address || ', Agra' WHERE (pickup_address LIKE '%28200%' OR pickup_address LIKE '%28201%') AND pickup_address NOT ILIKE '%Agra%'"))
+                    conn.execute(text("UPDATE deliveries SET drop_address = drop_address || ', Agra' WHERE (drop_address LIKE '%28200%' OR drop_address LIKE '%28201%') AND drop_address NOT ILIKE '%Agra%'"))
+                    
+                    # For Gwalior (232001 or 474...)
+                    conn.execute(text("UPDATE deliveries SET pickup_address = pickup_address || ', Gwalior' WHERE (pickup_address LIKE '%23200%' OR pickup_address LIKE '%47400%') AND pickup_address NOT ILIKE '%Gwalior%'"))
+                    conn.execute(text("UPDATE deliveries SET drop_address = drop_address || ', Gwalior' WHERE (drop_address LIKE '%23200%' OR drop_address LIKE '%47400%') AND drop_address NOT ILIKE '%Gwalior%'"))
+                    conn.commit()
+                    print("Migration: Backfilled missing city names based on pincodes.")
+                except Exception as e_pin:
+                    print("Error running pincode city backfill migration:", e_pin)
+
             # Backfill random cities for existing users who do not have a city yet (excluding Admins)
             try:
                 db_session = SessionLocal()
