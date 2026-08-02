@@ -735,11 +735,17 @@ def patch_delivery(
             if payload.customer_phone is not None:
                 delivery.customer_phone = payload.customer_phone
             target_status = payload.status.value if payload.status is not None else delivery.status
+            if target_status == "Assigned" and delivery.status not in ("Created", "Pending"):
+                target_status = delivery.status
+
             verify_status_transition(delivery, current_user, target_status, payload.agent_id, db)
 
             if payload.status is not None:
                 status_changed_to_transit = (payload.status.value == "In Transit (Hub-to-Hub)" and delivery.status != "In Transit (Hub-to-Hub)")
-                delivery.status = payload.status.value
+                if payload.status.value == "Assigned" and delivery.status not in ("Created", "Pending"):
+                    pass
+                else:
+                    delivery.status = payload.status.value
             
             if target_status == "In Transit (Hub-to-Hub)":
                 delivery.agent = None
