@@ -23,15 +23,27 @@ export class DeliveryDetails implements OnInit {
   loading = true;
 
   timelineSteps = [
-    { key: 'Created',    label: 'Created' },
-    { key: 'Assigned',   label: 'Assigned' },
-    { key: 'Picked Up',  label: 'Picked Up' },
-    { key: 'In Transit', label: 'In Transit' },
-    { key: 'Out for Delivery', label: 'Out for Delivery' },
-    { key: 'Delivered',  label: 'Delivered' },
+    { key: 'Created',                      label: 'Created' },
+    { key: 'Assigned',                     label: 'Assigned (Pickup)' },
+    { key: 'Picked Up',                    label: 'Picked Up' },
+    { key: 'Arrived at Origin Hub',        label: 'Arrived at Origin Hub' },
+    { key: 'In Transit (Hub-to-Hub)',      label: 'In Transit (Hub-to-Hub)' },
+    { key: 'Arrived at Destination Hub',   label: 'Arrived at Destination Hub' },
+    { key: 'Out for Delivery',             label: 'Out for Delivery' },
+    { key: 'Delivered',                    label: 'Delivered' },
   ];
 
-  statusOrder = ['Created', 'Pending', 'Assigned', 'Picked Up', 'In Transit', 'Out for Delivery', 'Delivered'];
+  statusOrder = [
+    'Created',
+    'Pending',
+    'Assigned',
+    'Picked Up',
+    'Arrived at Origin Hub',
+    'In Transit (Hub-to-Hub)',
+    'Arrived at Destination Hub',
+    'Out for Delivery',
+    'Delivered'
+  ];
   allDeliveries: any[] = [];
   hasSelected = false;
 
@@ -140,6 +152,10 @@ export class DeliveryDetails implements OnInit {
       assigned_at: res.assigned_at,
       picked_up_at: res.picked_up_at,
       in_transit_at: res.in_transit_at,
+      arrived_origin_at: res.arrived_origin_at,
+      in_transit_hub_at: res.in_transit_hub_at,
+      arrived_destination_at: res.arrived_destination_at,
+      out_for_delivery_at: res.out_for_delivery_at,
       delivered_at: res.delivered_at,
     };
   }
@@ -150,14 +166,22 @@ export class DeliveryDetails implements OnInit {
     if (stepKey === 'Created') dateVal = this.delivery.created_at;
     else if (stepKey === 'Assigned') dateVal = this.delivery.assigned_at;
     else if (stepKey === 'Picked Up') dateVal = this.delivery.picked_up_at;
-    else if (stepKey === 'In Transit') dateVal = this.delivery.in_transit_at;
-    else if (stepKey === 'Out for Delivery') dateVal = this.delivery.in_transit_at;
+    else if (stepKey === 'Arrived at Origin Hub') dateVal = this.delivery.arrived_origin_at;
+    else if (stepKey === 'In Transit (Hub-to-Hub)') dateVal = this.delivery.in_transit_hub_at;
+    else if (stepKey === 'Arrived at Destination Hub') dateVal = this.delivery.arrived_destination_at;
+    else if (stepKey === 'Out for Delivery') dateVal = this.delivery.out_for_delivery_at;
     else if (stepKey === 'Delivered') dateVal = this.delivery.delivered_at;
     
     if (!dateVal) return '—';
     try {
       const d = new Date(dateVal);
-      return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+      return d.toLocaleString('en-IN', {
+        day: '2-digit',
+        month: 'short',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      });
     } catch {
       return '—';
     }

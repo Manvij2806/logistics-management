@@ -187,6 +187,15 @@ def update_status_timestamps(delivery: Delivery, new_status: str):
         delivery.picked_up_at = now
     elif status_lower in ("in transit", "in transit (hub-to-hub)", "arrived at origin hub") and delivery.in_transit_at is None:
         delivery.in_transit_at = now
+    
+    if status_lower == "arrived at origin hub" and delivery.arrived_origin_at is None:
+        delivery.arrived_origin_at = now
+    elif status_lower == "in transit (hub-to-hub)" and delivery.in_transit_hub_at is None:
+        delivery.in_transit_hub_at = now
+    elif status_lower == "arrived at destination hub" and delivery.arrived_destination_at is None:
+        delivery.arrived_destination_at = now
+    elif status_lower == "out for delivery" and delivery.out_for_delivery_at is None:
+        delivery.out_for_delivery_at = now
     elif status_lower == "delivered" and delivery.delivered_at is None:
         delivery.delivered_at = now
 

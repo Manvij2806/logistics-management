@@ -104,7 +104,13 @@ export class ActiveJobComponent implements OnInit, AfterViewInit, OnDestroy {
           if (!dateStr) return '-';
           try {
             const d = new Date(dateStr);
-            return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+            return d.toLocaleString([], {
+              day: '2-digit',
+              month: 'short',
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: true
+            });
           } catch {
             return '-';
           }
@@ -183,14 +189,14 @@ export class ActiveJobComponent implements OnInit, AfterViewInit, OnDestroy {
               { label: 'Created', time: formatTime(active.created_at), completed: true },
               { label: 'Assigned', time: formatTime(active.assigned_at), completed: !!active.assigned_at },
               { label: 'Picked Up', time: formatTime(active.picked_up_at), completed: ['Picked Up', 'Arrived at Origin Hub', 'In Transit (Hub-to-Hub)', 'Arrived at Destination Hub', 'Delivered'].includes(active.status) },
-              { label: 'Arrived at Origin Hub', time: formatTime(active.in_transit_at), completed: ['Arrived at Origin Hub', 'In Transit (Hub-to-Hub)', 'Arrived at Destination Hub', 'Delivered'].includes(active.status) }
+              { label: 'Arrived at Origin Hub', time: formatTime(active.arrived_origin_at), completed: ['Arrived at Origin Hub', 'In Transit (Hub-to-Hub)', 'Arrived at Destination Hub', 'Delivered'].includes(active.status) }
             ];
           } else {
             // Leg 2: Destination Hub to Delivery
             this.timelineSteps = [
-              { label: 'Arrived at Hub', time: formatTime(active.in_transit_at || active.created_at), completed: true },
+              { label: 'Arrived at Hub', time: formatTime(active.arrived_destination_at || active.in_transit_at || active.created_at), completed: true },
               { label: 'Assigned', time: formatTime(active.assigned_at), completed: !!active.assigned_at },
-              { label: 'Out for Delivery', time: formatTime(active.picked_up_at), completed: ['Picked Up', 'Out for Delivery', 'Delivered'].includes(active.status) },
+              { label: 'Out for Delivery', time: formatTime(active.out_for_delivery_at), completed: ['Picked Up', 'Out for Delivery', 'Delivered'].includes(active.status) },
               { label: 'Delivered', time: formatTime(active.delivered_at), completed: active.status === 'Delivered' }
             ];
           }

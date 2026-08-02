@@ -117,6 +117,10 @@ class Delivery(Base):
     assigned_at        = Column(DateTime(timezone=True), nullable=True)
     picked_up_at       = Column(DateTime(timezone=True), nullable=True)
     in_transit_at      = Column(DateTime(timezone=True), nullable=True)
+    arrived_origin_at  = Column(DateTime(timezone=True), nullable=True)
+    in_transit_hub_at  = Column(DateTime(timezone=True), nullable=True)
+    arrived_destination_at = Column(DateTime(timezone=True), nullable=True)
+    out_for_delivery_at = Column(DateTime(timezone=True), nullable=True)
     delivered_at       = Column(DateTime(timezone=True), nullable=True)
     estimated_delivery_at = Column(DateTime(timezone=True), nullable=True)
 
@@ -213,6 +217,22 @@ def init_db():
                 conn.execute(text("ALTER TABLE deliveries ADD COLUMN in_transit_at TIMESTAMP WITH TIME ZONE DEFAULT NULL"))
                 conn.commit()
                 print("Migration: 'in_transit_at' column added successfully.")
+            if "arrived_origin_at" not in existing_cols:
+                conn.execute(text("ALTER TABLE deliveries ADD COLUMN arrived_origin_at TIMESTAMP WITH TIME ZONE DEFAULT NULL"))
+                conn.commit()
+                print("Migration: 'arrived_origin_at' column added successfully.")
+            if "in_transit_hub_at" not in existing_cols:
+                conn.execute(text("ALTER TABLE deliveries ADD COLUMN in_transit_hub_at TIMESTAMP WITH TIME ZONE DEFAULT NULL"))
+                conn.commit()
+                print("Migration: 'in_transit_hub_at' column added successfully.")
+            if "arrived_destination_at" not in existing_cols:
+                conn.execute(text("ALTER TABLE deliveries ADD COLUMN arrived_destination_at TIMESTAMP WITH TIME ZONE DEFAULT NULL"))
+                conn.commit()
+                print("Migration: 'arrived_destination_at' column added successfully.")
+            if "out_for_delivery_at" not in existing_cols:
+                conn.execute(text("ALTER TABLE deliveries ADD COLUMN out_for_delivery_at TIMESTAMP WITH TIME ZONE DEFAULT NULL"))
+                conn.commit()
+                print("Migration: 'out_for_delivery_at' column added successfully.")
             if "delivered_at" not in existing_cols:
                 conn.execute(text("ALTER TABLE deliveries ADD COLUMN delivered_at TIMESTAMP WITH TIME ZONE DEFAULT NULL"))
                 conn.commit()

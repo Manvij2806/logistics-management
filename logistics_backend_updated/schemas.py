@@ -41,6 +41,10 @@ class DeliveryCreate(BaseModel):
     assigned_at: Optional[datetime] = None
     picked_up_at: Optional[datetime] = None
     in_transit_at: Optional[datetime] = None
+    arrived_origin_at: Optional[datetime] = None
+    in_transit_hub_at: Optional[datetime] = None
+    arrived_destination_at: Optional[datetime] = None
+    out_for_delivery_at: Optional[datetime] = None
     delivered_at: Optional[datetime] = None
     estimated_delivery_at: Optional[datetime] = None
 
@@ -118,6 +122,10 @@ class DeliveryUpdate(BaseModel):
     assigned_at: Optional[datetime] = None
     picked_up_at: Optional[datetime] = None
     in_transit_at: Optional[datetime] = None
+    arrived_origin_at: Optional[datetime] = None
+    in_transit_hub_at: Optional[datetime] = None
+    arrived_destination_at: Optional[datetime] = None
+    out_for_delivery_at: Optional[datetime] = None
     delivered_at: Optional[datetime] = None
     estimated_delivery_at: Optional[datetime] = None
 
@@ -155,6 +163,10 @@ class DeliveryResponse(BaseModel):
     assigned_at: Optional[datetime] = None
     picked_up_at: Optional[datetime] = None
     in_transit_at: Optional[datetime] = None
+    arrived_origin_at: Optional[datetime] = None
+    in_transit_hub_at: Optional[datetime] = None
+    arrived_destination_at: Optional[datetime] = None
+    out_for_delivery_at: Optional[datetime] = None
     delivered_at: Optional[datetime] = None
     estimated_delivery_at: Optional[datetime] = None
 
