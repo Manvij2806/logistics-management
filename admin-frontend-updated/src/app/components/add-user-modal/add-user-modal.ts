@@ -51,7 +51,24 @@ export class AddUserModal {
   });
 
   roles = ['Admin', 'Dispatcher', 'Agent', 'Customer'];
-  cities = ['Agra', 'Mumbai', 'Delhi', 'Noida', 'Gwalior'];
+  cities = [
+    'Agra', 'Ahmedabad', 'Ajmer', 'Ambala', 'Amritsar', 'Anantnag', 'Asansol', 'Aurangabad',
+    'Bangalore', 'Baramulla', 'Bathinda', 'Belagavi', 'Bengaluru', 'Bhagalpur', 'Bhilai',
+    'Bhopal', 'Bhubaneswar', 'Bikaner', 'Bilaspur', 'Bokaro Steel City', 'Chennai', 'Cuttack',
+    'Deoghar', 'Delhi', 'Dharamshala', 'Dhanbad', 'Dibrugarh', 'Durgapur', 'Dwarka',
+    'Faridabad', 'Gaya', 'Ghaziabad', 'Goa', 'Guntur', 'Gurgaon', 'Gurugram', 'Guwahati',
+    'Gwalior', 'Howrah', 'Hubballi', 'Hyderabad', 'Indore', 'Itanagar', 'Jabalpur', 'Jaipur',
+    'Jalandhar', 'Jammu', 'Jamshedpur', 'Jodhpur', 'Jorhat', 'Kanpur', 'Karimnagar', 'Kathua',
+    'Khammam', 'Kochi', 'Kolkata', 'Kollam', 'Korba', 'Kota', 'Kozhikode', 'Kurnool',
+    'Lucknow', 'Ludhiana', 'Madurai', 'Mangaluru', 'Mapusa', 'Margao', 'Mandi', 'Meerut',
+    'Mumbai', 'Muzaffarpur', 'Mysuru', 'Nagaon', 'Nagpur', 'Naharlagun', 'Nashik',
+    'Navi Mumbai', 'Nellore', 'New Delhi', 'Nizamabad', 'Noida', 'Panaji', 'Panipat',
+    'Pasighat', 'Patiala', 'Patna', 'Ponda', 'Pune', 'Puri', 'Purnia', 'Prayagraj',
+    'Raipur', 'Rajkot', 'Rajnandgaon', 'Ranchi', 'Rohini', 'Rourkela', 'Salem', 'Sambalpur',
+    'Shimla', 'Silchar', 'Siliguri', 'Solan', 'Srinagar', 'Surat', 'Thane', 'Thiruvananthapuram',
+    'Thrissur', 'Tiruchirappalli', 'Udaipur', 'Ujjain', 'Una', 'Vadodara', 'Varanasi',
+    'Vasant Kunj', 'Vasco da Gama', 'Vijayawada', 'Visakhapatnam', 'Warangal', 'Yamunanagar'
+  ];
 
   close(): void {
     this.closeEvent.emit();
