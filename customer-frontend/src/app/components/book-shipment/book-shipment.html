@@ -138,7 +138,18 @@
 
           <div class="form-group">
             <label for="packageDescription">Package Description</label>
-            <input type="text" id="packageDescription" [(ngModel)]="form.packageDescription" name="packageDescription" placeholder="e.g. Electronics, Clothing, Documents" />
+            <select id="packageDescription" [(ngModel)]="form.packageDescription" name="packageDescription">
+              <option value="" disabled selected>Select Package Type</option>
+              <option value="Clothing">Clothing</option>
+              <option value="Consolidated Package">Consolidated Package</option>
+              <option value="Documents">Documents</option>
+              <option value="Electronics">Electronics</option>
+              <option value="Food & Groceries">Food & Groceries</option>
+              <option value="Household Items">Household Items</option>
+              <option value="Medical Equipment">Medical Equipment</option>
+              <option value="Medicines">Medicines</option>
+              <option value="Other">Other</option>
+            </select>
           </div>
 
           <div class="form-row-2">
