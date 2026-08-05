@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../services/auth';
-import { environment } from '../../environments/environment';
+import { environment } from '../../../environments/environment';
 
 // Extend window for SpeechRecognition
 declare global {

@@ -2,7 +2,7 @@ import { Component, signal, Output, EventEmitter, ElementRef, ViewChild, inject 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { environment } from '../../environments/environment';
+import { environment } from '../../../environments/environment';
 
 interface ChatMessage {
   sender: 'user' | 'ai';
