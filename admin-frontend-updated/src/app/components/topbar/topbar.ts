@@ -9,7 +9,8 @@ const PAGE_TITLES: Record<string, string> = {
   dashboard: 'Dashboard',
   deliveries: 'Delivery Management',
   users: 'User Management',
-  'audit-logs': 'Audit Logs'
+  'audit-logs': 'Audit Logs',
+  'logistics-ai': 'Logistics AI'
 };
 
 @Component({
@@ -70,6 +71,11 @@ export class Topbar implements OnInit, OnDestroy {
   viewAll(): void {
     this.closeNotifications();
     this.router.navigate(['/audit-logs']);
+  }
+
+  openAiChat(): void {
+    this.closeNotifications();
+    this.router.navigate(['/logistics-ai']);
   }
 
   formatTime(isoString: string): string {

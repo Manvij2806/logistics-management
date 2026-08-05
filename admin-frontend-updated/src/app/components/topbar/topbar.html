@@ -7,6 +7,13 @@
   </div>
 
   <div class="topbar-right">
+    <!-- AI Chat Button -->
+    <button class="ai-chat-btn" (click)="openAiChat()" [attr.aria-label]="'Ask Logistics AI'">
+      <svg class="ai-icon" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9.813 15.904L9 21L8.188 15.904L3 15L8.188 14.096L9 9L9.813 14.096L15 15L9.813 15.904Z M19.071 4.929a10 10 0 00-14.142 0M17.657 6.343a8 8 0 00-11.314 0" />
+      </svg>
+    </button>
+
     <!-- Notification Bell Container -->
     <div class="notification-container">
       <button class="notif-bell-btn" (click)="toggleNotifications($event)" [attr.aria-label]="'View notifications'">

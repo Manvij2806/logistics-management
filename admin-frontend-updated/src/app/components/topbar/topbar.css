@@ -87,6 +87,30 @@
   align-items: center;
 }
 
+.ai-chat-btn {
+  background: transparent;
+  border: none;
+  padding: 8px;
+  border-radius: 50%;
+  color: #475569;
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  margin-right: 8px;
+}
+
+.ai-chat-btn:hover {
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
+
+.ai-icon {
+  flex-shrink: 0;
+}
+
 .notif-bell-btn {
   background: transparent;
   border: none;
