@@ -163,6 +163,72 @@ export class LogisticsAi {
     this.sendMessage();
   }
 
+  formatMessage(msg: string | undefined): string {
+    if (!msg) return '';
+    
+    let html = msg
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+      
+    html = html.replace(/^### (.*$)/gim, '<h4 style="margin: 8px 0 4px 0; color: #1e293b; font-weight: 600;">$1</h4>');
+    html = html.replace(/^## (.*$)/gim, '<h3 style="margin: 10px 0 6px 0; color: #1e293b; font-weight: 700;">$1</h3>');
+    
+    html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    
+    html = html.replace(/`(.*?)`/g, '<code style="background-color: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 12px; color: #ef4444;">$1</code>');
+    
+    html = html.replace(/^\* (.*$)/gim, '<li style="margin-left: 16px; margin-bottom: 4px;">$1</li>');
+    
+    const lines = html.split('\n');
+    let inTable = false;
+    let tableHtml = '';
+    let output = [];
+    
+    for (let line of lines) {
+      if (line.trim().startsWith('|')) {
+        if (!inTable) {
+          inTable = true;
+          tableHtml = '<div style="overflow-x: auto; margin: 10px 0; border: 1px solid #e2e8f0; border-radius: 8px;"><table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">';
+        }
+        
+        const cells = line.split('|').map(c => c.trim()).filter((c, idx, arr) => idx > 0 && idx < arr.length - 1);
+        
+        if (line.includes('---')) {
+          continue;
+        }
+        
+        const isHeader = !line.includes('**') && (output.length === 0 || !lines[lines.indexOf(line)-1].trim().startsWith('|') || lines[lines.indexOf(line)-1].includes('---'));
+        const rowTag = inTable && tableHtml.endsWith('">') ? 'th' : 'td';
+        
+        tableHtml += '<tr style="border-bottom: 1px solid #e2e8f0;">';
+        for (let cell of cells) {
+          const tag = rowTag === 'th' ? 'th' : 'td';
+          const style = tag === 'th' 
+            ? 'padding: 8px 12px; background-color: #f8fafc; font-weight: 600; color: #475569;' 
+            : 'padding: 8px 12px; color: #334155;';
+          tableHtml += `<${tag} style="${style}">${cell}</${tag}>`;
+        }
+        tableHtml += '</tr>';
+      } else {
+        if (inTable) {
+          inTable = false;
+          tableHtml += '</table></div>';
+          output.push(tableHtml);
+          tableHtml = '';
+        }
+        output.push(line);
+      }
+    }
+    
+    if (inTable) {
+      tableHtml += '</table></div>';
+      output.push(tableHtml);
+    }
+    
+    return output.join('<br>');
+  }
+
   clearChat(): void {
     this.messages.set([]);
     localStorage.removeItem(this.CHAT_KEY);

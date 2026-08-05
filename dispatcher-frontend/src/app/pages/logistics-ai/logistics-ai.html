@@ -268,9 +268,7 @@
                   Logistics AI
                 </div>
 
-                <p>
-                  {{ item.message }}
-                </p>
+                <div [innerHTML]="formatMessage(item.message)"></div>
 
 
                 <!-- =======================================

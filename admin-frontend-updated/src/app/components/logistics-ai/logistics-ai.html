@@ -81,7 +81,7 @@
           <div class="ai-message">
             <div class="ai-message-title">Logistics AI</div>
             @if (item.message) {
-            <p>{{ item.message }}</p>
+            <div [innerHTML]="formatMessage(item.message)"></div>
             }
 
             <!-- Delivery Table -->

@@ -65,7 +65,7 @@
               <div class="ai-avatar">✦</div>
               <div class="ai-message">
                 <div class="ai-message-title">Logistics AI</div>
-                <p>{{ item.message }}</p>
+                <div [innerHTML]="formatMessage(item.message)"></div>
 
                 <!-- TABLE -->
                 @if (item.type === 'table') {
