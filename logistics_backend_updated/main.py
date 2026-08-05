@@ -9,6 +9,7 @@ from routers import deliveries
 from routers import users as users_router
 from routers import roles as roles_router
 from routers import dashboard as dashboard_router
+from routers import ai as ai_router
 
 app = FastAPI(
     title="LogisticsPro API",
@@ -55,6 +56,7 @@ app.include_router(users_router.agents_router)  # must come before users_router.
 app.include_router(users_router.router)
 app.include_router(roles_router.router)
 app.include_router(dashboard_router.router)
+app.include_router(ai_router.router)
 
 
 # ── Auth (kept inline for simplicity) ────────────────────────────────────────

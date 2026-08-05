@@ -12,6 +12,7 @@ import { AuditLogs } from './components/audit-logs/audit-logs';
 import { Agents } from './components/agents/agents';
 import { Customers } from './components/customers/customers';
 import { ProfileComponent } from './components/profile/profile';
+import { LogisticsAi } from './components/logistics-ai/logistics-ai';
 
 export const routes: Routes = [
   { path: 'login', component: Login, canActivate: [loginGuard] },
@@ -27,7 +28,8 @@ export const routes: Routes = [
       { path: 'customers', component: Customers, canActivate: [adminGuard] },
       { path: 'users', component: UserList, canActivate: [adminGuard] },
       { path: 'audit-logs', component: AuditLogs, canActivate: [adminGuard] },
-      { path: 'profile', component: ProfileComponent }
+      { path: 'profile', component: ProfileComponent },
+      { path: 'logistics-ai', component: LogisticsAi }
     ]
   },
   { path: '**', redirectTo: 'dashboard' }

@@ -7,7 +7,7 @@ import enum
 import os
 import uuid
 
-from sqlalchemy import Column, DateTime, Integer, String, ForeignKey, create_engine, inspect, text, Boolean
+from sqlalchemy import Column, DateTime, Integer, String, ForeignKey, create_engine, inspect, text, Boolean, Float
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 from sqlalchemy.sql import func
 from dotenv import load_dotenv
@@ -138,6 +138,23 @@ class Package(Base):
     created_at  = Column(DateTime(timezone=True), server_default=func.now())
 
     delivery = relationship("Delivery", foreign_keys=[delivery_id])
+
+
+class DeliveryRouteOptimizationLog(Base):
+    __tablename__ = "delivery_route_optimization_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    delivery_id = Column(Integer, ForeignKey("deliveries.id"), nullable=False)
+    agent_id = Column(Integer, ForeignKey("newusers.id"), nullable=False)
+    trigger_reason = Column(String(100), nullable=False)
+    old_distance_km = Column(Float, nullable=True)
+    new_distance_km = Column(Float, nullable=True)
+    old_eta = Column(DateTime(timezone=True), nullable=True)
+    new_eta = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    delivery = relationship("Delivery", foreign_keys=[delivery_id])
+    agent = relationship("User", foreign_keys=[agent_id])
 
 
 # ─────────────────────────────────────────────

@@ -5,13 +5,14 @@ import { Dashboard } from './components/dashboard/dashboard';
 import { TrackDelivery } from './components/track-delivery/track-delivery';
 import { Profile } from './components/profile/profile';
 import { BookShipment } from './components/book-shipment/book-shipment';
+import { LogisticsAi } from './components/logistics-ai/logistics-ai';
 import { AuthService } from './services/auth.service';
 import { environment } from '../environments/environment';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, Sidebar, Dashboard, TrackDelivery, Profile, BookShipment],
+  imports: [CommonModule, Sidebar, Dashboard, TrackDelivery, Profile, BookShipment, LogisticsAi],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })

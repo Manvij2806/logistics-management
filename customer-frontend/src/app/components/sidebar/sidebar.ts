@@ -30,6 +30,7 @@ export class Sidebar implements OnInit {
     { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
     { id: 'book-shipment', label: 'Book Shipment', icon: 'book-shipment' },
     { id: 'track-delivery', label: 'Track Delivery', icon: 'track' },
+    { id: 'logistics-ai', label: 'Logistics AI', icon: 'assistant' },
     { id: 'profile', label: 'Profile', icon: 'profile' }
   ];
 

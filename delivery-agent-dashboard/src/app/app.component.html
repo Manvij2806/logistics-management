@@ -23,6 +23,7 @@
           </div>
           <app-earnings-report *ngSwitchCase="'earnings'"></app-earnings-report>
           <app-profile *ngSwitchCase="'profile'"></app-profile>
+          <app-logistics-ai *ngSwitchCase="'logistics-ai'" (viewChange)="onViewChanged($event)"></app-logistics-ai>
         </div>
       </main>
     </mat-sidenav-content>

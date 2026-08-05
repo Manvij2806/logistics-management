@@ -15,6 +15,9 @@
         @case ('profile') {
           <app-profile></app-profile>
         }
+        @case ('logistics-ai') {
+          <app-logistics-ai (viewChange)="onViewChange($event)"></app-logistics-ai>
+        }
       }
     </main>
   </div>

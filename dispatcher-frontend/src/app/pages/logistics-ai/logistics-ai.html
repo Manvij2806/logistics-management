@@ -1,0 +1,727 @@
+<div class="ai-page">
+
+  <!-- =====================================================
+       MAIN AI CONTENT
+       ===================================================== -->
+
+  <main class="ai-main">
+
+
+    <!-- ===================================================
+         AI HEADER
+         =================================================== -->
+
+    <div class="compact-header-bar">
+
+      <div class="compact-header-left">
+
+        <!-- BACK BUTTON -->
+
+        <button
+          type="button"
+          class="back-btn"
+          (click)="goBack()"
+          aria-label="Go back"
+        >
+
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+
+            <line
+              x1="19"
+              y1="12"
+              x2="5"
+              y2="12"
+            ></line>
+
+            <polyline
+              points="12 19 5 12 12 5"
+            ></polyline>
+
+          </svg>
+
+        </button>
+
+
+        <!-- AI ICON -->
+
+        <div class="ai-logo-icon">
+
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+          >
+
+            <path
+              d="M12 2c0 5.523 4.477 10 10 10
+              -5.523 0-10 4.477-10 10
+              0-5.523-4.477-10-10-10
+              5.523 0 10-4.477 10-10z"
+            />
+
+          </svg>
+
+        </div>
+
+
+        <!-- TITLE -->
+
+        <div class="compact-title-group">
+
+          <h2>
+            Logistics AI
+          </h2>
+
+          <p>
+            Your intelligent logistics assistant
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <!-- CLEAR CHAT -->
+
+      <div class="compact-header-right">
+
+        <button
+          type="button"
+          class="compact-clear-btn"
+          (click)="clearChat()"
+        >
+
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+
+            <polyline
+              points="3 6 5 6 21 6"
+            ></polyline>
+
+            <path
+              d="M19 6v14a2 2 0 0 1-2 2H7
+              a2 2 0 0 1-2-2V6
+              m3 0V4a2 2 0 0 1 2-2h4
+              a2 2 0 0 1 2 2v2"
+            ></path>
+
+            <line
+              x1="10"
+              y1="11"
+              x2="10"
+              y2="17"
+            ></line>
+
+            <line
+              x1="14"
+              y1="11"
+              x2="14"
+              y2="17"
+            ></line>
+
+          </svg>
+
+          <span>
+            Clear Chat
+          </span>
+
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <!-- ===================================================
+         CHAT CARD
+         =================================================== -->
+
+    <section class="chat-card">
+
+
+      <!-- CHAT HEADER -->
+
+      <div class="chat-header">
+
+        <div class="chat-header-info">
+
+          <h3>
+            Logistics AI Chat
+          </h3>
+
+          <p>
+            Ask questions about your logistics operations
+          </p>
+
+        </div>
+
+
+
+
+      </div>
+
+
+      <!-- =================================================
+           CHAT MESSAGES
+           ================================================= -->
+
+      <div class="chat-messages">
+
+
+        <!-- EMPTY CHAT -->
+
+        @if (messages().length === 0) {
+
+          <div class="empty-chat">
+
+            <div class="empty-ai-icon">
+              ✦
+            </div>
+
+            <h3>
+              How can I help you today?
+            </h3>
+
+            <p>
+              Ask me about deliveries, agents, routes,
+              delays, reports and more.
+            </p>
+
+          </div>
+
+        }
+
+
+        <!-- MESSAGE LOOP -->
+
+        @for (
+          item of messages();
+          track $index
+        ) {
+
+
+          <!-- USER MESSAGE -->
+
+          @if (item.sender === 'user') {
+
+            <div class="user-message-row">
+
+              <div class="user-message">
+
+                <div>
+                  {{ item.message }}
+                </div>
+
+                <small>
+                  {{ item.time }}
+                </small>
+
+              </div>
+
+
+              <div class="message-user-icon">
+                ♙
+              </div>
+
+            </div>
+
+          }
+
+
+          <!-- AI MESSAGE -->
+
+          @else {
+
+            <div class="ai-message-row">
+
+
+              <!-- AI ICON -->
+
+              <div class="ai-avatar">
+                ✦
+              </div>
+
+
+              <!-- AI MESSAGE -->
+
+              <div class="ai-message">
+
+                <div class="ai-message-title">
+                  Logistics AI
+                </div>
+
+                <p>
+                  {{ item.message }}
+                </p>
+
+
+                <!-- =======================================
+                     DELIVERY TABLE
+                     ======================================= -->
+
+                @if (item.type === 'table') {
+
+                  <div class="delivery-table-wrapper">
+
+                    <table>
+
+                      <thead>
+
+                        <tr>
+
+                          <th>
+                            Order ID
+                          </th>
+
+                          <th>
+                            Customer
+                          </th>
+
+                          <th>
+                            Pickup
+                          </th>
+
+                          <th>
+                            Drop
+                          </th>
+
+                          <th>
+                            Priority
+                          </th>
+
+                          <th>
+                            ETA
+                          </th>
+
+                          <th>
+                            Agent
+                          </th>
+
+                        </tr>
+
+                      </thead>
+
+
+                      <tbody>
+
+
+                        <tr>
+
+                          <td>
+                            #DLV12345
+                          </td>
+
+                          <td>
+                            Anita Sharma
+                          </td>
+
+                          <td>
+                            DLF Warehouse
+                          </td>
+
+                          <td>
+                            Noida Sec 62
+                          </td>
+
+                          <td>
+
+                            <span class="priority high">
+                              High
+                            </span>
+
+                          </td>
+
+                          <td>
+                            12:45 PM
+                          </td>
+
+                          <td>
+
+                            <span class="not-assigned">
+                              Not Assigned
+                            </span>
+
+                          </td>
+
+                        </tr>
+
+
+                        <tr>
+
+                          <td>
+                            #DLV12346
+                          </td>
+
+                          <td>
+                            Vikram Singh
+                          </td>
+
+                          <td>
+                            Gurgaon Hub
+                          </td>
+
+                          <td>
+                            Noida Sec 18
+                          </td>
+
+                          <td>
+
+                            <span class="priority medium">
+                              Medium
+                            </span>
+
+                          </td>
+
+                          <td>
+                            01:20 PM
+                          </td>
+
+                          <td>
+
+                            <span class="not-assigned">
+                              Not Assigned
+                            </span>
+
+                          </td>
+
+                        </tr>
+
+
+                        <tr>
+
+                          <td>
+                            #DLV12347
+                          </td>
+
+                          <td>
+                            Pooja Mehta
+                          </td>
+
+                          <td>
+                            DLF Warehouse
+                          </td>
+
+                          <td>
+                            Greater Noida
+                          </td>
+
+                          <td>
+
+                            <span class="priority high">
+                              High
+                            </span>
+
+                          </td>
+
+                          <td>
+                            01:40 PM
+                          </td>
+
+                          <td>
+                            Rahul Verma
+                          </td>
+
+                        </tr>
+
+
+                        <tr>
+
+                          <td>
+                            #DLV12348
+                          </td>
+
+                          <td>
+                            Ramesh Kumar
+                          </td>
+
+                          <td>
+                            Faridabad Hub
+                          </td>
+
+                          <td>
+                            Noida Sec 63
+                          </td>
+
+                          <td>
+
+                            <span class="priority low">
+                              Low
+                            </span>
+
+                          </td>
+
+                          <td>
+                            02:10 PM
+                          </td>
+
+                          <td>
+
+                            <span class="not-assigned">
+                              Not Assigned
+                            </span>
+
+                          </td>
+
+                        </tr>
+
+
+                      </tbody>
+
+                    </table>
+
+                  </div>
+
+
+                  <a class="view-link">
+                    View All Pending Deliveries →
+                  </a>
+
+                }
+
+
+                <!-- =======================================
+                     AGENT CARD
+                     ======================================= -->
+
+                @if (item.type === 'agent') {
+
+                  <div class="agent-card">
+
+
+                    <div class="agent-profile">
+
+                      <div class="agent-avatar">
+                        RV
+                      </div>
+
+
+                      <div>
+
+                        <strong>
+                          Rahul Verma
+                        </strong>
+
+                        <span class="available">
+                          Available
+                        </span>
+
+
+                        <div class="agent-rating">
+                          Rating ⭐ 4.8
+                        </div>
+
+
+                        <div class="agent-deliveries">
+                          Deliveries: 28
+                        </div>
+
+                      </div>
+
+                    </div>
+
+
+                    <div class="agent-stat">
+
+                      <span>
+                        Distance from Pickup
+                      </span>
+
+                      <strong>
+                        1.2 km
+                      </strong>
+
+                    </div>
+
+
+                    <div class="agent-stat">
+
+                      <span>
+                        Current Workload
+                      </span>
+
+                      <strong>
+                        4 / 10
+                      </strong>
+
+                    </div>
+
+
+                    <div class="agent-stat">
+
+                      <span>
+                        Success Rate
+                      </span>
+
+                      <strong>
+                        96%
+                      </strong>
+
+                    </div>
+
+
+                    <button
+                      type="button"
+                      class="assign-button"
+                    >
+                      Assign Now
+                    </button>
+
+                  </div>
+
+                }
+
+
+                <!-- MESSAGE TIME -->
+
+                <small class="message-time">
+                  {{ item.time }}
+                </small>
+
+              </div>
+
+            </div>
+
+          }
+
+        }
+
+      </div>
+
+
+      <!-- =================================================
+           QUICK QUESTIONS
+           ================================================= -->
+
+      <div class="quick-questions">
+
+        <button
+          *ngFor="
+            let item of
+            sortedSuggestedQueries().slice(0, 5)
+          "
+          type="button"
+          (click)="askQuestion(item.text)"
+        >
+
+          {{ item.text }}
+
+        </button>
+
+      </div>
+
+
+      <!-- HIDDEN FILE INPUT -->
+
+      <input
+        #fileInput
+        type="file"
+        style="display:none"
+        accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.csv,.txt"
+        (change)="onFileSelected($event)"
+      />
+
+
+      <!-- ATTACHMENT PREVIEW -->
+
+      @if (attachedFile()) {
+        <div class="attachment-preview">
+          <span class="attachment-name">📎 {{ attachedFile()!.name }} ({{ attachedFile()!.size }})</span>
+          <button class="attachment-remove" (click)="removeAttachment()" aria-label="Remove attachment">✕</button>
+        </div>
+      }
+
+
+      <!-- =================================================
+           INPUT
+           ================================================= -->
+
+      <div class="chat-input-wrapper">
+
+
+        <!-- ATTACHMENT -->
+
+        <button
+          type="button"
+          class="input-icon"
+          aria-label="Attach file"
+          (click)="triggerFileUpload()"
+        >
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="input-icon-svg">
+            <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+          </svg>
+        </button>
+
+
+        <!-- VOICE -->
+
+        <button
+          type="button"
+          class="input-icon"
+          (click)="toggleVoice()"
+          [class.listening]="isListening()"
+          aria-label="Voice input"
+        >
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="input-icon-svg">
+            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+            <line x1="12" x2="12" y1="19" y2="22"/>
+          </svg>
+        </button>
+
+
+        <!-- INPUT -->
+
+        <input
+          type="text"
+          [(ngModel)]="question"
+          (keyup.enter)="sendMessage()"
+          placeholder="Ask anything... (English or हिंदी)"
+        />
+
+
+        <!-- SEND -->
+
+        <button
+          type="button"
+          class="send-button"
+          (click)="sendMessage()"
+          aria-label="Send message"
+        >
+          ➤
+        </button>
+
+      </div>
+
+
+      <!-- HINT -->
+
+      <p class="chat-hint">
+
+        ⓘ You can ask questions about deliveries,
+        agents, routes, delays, reports and more.
+
+      </p>
+
+    </section>
+
+  </main>
+
+</div>

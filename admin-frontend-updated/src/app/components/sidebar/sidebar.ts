@@ -44,6 +44,7 @@ export class Sidebar implements OnInit {
     { label: 'Customers History', route: '/customers', icon: 'customers', roles: ['Admin'] },
     { label: 'User Management', route: '/users', icon: 'users', roles: ['Admin'] },
     { label: 'Audit Logs', route: '/audit-logs', icon: 'audit', roles: ['Admin'] },
+    { label: 'Logistics AI', route: '/logistics-ai', icon: 'assistant' },
     { label: 'Profile', route: '/profile', icon: 'profile' },
   ];
 

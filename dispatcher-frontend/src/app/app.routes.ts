@@ -15,6 +15,7 @@ import { SelectAgent } from './pages/deliveries/select-agent/select-agent';
 import { AgentWorkload } from './pages/deliveries/agent-workload/agent-workload';
 import { PlaceholderPage } from './pages/placeholder/placeholder';
 import { ProfileComponent } from './pages/profile/profile';
+import { LogisticsAi } from './pages/logistics-ai/logistics-ai';
 
 export const routes: Routes = [
   { path: 'login', component: Login, canActivate: [loginGuard] },
@@ -32,6 +33,7 @@ export const routes: Routes = [
       { path: 'deliveries/:id/select-agent', component: SelectAgent },
       { path: 'agent-workload', component: AgentWorkload },
       { path: 'profile', component: ProfileComponent },
+      { path: 'logistics-ai', component: LogisticsAi },
       { path: 'route-optimization', component: PlaceholderPage, data: { title: 'Route Optimization' } },
       { path: 'customers', component: PlaceholderPage, data: { title: 'Customers' } },
       { path: 'agents', component: PlaceholderPage, data: { title: 'Agents' } },

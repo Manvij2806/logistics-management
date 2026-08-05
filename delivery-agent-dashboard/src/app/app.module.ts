@@ -25,6 +25,7 @@ import { EarningsReportComponent } from './earnings/earnings.component';
 import { SettingsViewComponent } from './settings/settings.component';
 import { LoginComponent } from './login/login.component';
 import { ProfileComponent } from './profile/profile.component';
+import { LogisticsAi } from './dashboard/logistics-ai/logistics-ai';
 
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { AuthInterceptor } from './services/auth.interceptor';
@@ -60,6 +61,7 @@ import { ReactiveFormsModule } from '@angular/forms';
     FormsModule,
     ReactiveFormsModule,
     HttpClientModule,
+    LogisticsAi,
   ],
   providers: [
     provideBrowserGlobalErrorListeners(),
