@@ -155,4 +155,62 @@ def get_ai_response(
             ai_text = res_data["candidates"][0]["content"]["parts"][0]["text"]
             return {"response": ai_text}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to query AI engine: {str(e)}")
+        # Fallback to local query engine if the Gemini API Key is invalid or fails authentication
+        # This guarantees the assistant is always 100% "answerable" with real live DB data!
+        
+        fallback_msg = (
+            f"### 🤖 Logistics Assistant (Offline Fallback)\n\n"
+            f"I encountered an issue querying the Gemini API (Error: {str(e)}).\n\n"
+            f"However, using the live database, here is the operations summary for your **{role}** account:\n\n"
+        )
+        
+        if role == "Customer":
+            fallback_msg += f"Welcome **{current_user.fullname}**! Here are your registered shipments:\n\n"
+            if not del_list:
+                fallback_msg += "* You currently have no registered shipments."
+            else:
+                fallback_msg += "| Tracking Number | Drop Address | Status | Estimated Delivery |\n"
+                fallback_msg += "| :--- | :--- | :--- | :--- |\n"
+                for d in del_list:
+                    fallback_msg += f"| `{d['tracking_number']}` | {d['drop_address']} | **{d['status']}** | {d['estimated_delivery_at'] or 'N/A'} |\n"
+        
+        elif role == "Agent":
+            fallback_msg += f"Hello Agent **{current_user.fullname}**! Here is your assigned deliveries list:\n\n"
+            if not del_list:
+                fallback_msg += "* You have no assigned tasks today."
+            else:
+                fallback_msg += "| Delivery ID | Drop Address | Status | Verification PIN |\n"
+                fallback_msg += "| :--- | :--- | :--- | :--- |\n"
+                for d in del_list:
+                    fallback_msg += f"| `{d['delivery_id']}` | {d['drop_address']} | **{d['status']}** | `{d['verification_pin'] or 'N/A'}` |\n"
+        
+        elif role == "Dispatcher":
+            fallback_msg += f"Dispatcher Dashboard for **{city}** Hub:\n\n"
+            fallback_msg += "#### 📦 Deliveries in Hub\n"
+            if not del_list:
+                fallback_msg += "* No active deliveries in this hub.\n"
+            else:
+                fallback_msg += "| Delivery ID | Status | Priority |\n"
+                fallback_msg += "| :--- | :--- | :--- |\n"
+                for d in del_list:
+                    fallback_msg += f"| `{d['delivery_id']}` | **{d['status']}** | {d['priority'] or 'Normal'} |\n"
+            
+            fallback_msg += "\n#### 👥 Available Agents in Hub\n"
+            if not agent_list:
+                fallback_msg += "* No agents logged in this hub.\n"
+            else:
+                for a in agent_list:
+                    fallback_msg += f"* Agent ID: `{a['id']}` - **{a['name']}**\n"
+                    
+        elif role == "Admin":
+            fallback_msg += "#### 📊 System Metrics Summary\n"
+            fallback_msg += f"* **Total registered users**: {total_users}\n"
+            fallback_msg += f"* **Total deliveries tracked**: {total_deliveries}\n\n"
+            fallback_msg += "#### 📈 Deliveries status breakdown:\n"
+            for status, count in deliveries_by_status.items():
+                if count > 0:
+                    fallback_msg += f"* **{status}**: {count} shipments\n"
+                    
+        fallback_msg += f"\n\n*If you are the administrator, please check the `GEMINI_API_KEY` in the `.env` file on the backend server or verify its permissions in the Google Cloud Console.*"
+        
+        return {"response": fallback_msg}
