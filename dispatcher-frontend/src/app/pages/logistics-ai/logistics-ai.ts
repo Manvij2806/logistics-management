@@ -408,14 +408,25 @@ export class LogisticsAi {
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;');
       
-    html = html.replace(/^### (.*$)/gim, '<h4 style="margin: 8px 0 4px 0; color: #1e293b; font-weight: 600;">$1</h4>');
-    html = html.replace(/^## (.*$)/gim, '<h3 style="margin: 10px 0 6px 0; color: #1e293b; font-weight: 700;">$1</h3>');
+    // Format headers dynamically (1 to 6 hashes)
+    html = html.replace(/^(#{1,6})\s*(.*$)/gim, (match, hashes, content) => {
+      const level = hashes.length;
+      const size = level === 1 ? '20px' : level === 2 ? '18px' : level === 3 ? '16px' : '14px';
+      const weight = level <= 3 ? '700' : '600';
+      return `<h${level} style="margin: 10px 0 4px 0; color: #1e293b; font-weight: ${weight}; font-size: ${size};">${content}</h${level}>`;
+    });
     
+    // Format bold
     html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
     
-    html = html.replace(/`(.*?)`/g, '<code style="background-color: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 12px; color: #ef4444;">$1</code>');
-    
+    // Format bullet points
     html = html.replace(/^\* (.*$)/gim, '<li style="margin-left: 16px; margin-bottom: 4px;">$1</li>');
+    
+    // Format italics
+    html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+    
+    // Format inline code
+    html = html.replace(/`(.*?)`/g, '<code style="background-color: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 12px; color: #ef4444;">$1</code>');
     
     const lines = html.split('\n');
     let inTable = false;
