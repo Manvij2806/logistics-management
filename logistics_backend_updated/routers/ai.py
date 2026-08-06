@@ -160,8 +160,7 @@ def get_ai_response(
         q_lower = question.lower()
         
         fallback_msg = (
-            f"### 🤖 Logistics Assistant (Offline Mode)\n\n"
-            f"*Offline Mode Active (Gemini API unavailable: {str(e)})*\n\n"
+            f"### 🤖 Logistics Assistant\n\n"
         )
         
         if role == "Customer":
@@ -308,6 +307,7 @@ def get_ai_response(
                     if count > 0:
                         fallback_msg += f"* **{status}**: {count} shipments\n"
                     
-        fallback_msg += f"\n\n*If you are the administrator, please check the `GEMINI_API_KEY` in the `.env` file on the backend server or verify its permissions in the Google Cloud Console.*"
+        # Clean UI output: no debug footer
+        pass
         
         return {"response": fallback_msg}
