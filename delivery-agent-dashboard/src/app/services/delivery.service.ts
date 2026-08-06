@@ -154,6 +154,14 @@ export class DeliveryService {
     return this.http.post<any>(`${this.apiUrl}/${id}/verify-otp`, { pin });
   }
 
+  optimizeRoute(id: number): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/${id}/optimize-route`, {});
+  }
+
+  applyRoute(id: number, payload: { route_id: string; reason: string; notes?: string }): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/${id}/apply-route`, payload);
+  }
+
   hideRequest(): void {
     this.requestVisibleSubject.next(false);
   }

@@ -19,9 +19,67 @@ export class TopbarComponent implements OnInit {
 
   showNotifications = false;
   notifications: any[] = [];
+  activeToasts: Array<{ title: string, message: string }> = [];
+  private ws: WebSocket | null = null;
 
   ngOnInit() {
     this.loadNotifications();
+    this.connectWebSocket();
+  }
+
+  connectWebSocket(): void {
+    if (this.ws) return;
+
+    const rawUrl = 'http://13.204.174.51'; // matches environment.apiUrl
+    const wsProto = rawUrl.startsWith('https') ? 'wss://' : 'ws://';
+    const cleanHost = rawUrl.replace(/^https?:\/\//, '');
+    const wsUrl = `${wsProto}${cleanHost}/api/notifications/ws`;
+
+    console.log('Connecting to WebSocket:', wsUrl);
+    this.ws = new WebSocket(wsUrl);
+
+    this.ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.event === 'ROUTE_OPTIMIZED') {
+          const title = `⚠️ AI Route Optimization`;
+          const msg = `Agent ${data.agent_name} optimized route for delivery ${data.delivery_id} (${data.tracking_number}) due to ${data.reason}. New ETA: ${data.new_eta}.`;
+          
+          this.notifications.unshift({
+            id: Date.now(),
+            dbId: data.delivery_id,
+            title: title,
+            message: msg,
+            time: 'Just Now',
+            unread: true,
+            icon: 'pi pi-compass',
+            color: '#8b5cf6'
+          });
+
+          const toast = { title, message: msg };
+          this.activeToasts.push(toast);
+
+          // Auto-remove toast after 8 seconds
+          setTimeout(() => {
+            this.activeToasts = this.activeToasts.filter(t => t !== toast);
+          }, 8000);
+        }
+      } catch (err) {
+        console.error('Error handling WebSocket message:', err);
+      }
+    };
+
+    this.ws.onclose = () => {
+      this.ws = null;
+      setTimeout(() => this.connectWebSocket(), 5000);
+    };
+
+    this.ws.onerror = (err) => {
+      console.error('WebSocket error:', err);
+      if (this.ws) {
+        this.ws.close();
+      }
+    };
   }
 
   getReadIds(): number[] {

@@ -58,6 +58,15 @@ export class ActiveJobComponent implements OnInit, AfterViewInit, OnDestroy {
   otpError = '';
   isVerifyingOtp = false;
 
+  // AI Route Optimization variables
+  isOptimizing = false;
+  showOptimizationModal = false;
+  optimizationData: any = null;
+  selectedReason = 'Heavy Traffic';
+  optimizationNotes = '';
+  optMessage = '';
+  private routePolylines: L.Polyline[] = [];
+
   constructor(
     private deliveryService: DeliveryService,
     private cdr: ChangeDetectorRef,
@@ -314,12 +323,17 @@ export class ActiveJobComponent implements OnInit, AfterViewInit, OnDestroy {
       L.marker(pickupCoords, { icon: pickupIcon }).addTo(this.map);
       L.marker(dropoffCoords, { icon: dropoffIcon }).addTo(this.map);
 
-      L.polyline([pickupCoords, dropoffCoords], {
+      // Clear previous polylines
+      this.routePolylines.forEach(p => p.remove());
+      this.routePolylines = [];
+
+      const initPoly = L.polyline([pickupCoords, dropoffCoords], {
         color: '#5b9aff',
         weight: 4,
         dashArray: '10, 10',
         opacity: 0.8,
       }).addTo(this.map);
+      this.routePolylines.push(initPoly);
 
       const bounds = L.latLngBounds([pickupCoords, dropoffCoords]);
       this.map.fitBounds(bounds, { padding: [50, 50] });
@@ -497,6 +511,112 @@ export class ActiveJobComponent implements OnInit, AfterViewInit, OnDestroy {
     this.otpPin = '';
     this.otpError = '';
     this.cdr.detectChanges();
+  }
+
+  triggerRouteOptimization(): void {
+    if (!this.activeJobRaw) return;
+    this.isOptimizing = true;
+    this.optMessage = '';
+    this.deliveryService.optimizeRoute(this.activeJobRaw.id).subscribe({
+      next: (res) => {
+        this.isOptimizing = false;
+        this.optimizationData = res.optimized_route;
+        this.showOptimizationModal = true;
+        this.previewOptimizedRoute(res.current_route.route_geometry, res.optimized_route.route_geometry);
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.isOptimizing = false;
+        alert('Route optimization analysis failed. Please check backend connection.');
+      }
+    });
+  }
+
+  private previewOptimizedRoute(currentGeom: any[], optimizedGeom: any[]): void {
+    if (!this.map) return;
+    
+    // Clear previous polylines
+    this.routePolylines.forEach(p => p.remove());
+    this.routePolylines = [];
+
+    // Draw current path in red (dashed)
+    const currentPoly = L.polyline(currentGeom, {
+      color: '#ff4d4d',
+      weight: 4,
+      dashArray: '10, 10',
+      opacity: 0.7
+    }).addTo(this.map);
+    this.routePolylines.push(currentPoly);
+
+    // Draw optimized path in solid green
+    const optPoly = L.polyline(optimizedGeom, {
+      color: '#2ec4b6',
+      weight: 5,
+      opacity: 0.9
+    }).addTo(this.map);
+    this.routePolylines.push(optPoly);
+
+    // Fit map bounds to show both routes
+    const bounds = L.latLngBounds([...currentGeom, ...optimizedGeom]);
+    this.map.fitBounds(bounds, { padding: [40, 40] });
+  }
+
+  applyOptimizedRoute(): void {
+    if (!this.activeJobRaw || !this.optimizationData) return;
+    
+    const payload = {
+      route_id: this.optimizationData.route_id,
+      reason: this.selectedReason,
+      notes: this.optimizationNotes
+    };
+
+    this.deliveryService.applyRoute(this.activeJobRaw.id, payload).subscribe({
+      next: (res) => {
+        this.showOptimizationModal = false;
+        this.optMessage = 'Optimized route applied successfully! Dispatcher has been notified.';
+        
+        // Reload deliveries to fetch the updated ETA
+        this.deliveryService.loadAgentDeliveries();
+        
+        // Remove the red/current polyline, keep only the optimized solid green one
+        if (this.routePolylines.length > 1) {
+          this.routePolylines[0].remove(); // remove red dashed
+          this.routePolylines[1].setStyle({ color: '#3f51b5' }); // set to active theme color
+        }
+        
+        setTimeout(() => {
+          this.optMessage = '';
+          this.cdr.detectChanges();
+        }, 5000);
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        alert('Failed to apply optimized route. Please try again.');
+      }
+    });
+  }
+
+  cancelOptimization(): void {
+    this.showOptimizationModal = false;
+    // Reset map route lines back to original default
+    if (this.map && this.activeJobRaw) {
+      this.routePolylines.forEach(p => p.remove());
+      this.routePolylines = [];
+      
+      const pickupCoords = this.activeJob.pickup.coords;
+      const dropoffCoords = this.activeJob.dropoff.coords;
+      
+      const defaultPoly = L.polyline([pickupCoords, dropoffCoords], {
+        color: '#5b9aff',
+        weight: 4,
+        dashArray: '10, 10',
+        opacity: 0.8,
+      }).addTo(this.map);
+      this.routePolylines.push(defaultPoly);
+      
+      const bounds = L.latLngBounds([pickupCoords, dropoffCoords]);
+      this.map.fitBounds(bounds, { padding: [50, 50] });
+    }
   }
 
 

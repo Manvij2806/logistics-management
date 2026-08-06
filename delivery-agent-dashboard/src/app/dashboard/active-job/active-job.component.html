@@ -8,6 +8,12 @@
   </div>
 
   <div *ngIf="hasActiveJob" class="job-content">
+    <!-- Success/Update Banner -->
+    <div *ngIf="optMessage" class="success-banner" style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; padding: 12px; background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px; color: #065f46; font-size: 14px; font-weight: 600; font-family: 'Outfit', sans-serif;">
+      <mat-icon style="font-size: 18px; width: 18px; height: 18px; line-height: 18px;">check_circle</mat-icon>
+      <span>{{ optMessage }}</span>
+    </div>
+
     <!-- Map area -->
     <div class="map-area">
       <div #mapContainer class="map-container"></div>
@@ -126,6 +132,10 @@
                 style="padding: 6px 12px; border-radius: 999px; font-weight: 600; font-size: 13px; font-family: 'Outfit', sans-serif;">
             ₹2,000 - {{ activeJob.payment_status || 'Unpaid' }}
           </span>
+          <button class="ai-opt-btn" (click)="triggerRouteOptimization()" [disabled]="isOptimizing" style="display: flex; align-items: center; gap: 8px; padding: 10px 16px; border: 1px solid #c7d2fe; background: #e0e7ff; border-radius: 8px; color: #4338ca; font-weight: 600; cursor: pointer; font-size: 13px; font-family: 'Outfit', sans-serif;">
+            <mat-icon style="font-size: 16px; width: 16px; height: 16px; line-height: 16px;">auto_awesome</mat-icon>
+            {{ isOptimizing ? 'Analyzing...' : 'AI Optimize Route' }}
+          </button>
           <button class="confirm-btn" (click)="advanceStatus()" [disabled]="!canAdvanceStatus()">
             <mat-icon>check_box</mat-icon>
             {{ getNextStepButtonLabel() }}
@@ -162,6 +172,54 @@
         <span *ngIf="!isVerifyingOtp">VERIFY & DELIVER</span>
         <span *ngIf="isVerifyingOtp">VERIFYING...</span>
       </button>
+    </div>
+  </div>
+</div>
+
+<!-- AI Route Optimization Modal -->
+<div class="otp-modal-overlay" *ngIf="showOptimizationModal">
+  <div class="otp-modal-container" style="max-width: 480px;">
+    <div class="otp-modal-header" style="text-align: center;">
+      <mat-icon style="color: #4f46e5; font-size: 36px; width: 36px; height: 36px; margin-bottom: 8px; line-height: 36px;">auto_awesome</mat-icon>
+      <h3 style="margin: 0 0 8px 0; font-family: 'Outfit', sans-serif; font-size: 18px; color: #1e1b4b;">AI Route Optimization Summary</h3>
+      <p style="margin: 0; font-size: 13px; color: #6b7280; line-height: 1.5;">We found a faster transit route to avoid current traffic delays and roadblocks.</p>
+    </div>
+    
+    <div class="otp-modal-body" style="margin: 20px 0; display: flex; flex-direction: column; gap: 16px; font-family: 'Outfit', sans-serif;">
+      <!-- Side by side comparison -->
+      <div style="display: flex; gap: 12px; justify-content: space-between; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
+        <div style="flex: 1; text-align: center;">
+          <span style="font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 600; display: block; margin-bottom: 4px;">Original Route</span>
+          <span style="font-size: 16px; font-weight: 700; color: #475569; display: block;">15.2 km</span>
+          <span style="font-size: 12px; color: #64748b;">38 mins</span>
+        </div>
+        <div style="width: 1px; background: #cbd5e1;"></div>
+        <div style="flex: 1; text-align: center;">
+          <span style="font-size: 11px; text-transform: uppercase; color: #4f46e5; font-weight: 600; display: block; margin-bottom: 4px;">Optimized AI Route</span>
+          <span style="font-size: 16px; font-weight: 700; color: #4f46e5; display: block;">11.4 km</span>
+          <span style="font-size: 12px; color: #10b981; font-weight: 600;">25 mins (Saved 13m)</span>
+        </div>
+      </div>
+      
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <label for="opt_reason" style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: #6b7280; text-align: left;">Reason for Optimization *</label>
+        <select id="opt_reason" [(ngModel)]="selectedReason" style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; background: white;">
+          <option value="Heavy Traffic">Heavy Traffic</option>
+          <option value="Road Construction / Block">Road Construction / Block</option>
+          <option value="Accident / Breakdown">Accident / Breakdown</option>
+          <option value="Adverse Weather">Adverse Weather</option>
+        </select>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <label for="opt_notes" style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: #6b7280; text-align: left;">Optional Notes</label>
+        <textarea id="opt_notes" [(ngModel)]="optimizationNotes" placeholder="Provide extra transit details..." style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; height: 60px; resize: none; font-family: 'Roboto', sans-serif;"></textarea>
+      </div>
+    </div>
+    
+    <div class="otp-modal-actions" style="display: flex; gap: 8px; justify-content: flex-end;">
+      <button class="cancel-btn" (click)="cancelOptimization()" style="padding: 10px 16px; border: 1px solid #e5e7eb; background: white; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; color: #4b5563; font-family: 'Outfit', sans-serif;">CANCEL</button>
+      <button class="submit-btn" (click)="applyOptimizedRoute()" style="padding: 10px 16px; border: none; background: #4f46e5; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; color: white; font-family: 'Outfit', sans-serif;">USE OPTIMIZED ROUTE</button>
     </div>
   </div>
 </div>
