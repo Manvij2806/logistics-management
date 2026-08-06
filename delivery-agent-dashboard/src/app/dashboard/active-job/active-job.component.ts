@@ -274,9 +274,9 @@ export class ActiveJobComponent implements OnInit, AfterViewInit, OnDestroy {
     }, 200);
   }
 
-  private initMap(): void {
-    const pickupCoords = this.activeJob.pickup.coords;
-    const dropoffCoords = this.activeJob.dropoff.coords;
+  private async initMap(): Promise<void> {
+    const pickupCoords = this.activeJob.pickup.coords as [number, number];
+    const dropoffCoords = this.activeJob.dropoff.coords as [number, number];
 
     const container = this.mapContainer?.nativeElement;
     if (!container) return;
@@ -327,15 +327,21 @@ export class ActiveJobComponent implements OnInit, AfterViewInit, OnDestroy {
       this.routePolylines.forEach(p => p.remove());
       this.routePolylines = [];
 
-      const initPoly = L.polyline([pickupCoords, dropoffCoords], {
+      // Calculate a detour waypoint to show an unoptimized route initially
+      const detourLat = (pickupCoords[0] + dropoffCoords[0]) / 2 + 0.012;
+      const detourLng = (pickupCoords[1] + dropoffCoords[1]) / 2 - 0.012;
+      const detourCoords: [number, number] = [detourLat, detourLng];
+
+      const routePoints = await this.getOSRMRoute(pickupCoords, dropoffCoords, detourCoords);
+
+      const initPoly = L.polyline(routePoints, {
         color: '#5b9aff',
-        weight: 4,
-        dashArray: '10, 10',
+        weight: 5,
         opacity: 0.8,
       }).addTo(this.map);
       this.routePolylines.push(initPoly);
 
-      const bounds = L.latLngBounds([pickupCoords, dropoffCoords]);
+      const bounds = L.latLngBounds(routePoints);
       this.map.fitBounds(bounds, { padding: [50, 50] });
     } catch (e) {
       console.error('Error inside initMap:', e);
@@ -513,16 +519,50 @@ export class ActiveJobComponent implements OnInit, AfterViewInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
+  async getOSRMRoute(start: [number, number], end: [number, number], waypoint?: [number, number]): Promise<L.LatLngExpression[]> {
+    try {
+      let url = `https://router.project-osrm.org/route/v1/driving/${start[1]},${start[0]};`;
+      if (waypoint) {
+        url += `${waypoint[1]},${waypoint[0]};`;
+      }
+      url += `${end[1]},${end[0]}?overview=full&geometries=geojson`;
+
+      const response = await fetch(url);
+      const data = await response.json();
+      if (data.routes && data.routes.length > 0) {
+        const coords = data.routes[0].geometry.coordinates;
+        return coords.map((c: any) => [c[1], c[0]] as L.LatLngExpression);
+      }
+    } catch (e) {
+      console.error('OSRM route fetch failed, falling back to straight line:', e);
+    }
+    // Fallback: straight line
+    return [start, end];
+  }
+
   triggerRouteOptimization(): void {
     if (!this.activeJobRaw) return;
     this.isOptimizing = true;
     this.optMessage = '';
     this.deliveryService.optimizeRoute(this.activeJobRaw.id).subscribe({
-      next: (res) => {
+      next: async (res) => {
         this.isOptimizing = false;
         this.optimizationData = res.optimized_route;
         this.showOptimizationModal = true;
-        this.previewOptimizedRoute(res.current_route.route_geometry, res.optimized_route.route_geometry);
+
+        const pickupCoords = this.activeJob.pickup.coords as [number, number];
+        const dropoffCoords = this.activeJob.dropoff.coords as [number, number];
+        
+        // Calculate a detour waypoint to represent an unoptimized route
+        const detourLat = (pickupCoords[0] + dropoffCoords[0]) / 2 + 0.012;
+        const detourLng = (pickupCoords[1] + dropoffCoords[1]) / 2 - 0.012;
+        const detourCoords: [number, number] = [detourLat, detourLng];
+
+        // Fetch precise actual street routes using OSRM
+        const currentGeom = await this.getOSRMRoute(pickupCoords, dropoffCoords, detourCoords);
+        const optimizedGeom = await this.getOSRMRoute(pickupCoords, dropoffCoords);
+
+        this.previewOptimizedRoute(currentGeom, optimizedGeom);
         this.cdr.detectChanges();
       },
       error: (err) => {
@@ -596,25 +636,30 @@ export class ActiveJobComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  cancelOptimization(): void {
+  async cancelOptimization(): Promise<void> {
     this.showOptimizationModal = false;
     // Reset map route lines back to original default
     if (this.map && this.activeJobRaw) {
       this.routePolylines.forEach(p => p.remove());
       this.routePolylines = [];
       
-      const pickupCoords = this.activeJob.pickup.coords;
-      const dropoffCoords = this.activeJob.dropoff.coords;
+      const pickupCoords = this.activeJob.pickup.coords as [number, number];
+      const dropoffCoords = this.activeJob.dropoff.coords as [number, number];
       
-      const defaultPoly = L.polyline([pickupCoords, dropoffCoords], {
+      const detourLat = (pickupCoords[0] + dropoffCoords[0]) / 2 + 0.012;
+      const detourLng = (pickupCoords[1] + dropoffCoords[1]) / 2 - 0.012;
+      const detourCoords: [number, number] = [detourLat, detourLng];
+
+      const routePoints = await this.getOSRMRoute(pickupCoords, dropoffCoords, detourCoords);
+
+      const defaultPoly = L.polyline(routePoints, {
         color: '#5b9aff',
-        weight: 4,
-        dashArray: '10, 10',
+        weight: 5,
         opacity: 0.8,
       }).addTo(this.map);
       this.routePolylines.push(defaultPoly);
       
-      const bounds = L.latLngBounds([pickupCoords, dropoffCoords]);
+      const bounds = L.latLngBounds(routePoints);
       this.map.fitBounds(bounds, { padding: [50, 50] });
     }
   }
