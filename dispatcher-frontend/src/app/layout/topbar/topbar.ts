@@ -1,5 +1,6 @@
 import { Component, ElementRef, HostListener, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { DeliveryService } from '../../services/delivery.service';
 import { AuthService } from '../../services/auth';
 
@@ -14,6 +15,7 @@ export class TopbarComponent implements OnInit {
   private elementRef = inject(ElementRef);
   private deliveryService = inject(DeliveryService);
   private authService = inject(AuthService);
+  private router = inject(Router);
 
   showNotifications = false;
   notifications: any[] = [];
@@ -182,5 +184,9 @@ export class TopbarComponent implements OnInit {
     const name = this.getUserName();
     if (!name) return 'D';
     return name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
+  }
+
+  openAiChat(): void {
+    this.router.navigate(['/logistics-ai']);
   }
 }
