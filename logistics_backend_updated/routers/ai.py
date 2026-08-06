@@ -16,7 +16,7 @@ import os
 class ChatRequest(BaseModel):
     question: str
 
-API_KEY = os.getenv("GEMINI_API_KEY", "")
+API_KEY = os.getenv("OPENAI_API_KEY", "")
 
 # Global dictionary to store conversation history per user (multi-turn conversation memory)
 user_conversations = {}
@@ -129,7 +129,7 @@ def get_ai_response(
         
         logistics_context = f"User is an Administrator. System-wide metrics: Total Deliveries: {total_deliveries}, Deliveries by Status: {json.dumps(deliveries_by_status)}, Total Users: {total_users}."
 
-    # 2. Query Gemini AI API using urllib with tools/function declarations
+    # 2. Query OpenAI API using urllib with tools/function declarations
     system_instruction = (
         "You are an intelligent Logistics Assistant for LogisticsPro. "
         "You help users manage shipments, deliveries, routes, and schedules. "
@@ -189,55 +189,63 @@ def get_ai_response(
 
     tools = [
         {
-            "functionDeclarations": [
-                {
-                    "name": "get_my_shipments",
-                    "description": "Retrieve the list of shipments/deliveries associated with the current user. Filters by status (e.g. 'Delivered', 'Cancelled', 'In Transit', 'Delayed', 'Assigned', 'Picked Up', 'Out for Delivery') or recipient name.",
-                    "parameters": {
-                        "type": "OBJECT",
-                        "properties": {
-                            "status_filter": {
-                                "type": "STRING",
-                                "description": "Optional status to filter by (e.g., 'Delivered', 'Delayed', 'In Transit')"
-                            },
-                            "recipient_filter": {
-                                "type": "STRING",
-                                "description": "Optional recipient name to filter by"
-                            }
+            "type": "function",
+            "function": {
+                "name": "get_my_shipments",
+                "description": "Retrieve the list of shipments/deliveries associated with the current user. Filters by status (e.g. 'Delivered', 'Cancelled', 'In Transit', 'Delayed', 'Assigned', 'Picked Up', 'Out for Delivery') or recipient name.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "status_filter": {
+                            "type": "string",
+                            "description": "Optional status to filter by (e.g., 'Delivered', 'Delayed', 'In Transit')"
+                        },
+                        "recipient_filter": {
+                            "type": "string",
+                            "description": "Optional recipient name to filter by"
                         }
                     }
-                },
-                {
-                    "name": "get_hub_agents",
-                    "description": "Retrieve the list of active delivery agents in the dispatcher's assigned city/hub.",
-                    "parameters": {
-                        "type": "OBJECT",
-                        "properties": {}
-                    }
-                },
-                {
-                    "name": "get_system_metrics",
-                    "description": "Retrieve system-wide metrics and breakdowns of deliveries by status for administrator review.",
-                    "parameters": {
-                        "type": "OBJECT",
-                        "properties": {}
-                    }
-                },
-                {
-                    "name": "track_shipment_by_id",
-                    "description": "Fetch complete details (ETA, status, pickup/drop address, recipient details) for a specific delivery ID or tracking number.",
-                    "parameters": {
-                        "type": "OBJECT",
-                        "properties": {
-                            "tracking_number": {
-                                "type": "STRING",
-                                "description": "The tracking number or delivery ID (e.g., 'DEL-009', 'DLV12345')"
-                            }
-                        },
-                        "required": ["tracking_number"]
-                    }
                 }
-            ]
+            }
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "get_hub_agents",
+                "description": "Retrieve the list of active delivery agents in the dispatcher's assigned city/hub.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {}
+                }
+            }
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "get_system_metrics",
+                "description": "Retrieve system-wide metrics and breakdowns of deliveries by status for administrator review.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {}
+                }
+            }
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "track_shipment_by_id",
+                "description": "Fetch complete details (ETA, status, pickup/drop address, recipient details) for a specific delivery ID or tracking number.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "tracking_number": {
+                            "type": "string",
+                            "description": "The tracking number or delivery ID (e.g., 'DEL-009', 'DLV12345')"
+                        }
+                    },
+                    "required": ["tracking_number"]
+                }
+            }
         }
     ]
 
@@ -254,22 +262,25 @@ def get_ai_response(
     # Append current user question to history
     user_conversations[user_id].append({
         "role": "user",
-        "parts": [{"text": question}]
+        "content": question
     })
     
     # Keep only the last 20 messages to keep context window light and avoid token bloat
     if len(user_conversations[user_id]) > 20:
         user_conversations[user_id] = user_conversations[user_id][-20:]
         
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={API_KEY}"
-    headers = {"Content-Type": "application/json"}
+    url = "https://api.openai.com/v1/chat/completions"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {API_KEY}"
+    }
+    
+    # Construct standard messages payload (system prompt first)
+    messages_payload = [{"role": "system", "content": system_instruction}] + user_conversations[user_id]
+    
     payload = {
-        "contents": user_conversations[user_id],
-        "systemInstruction": {
-            "parts": [
-                {"text": system_instruction}
-            ]
-        },
+        "model": "gpt-4o-mini",
+        "messages": messages_payload,
         "tools": tools
     }
     
@@ -283,59 +294,49 @@ def get_ai_response(
         with urllib.request.urlopen(req_obj, timeout=20) as response:
             res_data = json.loads(response.read().decode("utf-8"))
             
-            if "candidates" not in res_data or not res_data["candidates"]:
-                raise Exception("Empty candidates in Gemini response: " + str(res_data))
+            if "choices" not in res_data or not res_data["choices"]:
+                raise Exception("Empty choices in OpenAI response: " + str(res_data))
                 
-            parts = res_data["candidates"][0]["content"]["parts"]
-            function_call = parts[0].get("functionCall")
+            choice_message = res_data["choices"][0]["message"]
+            tool_calls = choice_message.get("tool_calls")
             
-            if function_call:
-                func_name = function_call["name"]
-                func_args = function_call.get("args", {})
+            if tool_calls:
+                # 1. Append assistant's tool call message to history
+                user_conversations[user_id].append(choice_message)
                 
-                # Execute function locally
-                if func_name == "get_my_shipments":
-                    func_res = run_get_my_shipments(
-                        status_filter=func_args.get("status_filter"),
-                        recipient_filter=func_args.get("recipient_filter")
-                    )
-                elif func_name == "get_hub_agents":
-                    func_res = run_get_hub_agents()
-                elif func_name == "get_system_metrics":
-                    func_res = run_get_system_metrics()
-                elif func_name == "track_shipment_by_id":
-                    func_res = run_track_shipment(tracking_number=func_args.get("tracking_number"))
-                else:
-                    func_res = {"error": "Function not found."}
+                # 2. Execute each tool call and append to history
+                for tool_call in tool_calls:
+                    call_id = tool_call["id"]
+                    func_name = tool_call["function"]["name"]
+                    func_args = json.loads(tool_call["function"].get("arguments", "{}"))
+                    
+                    # Execute function locally
+                    if func_name == "get_my_shipments":
+                        func_res = run_get_my_shipments(
+                            status_filter=func_args.get("status_filter"),
+                            recipient_filter=func_args.get("recipient_filter")
+                        )
+                    elif func_name == "get_hub_agents":
+                        func_res = run_get_hub_agents()
+                    elif func_name == "get_system_metrics":
+                        func_res = run_get_system_metrics()
+                    elif func_name == "track_shipment_by_id":
+                        func_res = run_track_shipment(tracking_number=func_args.get("tracking_number"))
+                    else:
+                        func_res = {"error": "Function not found."}
+                        
+                    user_conversations[user_id].append({
+                        "role": "tool",
+                        "tool_call_id": call_id,
+                        "name": func_name,
+                        "content": json.dumps(func_res)
+                    })
                 
-                # Build the multi-turn payload to send the function response back to Gemini
-                # 1. Append model's functionCall part to user_conversations
-                user_conversations[user_id].append({
-                    "role": "model",
-                    "parts": [parts[0]]
-                })
-                
-                # 2. Append the function response part (role: function) to user_conversations
-                user_conversations[user_id].append({
-                    "role": "function",
-                    "parts": [
-                        {
-                            "functionResponse": {
-                                "name": func_name,
-                                "response": func_res
-                            }
-                        }
-                    ]
-                })
-                
-                # 3. Call Gemini again with the function response appended
+                # 3. Call OpenAI again with the function responses appended
+                second_messages_payload = [{"role": "system", "content": system_instruction}] + user_conversations[user_id]
                 second_payload = {
-                    "contents": user_conversations[user_id],
-                    "systemInstruction": {
-                        "parts": [
-                            {"text": system_instruction}
-                        ]
-                    },
+                    "model": "gpt-4o-mini",
+                    "messages": second_messages_payload,
                     "tools": tools
                 }
                 
@@ -348,24 +349,24 @@ def get_ai_response(
                 with urllib.request.urlopen(second_req, timeout=20) as second_response:
                     sec_res_data = json.loads(second_response.read().decode("utf-8"))
                     
-                    if "candidates" not in sec_res_data or not sec_res_data["candidates"]:
-                        raise Exception("Empty candidates in second Gemini response: " + str(sec_res_data))
+                    if "choices" not in sec_res_data or not sec_res_data["choices"]:
+                        raise Exception("Empty choices in second OpenAI response: " + str(sec_res_data))
                         
-                    ai_text = sec_res_data["candidates"][0]["content"]["parts"][0].get("text", "")
+                    ai_text = sec_res_data["choices"][0]["message"].get("content", "")
                     
-                    # Append final model text response to history
+                    # Append final assistant text response to history
                     user_conversations[user_id].append({
-                        "role": "model",
-                        "parts": [{"text": ai_text}]
+                        "role": "assistant",
+                        "content": ai_text
                     })
                     
                     return {"response": ai_text}
             else:
-                ai_text = parts[0].get("text", "")
-                # Append model response to conversation history
+                ai_text = choice_message.get("content", "")
+                # Append assistant response to conversation history
                 user_conversations[user_id].append({
-                    "role": "model",
-                    "parts": [{"text": ai_text}]
+                    "role": "assistant",
+                    "content": ai_text
                 })
                 return {"response": ai_text}
     except Exception as e:
