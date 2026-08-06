@@ -18,6 +18,9 @@ class ChatRequest(BaseModel):
 
 API_KEY = os.getenv("GEMINI_API_KEY", "")
 
+# Global dictionary to store conversation history per user (multi-turn conversation memory)
+user_conversations = {}
+
 @router.post("/chat")
 def get_ai_response(
     req: ChatRequest,
@@ -129,18 +132,35 @@ def get_ai_response(
         "Please respond to the user's question accordingly."
     )
     
-    prompt = f"{system_instruction}\n\nUser Question: {question}"
+    # Retrieve or initialize user conversation history
+    user_id = current_user.id
+    if user_id not in user_conversations:
+        user_conversations[user_id] = []
+        
+    # Reset/clear chat command handler
+    if question.lower().strip() in ["clear", "reset", "clear chat", "clear history"]:
+        user_conversations[user_id] = []
+        return {"response": "### 🤖 Logistics Assistant\n\nI have successfully reset your chat history! What would you like to ask now?"}
+        
+    # Append current user question to history
+    user_conversations[user_id].append({
+        "role": "user",
+        "parts": [{"text": question}]
+    })
     
+    # Keep only the last 20 messages to keep context window light and avoid token bloat
+    if len(user_conversations[user_id]) > 20:
+        user_conversations[user_id] = user_conversations[user_id][-20:]
+        
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={API_KEY}"
     headers = {"Content-Type": "application/json"}
     payload = {
-        "contents": [
-            {
-                "parts": [
-                    {"text": prompt}
-                ]
-            }
-        ]
+        "contents": user_conversations[user_id],
+        "systemInstruction": {
+            "parts": [
+                {"text": system_instruction}
+            ]
+        }
     }
     
     try:
@@ -153,6 +173,13 @@ def get_ai_response(
         with urllib.request.urlopen(req_obj, timeout=20) as response:
             res_data = json.loads(response.read().decode("utf-8"))
             ai_text = res_data["candidates"][0]["content"]["parts"][0]["text"]
+            
+            # Append model response to conversation history
+            user_conversations[user_id].append({
+                "role": "model",
+                "parts": [{"text": ai_text}]
+            })
+            
             return {"response": ai_text}
     except Exception as e:
         # Fallback to local query engine if the Gemini API Key is invalid or fails authentication
@@ -361,5 +388,11 @@ def get_ai_response(
                     f"5. ❌ **Cancellation report**\n\n"
                     f"Could you please try asking one of these questions or use the quick-action buttons below?"
                 )
+        
+        # Append fallback response to conversation history
+        user_conversations[user_id].append({
+            "role": "model",
+            "parts": [{"text": fallback_msg}]
+        })
         
         return {"response": fallback_msg}
