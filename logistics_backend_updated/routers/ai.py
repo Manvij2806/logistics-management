@@ -33,6 +33,14 @@ def get_ai_response(
     if not question:
         raise HTTPException(status_code=400, detail="Question cannot be empty.")
     
+    # Initialize default local context variables to prevent NameError in functions
+    del_list = []
+    agent_list = []
+    total_deliveries = 0
+    deliveries_by_status = {}
+    total_users = 0
+    city = current_user.city or ""
+    
     # 1. Fetch relevant logistics data based on user role
     logistics_context = ""
     
@@ -121,17 +129,118 @@ def get_ai_response(
         
         logistics_context = f"User is an Administrator. System-wide metrics: Total Deliveries: {total_deliveries}, Deliveries by Status: {json.dumps(deliveries_by_status)}, Total Users: {total_users}."
 
-    # 2. Query Gemini AI API using urllib
+    # 2. Query Gemini AI API using urllib with tools/function declarations
     system_instruction = (
         "You are an intelligent Logistics Assistant for LogisticsPro. "
         "You help users manage shipments, deliveries, routes, and schedules. "
         "Format your responses as markdown. If displaying lists of deliveries, draw a clean table where appropriate. "
         "Keep your responses concise, helpful, and highly professional. "
-        "Here is the database context of the current logged-in user:\n"
-        f"{logistics_context}\n\n"
-        "Please respond to the user's question accordingly."
+        "You can retrieve real-time data from the database using function calls when the user asks questions about deliveries, agents, or system statistics."
     )
     
+    # Define local tool helper execution functions in-memory using database contexts
+    def run_get_my_shipments(status_filter=None, recipient_filter=None):
+        results = del_list
+        if status_filter:
+            results = [d for d in results if status_filter.lower() in d.get("status", "").lower()]
+        if recipient_filter:
+            results = [d for d in results if recipient_filter.lower() in d.get("recipient_name", "").lower()]
+        return {"shipments": results}
+
+    def run_get_hub_agents():
+        if role == "Dispatcher":
+            return {"agents": agent_list}
+        return {"error": "Unauthorized. Only Hub Dispatchers can fetch agents list."}
+
+    def run_get_system_metrics():
+        if role == "Admin":
+            return {
+                "total_deliveries": total_deliveries,
+                "deliveries_by_status": deliveries_by_status,
+                "total_users": total_users
+            }
+        return {"error": "Unauthorized. Only administrators can fetch system metrics."}
+
+    def run_track_shipment(tracking_number):
+        if not tracking_number:
+            return {"error": "No tracking number provided."}
+        clean_t = tracking_number.strip().lower()
+        for d in del_list:
+            if clean_t == d.get("delivery_id", "").lower() or clean_t == d.get("tracking_number", "").lower():
+                return {"shipment": d}
+        db_del = db.query(Delivery).filter(
+            (Delivery.delivery_id.ilike(f"%{clean_t}%")) | 
+            (Delivery.tracking_number.ilike(f"%{clean_t}%"))
+        ).first()
+        if db_del:
+            return {
+                "shipment": {
+                    "delivery_id": db_del.delivery_id,
+                    "tracking_number": db_del.tracking_number,
+                    "status": db_del.status,
+                    "pickup_address": db_del.pickup_address,
+                    "drop_address": db_del.drop_address,
+                    "recipient_name": db_del.recipient_name,
+                    "package_description": db_del.package_description,
+                    "estimated_delivery_at": db_del.estimated_delivery_at.isoformat() if db_del.estimated_delivery_at else None
+                }
+            }
+        return {"error": f"Shipment with ID '{tracking_number}' not found."}
+
+    tools = [
+        {
+            "functionDeclarations": [
+                {
+                    "name": "get_my_shipments",
+                    "description": "Retrieve the list of shipments/deliveries associated with the current user. Filters by status (e.g. 'Delivered', 'Cancelled', 'In Transit', 'Delayed', 'Assigned', 'Picked Up', 'Out for Delivery') or recipient name.",
+                    "parameters": {
+                        "type": "OBJECT",
+                        "properties": {
+                            "status_filter": {
+                                "type": "STRING",
+                                "description": "Optional status to filter by (e.g., 'Delivered', 'Delayed', 'In Transit')"
+                            },
+                            "recipient_filter": {
+                                "type": "STRING",
+                                "description": "Optional recipient name to filter by"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "get_hub_agents",
+                    "description": "Retrieve the list of active delivery agents in the dispatcher's assigned city/hub.",
+                    "parameters": {
+                        "type": "OBJECT",
+                        "properties": {}
+                    }
+                },
+                {
+                    "name": "get_system_metrics",
+                    "description": "Retrieve system-wide metrics and breakdowns of deliveries by status for administrator review.",
+                    "parameters": {
+                        "type": "OBJECT",
+                        "properties": {}
+                    }
+                },
+                {
+                    "name": "track_shipment_by_id",
+                    "description": "Fetch complete details (ETA, status, pickup/drop address, recipient details) for a specific delivery ID or tracking number.",
+                    "parameters": {
+                        "type": "OBJECT",
+                        "properties": {
+                            "tracking_number": {
+                                "type": "STRING",
+                                "description": "The tracking number or delivery ID (e.g., 'DEL-009', 'DLV12345')"
+                            }
+                        },
+                        "required": ["tracking_number"]
+                    }
+                }
+            ]
+        }
+    ]
+
     # Retrieve or initialize user conversation history
     user_id = current_user.id
     if user_id not in user_conversations:
@@ -160,7 +269,8 @@ def get_ai_response(
             "parts": [
                 {"text": system_instruction}
             ]
-        }
+        },
+        "tools": tools
     }
     
     try:
@@ -172,15 +282,92 @@ def get_ai_response(
         )
         with urllib.request.urlopen(req_obj, timeout=20) as response:
             res_data = json.loads(response.read().decode("utf-8"))
-            ai_text = res_data["candidates"][0]["content"]["parts"][0]["text"]
             
-            # Append model response to conversation history
-            user_conversations[user_id].append({
-                "role": "model",
-                "parts": [{"text": ai_text}]
-            })
+            if "candidates" not in res_data or not res_data["candidates"]:
+                raise Exception("Empty candidates in Gemini response: " + str(res_data))
+                
+            parts = res_data["candidates"][0]["content"]["parts"]
+            function_call = parts[0].get("functionCall")
             
-            return {"response": ai_text}
+            if function_call:
+                func_name = function_call["name"]
+                func_args = function_call.get("args", {})
+                
+                # Execute function locally
+                if func_name == "get_my_shipments":
+                    func_res = run_get_my_shipments(
+                        status_filter=func_args.get("status_filter"),
+                        recipient_filter=func_args.get("recipient_filter")
+                    )
+                elif func_name == "get_hub_agents":
+                    func_res = run_get_hub_agents()
+                elif func_name == "get_system_metrics":
+                    func_res = run_get_system_metrics()
+                elif func_name == "track_shipment_by_id":
+                    func_res = run_track_shipment(tracking_number=func_args.get("tracking_number"))
+                else:
+                    func_res = {"error": "Function not found."}
+                
+                # Build the multi-turn payload to send the function response back to Gemini
+                # 1. Append model's functionCall part to user_conversations
+                user_conversations[user_id].append({
+                    "role": "model",
+                    "parts": [parts[0]]
+                })
+                
+                # 2. Append the function response part (role: function) to user_conversations
+                user_conversations[user_id].append({
+                    "role": "function",
+                    "parts": [
+                        {
+                            "functionResponse": {
+                                "name": func_name,
+                                "response": func_res
+                            }
+                        }
+                    ]
+                })
+                
+                # 3. Call Gemini again with the function response appended
+                second_payload = {
+                    "contents": user_conversations[user_id],
+                    "systemInstruction": {
+                        "parts": [
+                            {"text": system_instruction}
+                        ]
+                    },
+                    "tools": tools
+                }
+                
+                second_req = urllib.request.Request(
+                    url,
+                    data=json.dumps(second_payload).encode("utf-8"),
+                    headers=headers,
+                    method="POST"
+                )
+                with urllib.request.urlopen(second_req, timeout=20) as second_response:
+                    sec_res_data = json.loads(second_response.read().decode("utf-8"))
+                    
+                    if "candidates" not in sec_res_data or not sec_res_data["candidates"]:
+                        raise Exception("Empty candidates in second Gemini response: " + str(sec_res_data))
+                        
+                    ai_text = sec_res_data["candidates"][0]["content"]["parts"][0].get("text", "")
+                    
+                    # Append final model text response to history
+                    user_conversations[user_id].append({
+                        "role": "model",
+                        "parts": [{"text": ai_text}]
+                    })
+                    
+                    return {"response": ai_text}
+            else:
+                ai_text = parts[0].get("text", "")
+                # Append model response to conversation history
+                user_conversations[user_id].append({
+                    "role": "model",
+                    "parts": [{"text": ai_text}]
+                })
+                return {"response": ai_text}
     except Exception as e:
         print("Gemini API Request failed:", str(e))
         # Fallback to local query engine if the Gemini API Key is invalid or fails authentication
