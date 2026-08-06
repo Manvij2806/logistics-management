@@ -702,7 +702,7 @@ def get_ai_response(
             # 7. Conversational Guidance fallback instead of general raw dashboard dump
             if role == "Customer":
                 fallback_msg += (
-                    f"I am currently operating in **Local Database Mode** (Gemini API busy/rate-limited).\n\n"
+                    f"I am currently operating in **Local Database Mode** (OpenAI API busy/rate-limited).\n\n"
                     f"I can find details for you if you ask about:\n"
                     f"1. 📦 **Show my active deliveries**\n"
                     f"2. 📍 **How do I change my delivery address?**\n"
@@ -711,7 +711,7 @@ def get_ai_response(
                 )
             else:
                 fallback_msg += (
-                    f"I am currently operating in **Local Database Mode** (Gemini API busy/rate-limited).\n\n"
+                    f"I am currently operating in **Local Database Mode** (OpenAI API busy/rate-limited).\n\n"
                     f"I can search and fetch live operational details for you if you ask about:\n"
                     f"1. 📦 **Show pending orders**\n"
                     f"2. 👥 **Top performing agents today**\n"
@@ -723,8 +723,8 @@ def get_ai_response(
         
         # Append fallback response to conversation history
         user_conversations[user_id].append({
-            "role": "model",
-            "parts": [{"text": fallback_msg}]
+            "role": "assistant",
+            "content": fallback_msg
         })
         
         return {"response": fallback_msg}
