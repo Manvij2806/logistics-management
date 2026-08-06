@@ -123,6 +123,7 @@ class Delivery(Base):
     out_for_delivery_at = Column(DateTime(timezone=True), nullable=True)
     delivered_at       = Column(DateTime(timezone=True), nullable=True)
     estimated_delivery_at = Column(DateTime(timezone=True), nullable=True)
+    current_route_geometry = Column(String, nullable=True)
 
 
 class Package(Base):
@@ -251,6 +252,10 @@ def init_db():
                     conn.execute(text("UPDATE deliveries SET estimated_delivery_at = created_at + INTERVAL '4 hours' WHERE estimated_delivery_at IS NULL"))
                 conn.commit()
                 print("Migration: 'estimated_delivery_at' column added successfully.")
+            if "current_route_geometry" not in existing_cols:
+                conn.execute(text("ALTER TABLE deliveries ADD COLUMN current_route_geometry VARCHAR DEFAULT NULL"))
+                conn.commit()
+                print("Migration: 'current_route_geometry' column added successfully.")
 
             # Migration for newusers table
             try:
