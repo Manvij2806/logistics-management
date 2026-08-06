@@ -182,6 +182,7 @@ def get_ai_response(
             
             return {"response": ai_text}
     except Exception as e:
+        print("Gemini API Request failed:", str(e))
         # Fallback to local query engine if the Gemini API Key is invalid or fails authentication
         # This guarantees the assistant is always 100% "answerable" with real live DB data!
         q_lower = question.lower()
@@ -239,7 +240,7 @@ def get_ai_response(
                 )
             
         # 3. Check for active deliveries list
-        elif "active" in q_lower or (role == "Customer" and ("deliveries" in q_lower or "shipment" in q_lower or "order" in q_lower)):
+        elif "active" in q_lower or (role == "Customer" and any(k in q_lower for k in ["delivery", "deliveries", "shipment", "shipments", "order", "orders", "status", "track", "current", "active"])):
             fallback_msg += "#### 📦 Your Active Shipments\n\n"
             if not del_list:
                 fallback_msg += "* You currently have no registered shipments."
