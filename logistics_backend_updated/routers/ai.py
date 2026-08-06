@@ -239,7 +239,28 @@ def get_ai_response(
                     f"* ❌ **Cancellation report**"
                 )
             
-        # 3. Check for active deliveries list (applies to all roles)
+        # 3. Check for pending deliveries list (applies to all roles)
+        elif "pending" in q_lower:
+            fallback_msg += "#### 📦 Pending Orders Summary\n\n"
+            if role == "Customer":
+                pending_dels = [d for d in del_list if d["status"] not in ["Delivered", "Cancelled"]]
+            elif role == "Agent":
+                pending_dels = [d for d in del_list if d["status"] not in ["Delivered", "Cancelled"]]
+            elif role == "Dispatcher":
+                pending_dels = [d for d in del_list if d["status"] not in ["Delivered", "Cancelled"]]
+            else: # Admin
+                db_dels = db.query(Delivery).filter(Delivery.status.notin_(["Delivered", "Cancelled"])).all()
+                pending_dels = [{"delivery_id": d.delivery_id, "status": d.status, "pickup_address": d.pickup_address, "drop_address": d.drop_address} for d in db_dels]
+                
+            if not pending_dels:
+                fallback_msg += "* You have no pending orders in the system."
+            else:
+                fallback_msg += "| Order ID | Status | Pickup Address | Destination |\n"
+                fallback_msg += "| :--- | :--- | :--- | :--- |\n"
+                for d in pending_dels[:5]:
+                    fallback_msg += f"| `{d.get('delivery_id', d.get('tracking_number'))}` | **{d['status']}** | {d.get('pickup_address', 'Hub')} | {d['drop_address']} |\n"
+
+        # 4. Check for active deliveries list (applies to all roles)
         elif "active" in q_lower or any(k in q_lower for k in ["delivery", "deliveries", "shipment", "shipments", "order", "orders", "status", "track", "current", "active"]):
             if role == "Customer":
                 fallback_msg += "#### 📦 Your Active Shipments\n\n"
@@ -278,7 +299,7 @@ def get_ai_response(
                     if count > 0:
                         fallback_msg += f"| {status} | **{count}** |\n"
                     
-        # 4. Check for address change inquiries
+        # 5. Check for address change inquiries
         elif role == "Customer" and ("change" in q_lower or "address" in q_lower or "modify" in q_lower):
             fallback_msg += (
                 "#### 📍 Modify Delivery Address\n\n"
@@ -289,7 +310,7 @@ def get_ai_response(
                 "*Note: Address changes are only permitted before the status updates to 'Out for Delivery'.*"
             )
             
-        # 5. Check for customer support details
+        # 6. Check for customer support details
         elif "support" in q_lower or "contact" in q_lower:
             fallback_msg += (
                 "#### 📞 Contact Customer Support\n\n"
@@ -299,7 +320,7 @@ def get_ai_response(
                 "* **Live Chat**: Click the purple chat bubble in the bottom right corner of the screen."
             )
             
-        # 6. Check for specific common queries across all roles
+        # 7. Check for specific common queries across all roles
         elif "delayed" in q_lower or "delay" in q_lower or "traffic" in q_lower:
             fallback_msg += "#### ⚠️ Delayed Deliveries Report\n\n"
             if role == "Dispatcher":
@@ -317,26 +338,6 @@ def get_ai_response(
                 fallback_msg += "| :--- | :--- | :--- | :--- |\n"
                 for d in active_dels[:5]:
                     fallback_msg += f"| `{d.get('delivery_id', d.get('tracking_number'))}` | **{d['status']}** | {d.get('priority') or 'Normal'} | Running slightly behind due to route traffic |\n"
-                    
-        elif "pending" in q_lower:
-            fallback_msg += "#### 📦 Pending Orders Summary\n\n"
-            if role == "Customer":
-                pending_dels = [d for d in del_list if d["status"] in ["Created", "Assigned", "Picked Up", "Arrived at Origin Hub"]]
-            elif role == "Agent":
-                pending_dels = [d for d in del_list if d["status"] not in ["Delivered", "Cancelled"]]
-            elif role == "Dispatcher":
-                pending_dels = [d for d in del_list if d["status"] in ["Created", "Assigned", "Arrived at Origin Hub"]]
-            else: # Admin
-                db_dels = db.query(Delivery).filter(Delivery.status.in_(["Created", "Assigned"])).all()
-                pending_dels = [{"delivery_id": d.delivery_id, "status": d.status, "pickup_address": d.pickup_address, "drop_address": d.drop_address} for d in db_dels]
-                
-            if not pending_dels:
-                fallback_msg += "* You have no pending orders in the system."
-            else:
-                fallback_msg += "| Order ID | Status | Pickup Address | Destination |\n"
-                fallback_msg += "| :--- | :--- | :--- | :--- |\n"
-                for d in pending_dels[:5]:
-                    fallback_msg += f"| `{d.get('delivery_id', d.get('tracking_number'))}` | **{d['status']}** | {d.get('pickup_address', 'Hub')} | {d['drop_address']} |\n"
                     
         elif "agent" in q_lower or "performance" in q_lower or "workload" in q_lower:
             fallback_msg += "#### 👥 Agent Status & Workload Summary\n\n"
