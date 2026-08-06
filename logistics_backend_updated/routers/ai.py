@@ -161,8 +161,24 @@ def get_ai_response(
         
         fallback_msg = f"### 🤖 Logistics Assistant\n\n"
         
-        # 1. Check for specific common queries across all roles
-        if "delayed" in q_lower or "delay" in q_lower or "traffic" in q_lower:
+        # Check for standard greetings
+        greetings = ["hi", "hello", "hey", "hola", "greetings", "good morning", "good afternoon", "good evening", "how are you"]
+        is_greeting = any(g in q_lower.split() or q_lower == g for g in greetings)
+        
+        # 1. Check for standard greetings
+        if is_greeting:
+            fallback_msg += (
+                f"Hello! I am your Logistics Assistant. How can I assist you with your hub operations today?\n\n"
+                f"You can ask me specific questions such as:\n"
+                f"* 📦 **Show pending orders**\n"
+                f"* 👥 **Top performing agents today**\n"
+                f"* ⚠️ **Show today's delayed deliveries**\n"
+                f"* 💵 **Today's revenue summary**\n"
+                f"* ❌ **Cancellation report**"
+            )
+            
+        # 2. Check for specific common queries across all roles
+        elif "delayed" in q_lower or "delay" in q_lower or "traffic" in q_lower:
             fallback_msg += "#### ⚠️ Delayed Deliveries Report\n\n"
             if role == "Dispatcher":
                 active_dels = [d for d in del_list if d["status"] not in ["Delivered", "Cancelled"]]
@@ -258,52 +274,16 @@ def get_ai_response(
                     fallback_msg += f"| `{d.get('delivery_id', d.get('tracking_number'))}` | {d['drop_address']} | **Cancelled** | Package refused by recipient |\n"
                     
         else:
-            # 2. General role-based fallback dashboards
-            if role == "Customer":
-                fallback_msg += f"Welcome **{current_user.fullname}**! Here are your active shipments:\n\n"
-                if not del_list:
-                    fallback_msg += "* You currently have no registered shipments."
-                else:
-                    fallback_msg += "| Tracking Number | Drop Address | Status | Estimated Delivery |\n"
-                    fallback_msg += "| :--- | :--- | :--- | :--- |\n"
-                    for d in del_list:
-                        fallback_msg += f"| `{d['tracking_number']}` | {d['drop_address']} | **{d['status']}** | {d['estimated_delivery_at'] or 'N/A'} |\n"
-            
-            elif role == "Agent":
-                fallback_msg += f"Hello Agent **{current_user.fullname}**! Here is your assigned deliveries list:\n\n"
-                if not del_list:
-                    fallback_msg += "* You have no assigned tasks today."
-                else:
-                    fallback_msg += "| Delivery ID | Drop Address | Status | Verification PIN |\n"
-                    fallback_msg += "| :--- | :--- | :--- | :--- |\n"
-                    for d in del_list:
-                        fallback_msg += f"| `{d['delivery_id']}` | {d['drop_address']} | **{d['status']}** | `{d['verification_pin'] or 'N/A'}` |\n"
-            
-            elif role == "Dispatcher":
-                fallback_msg += f"Dispatcher Dashboard for **{city}** Hub:\n\n"
-                fallback_msg += "#### 📦 Deliveries in Hub\n"
-                if not del_list:
-                    fallback_msg += "* No active deliveries in this hub.\n"
-                else:
-                    fallback_msg += "| Delivery ID | Status | Priority |\n"
-                    fallback_msg += "| :--- | :--- | :--- |\n"
-                    for d in del_list:
-                        fallback_msg += f"| `{d['delivery_id']}` | **{d['status']}** | {d['priority'] or 'Normal'} |\n"
-                
-                fallback_msg += "\n#### 👥 Available Agents in Hub\n"
-                if not agent_list:
-                    fallback_msg += "* No agents logged in this hub.\n"
-                else:
-                    for a in agent_list:
-                        fallback_msg += f"* Agent ID: `{a['id']}` - **{a['name']}**\n"
-                        
-            elif role == "Admin":
-                fallback_msg += "#### 📊 System Metrics Summary\n"
-                fallback_msg += f"* **Total registered users**: {total_users}\n"
-                fallback_msg += f"* **Total deliveries tracked**: {total_deliveries}\n\n"
-                fallback_msg += "#### 📈 Deliveries status breakdown:\n"
-                for status, count in deliveries_by_status.items():
-                    if count > 0:
-                        fallback_msg += f"* **{status}**: {count} shipments\n"
+            # 3. Conversational Guidance fallback instead of general raw dashboard dump
+            fallback_msg += (
+                f"I am currently operating in **Local Database Mode** (Gemini API busy/rate-limited).\n\n"
+                f"I can search and fetch live operational details for you if you ask about:\n"
+                f"1. 📦 **Show pending orders**\n"
+                f"2. 👥 **Top performing agents today**\n"
+                f"3. ⚠️ **Show today's delayed deliveries**\n"
+                f"4. 💵 **Today's revenue summary**\n"
+                f"5. ❌ **Cancellation report**\n\n"
+                f"Could you please try asking one of these questions or use the quick-action buttons below?"
+            )
         
         return {"response": fallback_msg}
