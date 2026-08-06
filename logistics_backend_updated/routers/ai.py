@@ -426,7 +426,61 @@ def get_ai_response(
                     f"* ❌ **Cancellation report**"
                 )
             
-        # 3. Check for pending deliveries list (applies to all roles)
+        # 3. Check for completed history
+        elif "completed" in q_lower or "history" in q_lower:
+            if role == "Agent":
+                fallback_msg += "#### 🏁 Your Completed Jobs History\n\n"
+                completed_dels = [d for d in del_list if d["status"] == "Delivered"]
+                if not completed_dels:
+                    fallback_msg += "* You have no completed deliveries registered today."
+                else:
+                    fallback_msg += "| Delivery ID | Drop Address | Status |\n"
+                    fallback_msg += "| :--- | :--- | :--- |\n"
+                    for d in completed_dels:
+                        fallback_msg += f"| `{d['delivery_id']}` | {d['drop_address']} | **Delivered** |\n"
+            else:
+                fallback_msg += "* Completed history details are available under your profile/cancellations view."
+
+        # 4. Check for COD instructions
+        elif "collect" in q_lower or "payment" in q_lower or "cash" in q_lower:
+            if role == "Agent":
+                fallback_msg += (
+                    "#### 💵 Cash on Delivery (COD) Payment Collection\n\n"
+                    "Please follow these instructions to collect COD payments:\n"
+                    "1. Confirm the amount to collect showing on your delivery card.\n"
+                    "2. Ask the customer for payment (Cash or local UPI scan).\n"
+                    "3. Once received, mark the delivery as **Delivered** in your app.\n"
+                    "4. Input the customer's **Verification PIN** to complete the transaction.\n\n"
+                    "⚠️ *Never leave the parcel before receiving payment and verifying the PIN.*"
+                )
+            else:
+                fallback_msg += "* Please refer to the revenue summary section for payment metrics."
+
+        # 5. Check for vehicle breakdown
+        elif "breakdown" in q_lower or "vehicle" in q_lower:
+            fallback_msg += (
+                "#### ⚠️ Report Vehicle / Transit Breakdown\n\n"
+                "In case of a breakdown, please execute these immediate emergency steps:\n"
+                "1. Safety first: Pull over to a safe area on the side of the road.\n"
+                "2. Call your Hub Dispatcher immediately at **+91 98765 43210** to request a backup vehicle.\n"
+                "3. Use the **Report Breakdown** button in your active delivery card to log the incident.\n"
+                "4. Rest assured, your deliveries will be safely transferred to a backup agent."
+            )
+
+        # 6. Check for next delivery steps instructions
+        elif "step" in q_lower or "next" in q_lower:
+            if role == "Agent":
+                fallback_msg += (
+                    "#### 📋 Your Next Delivery Steps\n\n"
+                    "1. Pick up the package from the **Pickup Address** designated on your active card.\n"
+                    "2. Check the recipient address and click **Navigate** to open the map route.\n"
+                    "3. Upon arrival, contact the recipient and request their **4-digit Verification PIN**.\n"
+                    "4. Enter the PIN in the portal to successfully complete the delivery."
+                )
+            else:
+                fallback_msg += "* To see your next steps, please navigate to your dashboard workspace."
+
+        # 7. Check for pending deliveries list (applies to all roles)
         elif "pending" in q_lower:
             fallback_msg += "#### 📦 Pending Orders Summary\n\n"
             if role == "Customer":
