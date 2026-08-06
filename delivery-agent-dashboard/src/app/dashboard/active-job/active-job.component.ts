@@ -66,6 +66,8 @@ export class ActiveJobComponent implements OnInit, AfterViewInit, OnDestroy {
   optimizationNotes = '';
   optMessage = '';
   private routePolylines: L.Polyline[] = [];
+  private lastDeliveryId: number | null = null;
+  private lastDeliveryStatus: string | null = null;
 
   constructor(
     private deliveryService: DeliveryService,
@@ -82,6 +84,10 @@ export class ActiveJobComponent implements OnInit, AfterViewInit, OnDestroy {
       );
 
       if (active) {
+        const isNewOrUpdated = this.lastDeliveryId !== active.id || this.lastDeliveryStatus !== active.status;
+        this.lastDeliveryId = active.id;
+        this.lastDeliveryStatus = active.status;
+
         this.hasActiveJob = true;
         this.activeJobRaw = active;
 
@@ -220,7 +226,9 @@ export class ActiveJobComponent implements OnInit, AfterViewInit, OnDestroy {
           ];
         }
 
-        this.updateMap();
+        if (isNewOrUpdated) {
+          this.updateMap();
+        }
       } else {
         this.hasActiveJob = false;
         this.activeJobRaw = null;
