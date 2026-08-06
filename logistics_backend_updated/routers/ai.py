@@ -239,16 +239,44 @@ def get_ai_response(
                     f"* ❌ **Cancellation report**"
                 )
             
-        # 3. Check for active deliveries list
-        elif "active" in q_lower or (role == "Customer" and any(k in q_lower for k in ["delivery", "deliveries", "shipment", "shipments", "order", "orders", "status", "track", "current", "active"])):
-            fallback_msg += "#### 📦 Your Active Shipments\n\n"
-            if not del_list:
-                fallback_msg += "* You currently have no registered shipments."
-            else:
-                fallback_msg += "| Tracking Number | Drop Address | Status | Estimated Delivery |\n"
-                fallback_msg += "| :--- | :--- | :--- | :--- |\n"
-                for d in del_list:
-                    fallback_msg += f"| `{d.get('tracking_number', d.get('delivery_id'))}` | {d['drop_address']} | **{d['status']}** | {d.get('estimated_delivery_at') or 'N/A'} |\n"
+        # 3. Check for active deliveries list (applies to all roles)
+        elif "active" in q_lower or any(k in q_lower for k in ["delivery", "deliveries", "shipment", "shipments", "order", "orders", "status", "track", "current", "active"]):
+            if role == "Customer":
+                fallback_msg += "#### 📦 Your Active Shipments\n\n"
+                if not del_list:
+                    fallback_msg += "* You currently have no registered shipments."
+                else:
+                    fallback_msg += "| Tracking Number | Drop Address | Status | Estimated Delivery |\n"
+                    fallback_msg += "| :--- | :--- | :--- | :--- |\n"
+                    for d in del_list:
+                        fallback_msg += f"| `{d.get('tracking_number', d.get('delivery_id'))}` | {d['drop_address']} | **{d['status']}** | {d.get('estimated_delivery_at') or 'N/A'} |\n"
+            elif role == "Agent":
+                fallback_msg += "#### 📦 Your Active Assigned Deliveries\n\n"
+                active_dels = [d for d in del_list if d["status"] not in ["Delivered", "Cancelled"]]
+                if not active_dels:
+                    fallback_msg += "* You have no active delivery tasks today."
+                else:
+                    fallback_msg += "| Delivery ID | Drop Address | Status | Verification PIN |\n"
+                    fallback_msg += "| :--- | :--- | :--- | :--- |\n"
+                    for d in active_dels:
+                        fallback_msg += f"| `{d['delivery_id']}` | {d['drop_address']} | **{d['status']}** | `{d['verification_pin'] or 'N/A'}` |\n"
+            elif role == "Dispatcher":
+                fallback_msg += f"#### 📦 Deliveries in **{city}** Hub\n\n"
+                if not del_list:
+                    fallback_msg += "* No active deliveries in this hub.\n"
+                else:
+                    fallback_msg += "| Delivery ID | Status | Priority |\n"
+                    fallback_msg += "| :--- | :--- | :--- |\n"
+                    for d in del_list:
+                        fallback_msg += f"| `{d['delivery_id']}` | **{d['status']}** | {d['priority'] or 'Normal'} |\n"
+            elif role == "Admin":
+                fallback_msg += "#### 📊 System-Wide Deliveries Status Breakdown\n\n"
+                fallback_msg += f"* **Total Deliveries Tracked**: {total_deliveries}\n\n"
+                fallback_msg += "| Status | Count |\n"
+                fallback_msg += "| :--- | :--- |\n"
+                for status, count in deliveries_by_status.items():
+                    if count > 0:
+                        fallback_msg += f"| {status} | **{count}** |\n"
                     
         # 4. Check for address change inquiries
         elif role == "Customer" and ("change" in q_lower or "address" in q_lower or "modify" in q_lower):
