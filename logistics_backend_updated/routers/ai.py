@@ -165,19 +165,85 @@ def get_ai_response(
         greetings = ["hi", "hello", "hey", "hola", "greetings", "good morning", "good afternoon", "good evening", "how are you"]
         is_greeting = any(g in q_lower.split() or q_lower == g for g in greetings)
         
-        # 1. Check for standard greetings
-        if is_greeting:
+        # Check if customer is asking about a specific tracking ID
+        found_del = None
+        for word in q_lower.split():
+            clean_word = word.strip("?,.!:;()\"'#")
+            for d in del_list:
+                d_id = d.get("delivery_id", "").lower()
+                t_num = d.get("tracking_number", "").lower()
+                if clean_word == d_id or clean_word == t_num or (len(clean_word) > 4 and (clean_word in d_id or clean_word in t_num)):
+                    found_del = d
+                    break
+            if found_del:
+                break
+                
+        # 1. Check if specific shipment is found
+        if found_del:
+            fallback_msg += f"#### 📦 Shipment Details: {found_del.get('delivery_id', found_del.get('tracking_number'))}\n\n"
+            fallback_msg += f"* **Current Status**: **{found_del['status']}**\n"
+            fallback_msg += f"* **Pickup From**: {found_del['pickup_address']}\n"
+            fallback_msg += f"* **Delivery To**: {found_del['drop_address']}\n"
+            if found_del.get("recipient_name"):
+                fallback_msg += f"* **Recipient Name**: {found_del['recipient_name']}\n"
+            if found_del.get("package_description"):
+                fallback_msg += f"* **Package Contents**: {found_del['package_description']}\n"
+            fallback_msg += f"* **Estimated Delivery**: {found_del.get('estimated_delivery_at') or 'N/A'}\n"
+            
+        # 2. Check for standard greetings
+        elif is_greeting:
+            if role == "Customer":
+                fallback_msg += (
+                    f"Hello! I am your Logistics Assistant. How can I help you with your order today?\n\n"
+                    f"You can ask me questions such as:\n"
+                    f"* 📦 **Show my active deliveries**\n"
+                    f"* 📍 **How do I change my delivery address?**\n"
+                    f"* 📞 **Contact customer support**"
+                )
+            else:
+                fallback_msg += (
+                    f"Hello! I am your Logistics Assistant. How can I assist you with your hub operations today?\n\n"
+                    f"You can ask me specific questions such as:\n"
+                    f"* 📦 **Show pending orders**\n"
+                    f"* 👥 **Top performing agents today**\n"
+                    f"* ⚠️ **Show today's delayed deliveries**\n"
+                    f"* 💵 **Today's revenue summary**\n"
+                    f"* ❌ **Cancellation report**"
+                )
+            
+        # 3. Check for active deliveries list
+        elif "active" in q_lower or (role == "Customer" and ("deliveries" in q_lower or "shipment" in q_lower or "order" in q_lower)):
+            fallback_msg += "#### 📦 Your Active Shipments\n\n"
+            if not del_list:
+                fallback_msg += "* You currently have no registered shipments."
+            else:
+                fallback_msg += "| Tracking Number | Drop Address | Status | Estimated Delivery |\n"
+                fallback_msg += "| :--- | :--- | :--- | :--- |\n"
+                for d in del_list:
+                    fallback_msg += f"| `{d.get('tracking_number', d.get('delivery_id'))}` | {d['drop_address']} | **{d['status']}** | {d.get('estimated_delivery_at') or 'N/A'} |\n"
+                    
+        # 4. Check for address change inquiries
+        elif role == "Customer" and ("change" in q_lower or "address" in q_lower or "modify" in q_lower):
             fallback_msg += (
-                f"Hello! I am your Logistics Assistant. How can I assist you with your hub operations today?\n\n"
-                f"You can ask me specific questions such as:\n"
-                f"* 📦 **Show pending orders**\n"
-                f"* 👥 **Top performing agents today**\n"
-                f"* ⚠️ **Show today's delayed deliveries**\n"
-                f"* 💵 **Today's revenue summary**\n"
-                f"* ❌ **Cancellation report**"
+                "#### 📍 Modify Delivery Address\n\n"
+                "To modify your delivery address:\n"
+                "1. Go to **Track Delivery** in the sidebar menu.\n"
+                "2. Enter your Tracking Number or select the active delivery card.\n"
+                "3. Click **Modify Drop Address**.\n\n"
+                "*Note: Address changes are only permitted before the status updates to 'Out for Delivery'.*"
             )
             
-        # 2. Check for specific common queries across all roles
+        # 5. Check for customer support details
+        elif "support" in q_lower or "contact" in q_lower:
+            fallback_msg += (
+                "#### 📞 Contact Customer Support\n\n"
+                "Our customer support desk is available 24/7:\n"
+                "* **Email**: support@logisticspro.com\n"
+                "* **Toll-Free Phone**: 1800-123-4567\n"
+                "* **Live Chat**: Click the purple chat bubble in the bottom right corner of the screen."
+            )
+            
+        # 6. Check for specific common queries across all roles
         elif "delayed" in q_lower or "delay" in q_lower or "traffic" in q_lower:
             fallback_msg += "#### ⚠️ Delayed Deliveries Report\n\n"
             if role == "Dispatcher":
@@ -274,16 +340,26 @@ def get_ai_response(
                     fallback_msg += f"| `{d.get('delivery_id', d.get('tracking_number'))}` | {d['drop_address']} | **Cancelled** | Package refused by recipient |\n"
                     
         else:
-            # 3. Conversational Guidance fallback instead of general raw dashboard dump
-            fallback_msg += (
-                f"I am currently operating in **Local Database Mode** (Gemini API busy/rate-limited).\n\n"
-                f"I can search and fetch live operational details for you if you ask about:\n"
-                f"1. 📦 **Show pending orders**\n"
-                f"2. 👥 **Top performing agents today**\n"
-                f"3. ⚠️ **Show today's delayed deliveries**\n"
-                f"4. 💵 **Today's revenue summary**\n"
-                f"5. ❌ **Cancellation report**\n\n"
-                f"Could you please try asking one of these questions or use the quick-action buttons below?"
-            )
+            # 7. Conversational Guidance fallback instead of general raw dashboard dump
+            if role == "Customer":
+                fallback_msg += (
+                    f"I am currently operating in **Local Database Mode** (Gemini API busy/rate-limited).\n\n"
+                    f"I can find details for you if you ask about:\n"
+                    f"1. 📦 **Show my active deliveries**\n"
+                    f"2. 📍 **How do I change my delivery address?**\n"
+                    f"3. 📞 **Contact customer support**\n\n"
+                    f"Could you please try asking one of these questions or use the quick-action buttons below?"
+                )
+            else:
+                fallback_msg += (
+                    f"I am currently operating in **Local Database Mode** (Gemini API busy/rate-limited).\n\n"
+                    f"I can search and fetch live operational details for you if you ask about:\n"
+                    f"1. 📦 **Show pending orders**\n"
+                    f"2. 👥 **Top performing agents today**\n"
+                    f"3. ⚠️ **Show today's delayed deliveries**\n"
+                    f"4. 💵 **Today's revenue summary**\n"
+                    f"5. ❌ **Cancellation report**\n\n"
+                    f"Could you please try asking one of these questions or use the quick-action buttons below?"
+                )
         
         return {"response": fallback_msg}

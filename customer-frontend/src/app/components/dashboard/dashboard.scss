@@ -30,6 +30,31 @@
     display: flex;
     align-items: center;
     gap: 16px;
+
+    .ai-chat-btn {
+      position: relative;
+      cursor: pointer;
+      width: 42px;
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background-color: white;
+      border: 1px solid #e8eaf0;
+      color: #8b5cf6; // Purple-500
+      font-size: 1.15rem;
+      transition: all 0.2s ease-in-out;
+      outline: none;
+
+      &:hover {
+        background-color: #f3f0ff;
+        color: #7c3aed;
+        transform: scale(1.05) rotate(5deg);
+        box-shadow: 0 0 12px rgba(139, 92, 246, 0.2);
+        border-color: #d8b4fe;
+      }
+    }
     
     .notification-bell {
       position: relative;

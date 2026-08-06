@@ -20,6 +20,15 @@
       <p>Track your deliveries and stay updated</p>
     </div>
     <div class="header-right">
+      <button 
+        type="button" 
+        class="ai-chat-btn" 
+        (click)="navigateTo('logistics-ai')"
+        title="Open Logistics AI Chat"
+        aria-label="Open Logistics AI Chat">
+        <i class="pi pi-sparkles"></i>
+      </button>
+
       <div class="notification-bell" (click)="toggleNotifications($event)">
         <i class="pi pi-bell"></i>
         @if (unreadAlertsCount > 0) {
