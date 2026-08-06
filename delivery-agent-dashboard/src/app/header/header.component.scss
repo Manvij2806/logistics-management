@@ -87,6 +87,17 @@
   gap: 16px;
 }
 
+.ai-chat-btn {
+  color: #8b5cf6 !important; // Purple-500
+  transition: all 0.2s ease-in-out !important;
+
+  &:hover {
+    background-color: rgba(139, 92, 246, 0.08) !important;
+    transform: scale(1.1) rotate(5deg) !important;
+    color: #7c3aed !important;
+  }
+}
+
 .notif-btn {
   position: relative;
   color: var(--text-secondary);

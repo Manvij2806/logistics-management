@@ -400,6 +400,18 @@ export class LogisticsAi {
      BACK
      ========================================================= */
 
+  speakMessage(text: string | undefined): void {
+    if (!text) return;
+    const cleanText = text
+      .replace(/[\*#`|]/g, '')
+      .replace(/<[^>]*>/g, '')
+      .trim();
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.lang = 'en-IN';
+    window.speechSynthesis.speak(utterance);
+  }
+
   formatMessage(msg: string | undefined): string {
     if (!msg) return '';
     
@@ -415,6 +427,14 @@ export class LogisticsAi {
       const weight = level <= 3 ? '700' : '600';
       return `<h${level} style="margin: 10px 0 4px 0; color: #1e293b; font-weight: ${weight}; font-size: ${size};">${content}</h${level}>`;
     });
+    
+    // Format status badges dynamically
+    html = html.replace(/\*\*(Delivered)\*\*/g, '<span style="background-color: #d1fae5; color: #065f46; padding: 2px 8px; border-radius: 4px; font-weight: 600; font-size: 11px;">$1</span>');
+    html = html.replace(/\*\*(Cancelled)\*\*/g, '<span style="background-color: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 4px; font-weight: 600; font-size: 11px;">$1</span>');
+    html = html.replace(/\*\*(In Transit)\*\*/g, '<span style="background-color: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 4px; font-weight: 600; font-size: 11px;">$1</span>');
+    html = html.replace(/\*\*(Out for Delivery)\*\*/g, '<span style="background-color: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 4px; font-weight: 600; font-size: 11px;">$1</span>');
+    html = html.replace(/\*\*(Assigned)\*\*/g, '<span style="background-color: #e0e7ff; color: #3730a3; padding: 2px 8px; border-radius: 4px; font-weight: 600; font-size: 11px;">$1</span>');
+    html = html.replace(/\*\*(Picked Up)\*\*/g, '<span style="background-color: #f3e8ff; color: #6b21a8; padding: 2px 8px; border-radius: 4px; font-weight: 600; font-size: 11px;">$1</span>');
     
     // Format bold
     html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');

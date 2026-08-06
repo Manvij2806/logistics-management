@@ -14,6 +14,10 @@
   <div class="header-spacer" *ngIf="!showSearch"></div>
 
   <div class="header-right">
+    <button mat-icon-button class="ai-chat-btn" aria-label="Open Logistics AI Chat" (click)="openAiChat()" title="Open Logistics AI Chat">
+      <mat-icon>auto_awesome</mat-icon>
+    </button>
+
     <div class="notification-wrapper">
       <button mat-icon-button class="notif-btn" aria-label="Notifications" (click)="toggleNotificationsDropdown()">
         <mat-icon>notifications_none</mat-icon>

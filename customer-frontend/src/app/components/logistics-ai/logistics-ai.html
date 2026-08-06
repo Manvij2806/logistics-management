@@ -64,7 +64,12 @@
             <div class="ai-message-row">
               <div class="ai-avatar">✦</div>
               <div class="ai-message">
-                <div class="ai-message-title">Logistics AI</div>
+                <div class="ai-message-title" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                  <span>Logistics AI</span>
+                  <button type="button" class="speak-btn" (click)="speakMessage(item.message)" style="background: none; border: none; cursor: pointer; color: #8b5cf6; padding: 2px; display: flex; align-items: center; justify-content: center; font-size: 14px;" title="Listen to response">
+                    <i class="pi pi-volume-up"></i>
+                  </button>
+                </div>
                 <div [innerHTML]="formatMessage(item.message)"></div>
 
                 <!-- TABLE -->

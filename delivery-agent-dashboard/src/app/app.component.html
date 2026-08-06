@@ -14,7 +14,7 @@
       ></app-sidebar>
     </mat-sidenav>
     <mat-sidenav-content [class.collapsed]="sidebarCollapsed">
-      <app-header [currentView]="currentView"></app-header>
+      <app-header [currentView]="currentView" (viewChanged)="onViewChanged($event)"></app-header>
       <main class="content">
         <div [ngSwitch]="currentView">
           <app-dashboard *ngSwitchCase="'dashboard'"></app-dashboard>

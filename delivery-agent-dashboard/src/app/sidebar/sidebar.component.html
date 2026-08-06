@@ -34,10 +34,6 @@
       <mat-icon>person</mat-icon>
       <span *ngIf="!isCollapsed">Profile</span>
     </a>
-    <a class="nav-item" [class.active]="currentView === 'logistics-ai'" href="#" (click)="selectView('logistics-ai'); $event.preventDefault()" title="Logistics AI">
-      <mat-icon>psychology</mat-icon>
-      <span *ngIf="!isCollapsed">Logistics AI</span>
-    </a>
   </nav>
 
   <div class="sidebar-footer">

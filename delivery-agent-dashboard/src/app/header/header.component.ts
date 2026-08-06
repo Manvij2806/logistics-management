@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
 import { SearchService } from '../services/search.service';
 import { AuthService } from '../services/auth.service';
 import { NotificationService, NotificationItem } from '../services/notification.service';
@@ -12,6 +12,11 @@ import { Subscription } from 'rxjs';
 })
 export class HeaderComponent implements OnInit, OnDestroy, OnChanges {
   @Input() currentView: string = 'dashboard';
+  @Output() viewChanged = new EventEmitter<string>();
+
+  openAiChat(): void {
+    this.viewChanged.emit('logistics-ai');
+  }
 
   searchQuery: string = '';
   private searchSub: Subscription | undefined;
