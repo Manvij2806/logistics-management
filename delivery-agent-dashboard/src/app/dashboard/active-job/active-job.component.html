@@ -132,6 +132,10 @@
                 style="padding: 6px 12px; border-radius: 999px; font-weight: 600; font-size: 13px; font-family: 'Outfit', sans-serif;">
             ₹2,000 - {{ activeJob.payment_status || 'Unpaid' }}
           </span>
+          <a [href]="activeJob.googleMapsUrl" target="_blank" class="google-maps-link-btn" style="display: flex; align-items: center; gap: 8px; padding: 10px 16px; border: 1px solid #a7f3d0; background: #ecfdf5; border-radius: 8px; color: #065f46; font-weight: 600; text-decoration: none; cursor: pointer; font-size: 13px; font-family: 'Outfit', sans-serif;">
+            <mat-icon style="font-size: 16px; width: 16px; height: 16px; line-height: 16px;">map</mat-icon>
+            <span>Google Maps</span>
+          </a>
           <button class="ai-opt-btn" (click)="triggerRouteOptimization()" [disabled]="isOptimizing" style="display: flex; align-items: center; gap: 8px; padding: 10px 16px; border: 1px solid #c7d2fe; background: #e0e7ff; border-radius: 8px; color: #4338ca; font-weight: 600; cursor: pointer; font-size: 13px; font-family: 'Outfit', sans-serif;">
             <mat-icon style="font-size: 16px; width: 16px; height: 16px; line-height: 16px;">auto_awesome</mat-icon>
             {{ isOptimizing ? 'Analyzing...' : 'AI Optimize Route' }}
@@ -187,17 +191,17 @@
     
     <div class="otp-modal-body" style="margin: 20px 0; display: flex; flex-direction: column; gap: 16px; font-family: 'Outfit', sans-serif;">
       <!-- Side by side comparison -->
-      <div style="display: flex; gap: 12px; justify-content: space-between; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
+      <div style="display: flex; gap: 12px; justify-content: space-between; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;" *ngIf="originalRouteData && optimizationData">
         <div style="flex: 1; text-align: center;">
           <span style="font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 600; display: block; margin-bottom: 4px;">Original Route</span>
-          <span style="font-size: 16px; font-weight: 700; color: #475569; display: block;">15.2 km</span>
-          <span style="font-size: 12px; color: #64748b;">38 mins</span>
+          <span style="font-size: 16px; font-weight: 700; color: #475569; display: block;">{{ originalRouteData.distance_km }} km</span>
+          <span style="font-size: 12px; color: #64748b;">{{ originalRouteData.eta_minutes }} mins</span>
         </div>
         <div style="width: 1px; background: #cbd5e1;"></div>
         <div style="flex: 1; text-align: center;">
           <span style="font-size: 11px; text-transform: uppercase; color: #4f46e5; font-weight: 600; display: block; margin-bottom: 4px;">Optimized AI Route</span>
-          <span style="font-size: 16px; font-weight: 700; color: #4f46e5; display: block;">11.4 km</span>
-          <span style="font-size: 12px; color: #10b981; font-weight: 600;">25 mins (Saved 13m)</span>
+          <span style="font-size: 16px; font-weight: 700; color: #4f46e5; display: block;">{{ optimizationData.distance_km }} km</span>
+          <span style="font-size: 12px; color: #10b981; font-weight: 600;">{{ optimizationData.eta_minutes }} mins (Saved {{ optimizationData.savings_minutes }}m)</span>
         </div>
       </div>
       

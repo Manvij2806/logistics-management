@@ -43,6 +43,7 @@ export interface Delivery {
   payment_method?: string | null;
   agent_deactivating?: boolean;
   estimated_delivery_at?: string | null;
+  current_route_geometry?: string | null;
 }
 
 export interface DeliveryListResponse {

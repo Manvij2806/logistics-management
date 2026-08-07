@@ -136,6 +136,7 @@ class DeliveryUpdate(BaseModel):
     accepted: Optional[str] = None
     payment_status: Optional[str] = None
     payment_method: Optional[str] = None
+    current_route_geometry: Optional[str] = None
 
 
 class DeliveryResponse(BaseModel):
@@ -178,6 +179,7 @@ class DeliveryResponse(BaseModel):
     payment_status: Optional[str] = "Unpaid"
     payment_method: Optional[str] = None
     agent_deactivating: Optional[bool] = False
+    current_route_geometry: Optional[str] = None
 
     @model_validator(mode="after")
     def hide_unaccepted_agent(self):

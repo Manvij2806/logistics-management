@@ -142,8 +142,16 @@
           </div>
 
           <!-- Interactive Leaflet map component -->
-          <div class="result-map-wrapper" style="height: 300px; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; margin: 16px 0; position: relative; z-index: 1;">
+          <div class="result-map-wrapper" style="height: 300px; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; margin: 16px 0 8px 0; position: relative; z-index: 1;">
             <div #mapContainer style="width: 100%; height: 100%;"></div>
+          </div>
+
+          <!-- Open in Google Maps navigation button -->
+          <div class="google-maps-link-wrapper" style="margin-bottom: 16px;">
+            <a [href]="shipment.googleMapsUrl" target="_blank" class="google-maps-btn" style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 12px; font-weight: 600; color: #ffffff; background-color: #0f9d58; border-radius: 8px; text-decoration: none; box-shadow: 0 2px 4px rgba(15,157,88,0.2); transition: all 0.2s ease;">
+              <i class="pi pi-map"></i>
+              <span>Open in Google Maps</span>
+            </a>
           </div>
 
           <!-- Delivery Agent -->

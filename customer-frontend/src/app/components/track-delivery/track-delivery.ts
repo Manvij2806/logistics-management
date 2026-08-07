@@ -55,18 +55,38 @@ export class TrackDelivery implements OnInit, OnDestroy {
         );
 
         if (found) {
+          const pCoords = this.deliveryService.getCoords(found.pickup_address);
+          const dCoords = this.deliveryService.getCoords(found.drop_address);
+          const calculatedDist = this.deliveryService.calculateDistance(
+            pCoords[0],
+            pCoords[1],
+            dCoords[0],
+            dCoords[1]
+          );
+          const isIntercityVal = this.isIntercity({
+            pickupLocation: found.pickup_address,
+            deliveryLocation: found.drop_address
+          });
+          const distLeft = found.status === 'Delivered' ? 0 : (
+            found.current_route_geometry
+              ? (isIntercityVal ? Math.round(calculatedDist * 1.1) : 11)
+              : (isIntercityVal ? Math.round(calculatedDist * 1.25) : 15)
+          );
+
           this.shipment = {
             id: found.delivery_id,
             status: found.status,
              eta: found.status === 'Delivered' ? 'Delivered' : 
                   (found.estimated_delivery_at ? new Date(found.estimated_delivery_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : 'ETA: 18:00'),
              estimated_delivery_at: found.estimated_delivery_at,
-             distanceLeft: found.status === 'Delivered' ? 0 : 5,
+             distanceLeft: distLeft,
             pickupLocation: found.pickup_address,
             deliveryLocation: found.drop_address,
             pickupCoords: { x: 120, y: 150 },
             destCoords: { x: 380, y: 320 },
             currentCoords: { x: 250, y: 235 },
+            current_route_geometry: found.current_route_geometry,
+            googleMapsUrl: `https://www.google.com/maps/dir/?api=1&origin=${pCoords[0]},${pCoords[1]}&destination=${dCoords[0]},${dCoords[1]}`,
             timeline: [
               { status: 'Created', time: '10:00 AM' },
               { status: found.status, time: '10:30 AM' }
@@ -379,7 +399,27 @@ export class TrackDelivery implements OnInit, OnDestroy {
     alert(`Opening chat with ${name}...`);
   }
 
-  private initMap(): void {
+  async getOSRMRoute(start: [number, number], end: [number, number], waypoint?: [number, number]): Promise<L.LatLngExpression[]> {
+    try {
+      let url = `https://router.project-osrm.org/route/v1/driving/${start[1]},${start[0]};`;
+      if (waypoint) {
+        url += `${waypoint[1]},${waypoint[0]};`;
+      }
+      url += `${end[1]},${end[0]}?overview=full&geometries=geojson`;
+
+      const response = await fetch(url);
+      const data = await response.json();
+      if (data.routes && data.routes.length > 0) {
+        const coords = data.routes[0].geometry.coordinates;
+        return coords.map((c: any) => [c[1], c[0]] as L.LatLngExpression);
+      }
+    } catch (e) {
+      console.error('OSRM route fetch failed, falling back to straight line:', e);
+    }
+    return [start, end];
+  }
+
+  private async initMap(): Promise<void> {
     const container = this.mapContainer?.nativeElement;
     if (!container) return;
 
@@ -387,8 +427,8 @@ export class TrackDelivery implements OnInit, OnDestroy {
       return;
     }
 
-    const pickupCoords = this.deliveryService.getCoords(this.shipment.pickupLocation);
-    const dropoffCoords = this.deliveryService.getCoords(this.shipment.deliveryLocation);
+    const pickupCoords = this.deliveryService.getCoords(this.shipment.pickupLocation) as [number, number];
+    const dropoffCoords = this.deliveryService.getCoords(this.shipment.deliveryLocation) as [number, number];
 
     try {
       this.map = L.map(container, {
@@ -427,14 +467,39 @@ export class TrackDelivery implements OnInit, OnDestroy {
       L.marker(pickupCoords, { icon: pickupIcon }).addTo(this.map);
       L.marker(dropoffCoords, { icon: dropoffIcon }).addTo(this.map);
 
-      L.polyline([pickupCoords, dropoffCoords], {
-        color: '#5b9aff',
-        weight: 4,
-        dashArray: '10, 10',
+      let routePoints: L.LatLngExpression[] = [];
+
+      // Check if an optimized route was already applied and stored in delivery
+      if (this.shipment.current_route_geometry) {
+        try {
+          const parsedGeom = JSON.parse(this.shipment.current_route_geometry);
+          if (Array.isArray(parsedGeom) && parsedGeom.length > 0) {
+            routePoints = parsedGeom;
+          }
+        } catch (e) {
+          console.error('Failed to parse current_route_geometry:', e);
+        }
+      }
+
+      // If no optimized geometry is stored, fetch unoptimized street route with detour
+      if (routePoints.length === 0) {
+        const detourLat = (pickupCoords[0] + dropoffCoords[0]) / 2 + 0.012;
+        const detourLng = (pickupCoords[1] + dropoffCoords[1]) / 2 - 0.012;
+        const detourCoords: [number, number] = [detourLat, detourLng];
+        routePoints = await this.getOSRMRoute(pickupCoords, dropoffCoords, detourCoords);
+      }
+
+      // Render the path
+      // If optimized route is applied, show it as solid green, else show it as regular blue
+      const pathColor = this.shipment.current_route_geometry ? '#2ec4b6' : '#5b9aff';
+
+      L.polyline(routePoints, {
+        color: pathColor,
+        weight: 5,
         opacity: 0.8,
       }).addTo(this.map);
 
-      const bounds = L.latLngBounds([pickupCoords, dropoffCoords]);
+      const bounds = L.latLngBounds(routePoints);
       this.map.fitBounds(bounds, { padding: [50, 50] });
     } catch (e) {
       console.error('Error inside initMap:', e);

@@ -105,7 +105,27 @@ def calculate_dynamic_eta(delivery: Delivery) -> datetime:
     
     if status_lower == "delivered":
         return delivery.delivered_at or now_utc
-    elif status_lower == "out for delivery":
+        
+    calculated_eta = start_time + timedelta(hours=total_transit_hours)
+    
+    # If the calculated ETA is in the past but shipment is still pending/delayed
+    if calculated_eta < now_utc and status_lower not in ("delivered", "cancelled"):
+        # Push ETA forward based on current transit status
+        if status_lower in ("created", "assigned", "pending", "picked up", "arrived at origin hub"):
+            return now_utc + timedelta(hours=total_transit_hours)
+        elif "hub-to-hub" in status_lower:
+            dispatch_time = delivery.in_transit_at or now_utc
+            elapsed = (now_utc - dispatch_time).total_seconds() / 3600.0
+            remaining = max(6, total_transit_hours - elapsed)
+            return now_utc + timedelta(hours=remaining)
+        elif "destination hub" in status_lower:
+            return now_utc + timedelta(hours=6)
+        elif status_lower == "out for delivery":
+            return now_utc + timedelta(hours=2)
+        else:
+            return now_utc + timedelta(hours=24)
+            
+    if status_lower == "out for delivery":
         return now_utc + timedelta(hours=2)
     elif "destination hub" in status_lower:
         return now_utc + timedelta(hours=6)
@@ -115,7 +135,7 @@ def calculate_dynamic_eta(delivery: Delivery) -> datetime:
         remaining = max(6, total_transit_hours - elapsed)
         return now_utc + timedelta(hours=remaining)
         
-    return start_time + timedelta(hours=total_transit_hours)
+    return calculated_eta
 
 
 def validate_delivery_phones(db: Session, sender_name: str, sender_phone: str, recipient_name: str, recipient_phone: str, customer_phone: str = None):
@@ -891,6 +911,32 @@ def verify_otp(
 
 # ── AI ROUTE OPTIMIZATION ───────────────────────────────────────────────────
 
+import math
+
+CITY_COORDS = {
+    "agra": (27.1767, 78.0081),
+    "mumbai": (19.0760, 72.8777),
+    "delhi": (28.6139, 77.2090),
+    "noida": (28.5744, 77.3560),
+    "gwalior": (26.2183, 78.1828),
+    "bangalore": (12.9716, 77.5946),
+    "banglore": (12.9716, 77.5946),
+    "bengaluru": (12.9716, 77.5946),
+    "gurgaon": (28.4595, 77.0266),
+    "gurugram": (28.4595, 77.0266),
+    "faridabad": (28.4089, 77.3178),
+    "ghaziabad": (28.6692, 77.4538),
+}
+
+def calculate_haversine_distance(lat1, lon1, lat2, lon2):
+    R = 6371.0  # Earth's radius in km
+    dlat = math.radians(lat2 - lat1)
+    dlon = math.radians(lon2 - lon1)
+    a = (math.sin(dlat / 2) ** 2 +
+         math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * (math.sin(dlon / 2) ** 2))
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    return round(R * c, 1)
+
 class RouteApplyRequest(BaseModel):
     route_id: str
     reason: str
@@ -906,47 +952,51 @@ def optimize_route(
     if not delivery:
         raise HTTPException(status_code=404, detail="Delivery not found")
         
-    lat, lng = 26.218, 78.182
-    addr_context = (delivery.pickup_address or "") + " " + (delivery.drop_address or "")
-    if "agra" in addr_context.lower():
-        lat, lng = 27.176, 78.008
-    elif "mumbai" in addr_context.lower():
-        lat, lng = 19.076, 72.877
-    elif "delhi" in addr_context.lower():
-        lat, lng = 28.613, 77.209
-    elif "noida" in addr_context.lower():
-        lat, lng = 28.574, 77.356
-        
+    p_city = get_city_from_address(delivery.pickup_address) or "agra"
+    d_city = get_city_from_address(delivery.drop_address) or "delhi"
+    
+    p_lat, p_lng = CITY_COORDS.get(p_city, (27.1767, 78.0081))
+    d_lat, d_lng = CITY_COORDS.get(d_city, (28.6139, 77.2090))
+    
+    if p_city == d_city:
+        dist_current = 15.2
+        dist_opt = 11.4
+        time_current = 38
+        time_opt = 25
+        savings = 13
+    else:
+        base_dist = calculate_haversine_distance(p_lat, p_lng, d_lat, d_lng)
+        dist_current = round(base_dist * 1.25, 1)
+        dist_opt = round(base_dist * 1.1, 1)
+        time_current = int((dist_current / 60.0) * 60)
+        time_opt = int((dist_opt / 60.0) * 60)
+        savings = max(10, time_current - time_opt)
+
     current_coords = [
-        [lat, lng],
-        [lat + 0.005, lng + 0.008],
-        [lat + 0.012, lng + 0.015],
-        [lat + 0.018, lng + 0.022]
+        [p_lat, p_lng],
+        [d_lat, d_lng]
     ]
     optimized_coords = [
-        [lat, lng],
-        [lat + 0.003, lng + 0.004],
-        [lat + 0.009, lng + 0.010],
-        [lat + 0.015, lng + 0.016]
+        [p_lat, p_lng],
+        [d_lat, d_lng]
     ]
     
-    # Calculate savings
     eta_ref = delivery.estimated_delivery_at or datetime.now(timezone.utc)
-    opt_eta = datetime.now(timezone.utc) + timedelta(minutes=25)
+    opt_eta = datetime.now(timezone.utc) + timedelta(minutes=time_opt)
     
     return {
         "current_route": {
-            "distance_km": 15.2,
-            "eta_minutes": 38,
+            "distance_km": dist_current,
+            "eta_minutes": time_current,
             "eta_timestamp": eta_ref.isoformat(),
             "route_geometry": current_coords
         },
         "optimized_route": {
             "route_id": "opt_route_001",
-            "distance_km": 11.4,
-            "eta_minutes": 25,
+            "distance_km": dist_opt,
+            "eta_minutes": time_opt,
             "eta_timestamp": opt_eta.isoformat(),
-            "savings_minutes": 13,
+            "savings_minutes": savings,
             "route_geometry": optimized_coords
         }
     }
@@ -963,26 +1013,29 @@ async def apply_route(
     if not delivery:
         raise HTTPException(status_code=404, detail="Delivery not found")
         
-    lat, lng = 26.218, 78.182
-    addr_context = (delivery.pickup_address or "") + " " + (delivery.drop_address or "")
-    if "agra" in addr_context.lower():
-        lat, lng = 27.176, 78.008
-    elif "mumbai" in addr_context.lower():
-        lat, lng = 19.076, 72.877
-    elif "delhi" in addr_context.lower():
-        lat, lng = 28.613, 77.209
+    p_city = get_city_from_address(delivery.pickup_address) or "agra"
+    d_city = get_city_from_address(delivery.drop_address) or "delhi"
+    
+    p_lat, p_lng = CITY_COORDS.get(p_city, (27.1767, 78.0081))
+    d_lat, d_lng = CITY_COORDS.get(d_city, (28.6139, 77.2090))
+    
+    if p_city == d_city:
+        old_distance = 15.2
+        new_distance = 11.4
+        time_opt = 25
+    else:
+        base_dist = calculate_haversine_distance(p_lat, p_lng, d_lat, d_lng)
+        old_distance = round(base_dist * 1.25, 1)
+        new_distance = round(base_dist * 1.1, 1)
+        time_opt = int((new_distance / 60.0) * 60)
         
     optimized_coords = [
-        [lat, lng],
-        [lat + 0.003, lng + 0.004],
-        [lat + 0.009, lng + 0.010],
-        [lat + 0.015, lng + 0.016]
+        [p_lat, p_lng],
+        [d_lat, d_lng]
     ]
     
-    old_distance = 15.2
-    new_distance = 11.4
     old_eta = delivery.estimated_delivery_at or datetime.now(timezone.utc)
-    new_eta = datetime.now(timezone.utc) + timedelta(minutes=25)
+    new_eta = datetime.now(timezone.utc) + timedelta(minutes=time_opt)
     
     # Save optimized geometry to delivery
     delivery.current_route_geometry = json.dumps(optimized_coords)

@@ -62,6 +62,7 @@ export class ActiveJobComponent implements OnInit, AfterViewInit, OnDestroy {
   isOptimizing = false;
   showOptimizationModal = false;
   optimizationData: any = null;
+  originalRouteData: any = null;
   selectedReason = 'Heavy Traffic';
   optimizationNotes = '';
   optMessage = '';
@@ -166,6 +167,10 @@ export class ActiveJobComponent implements OnInit, AfterViewInit, OnDestroy {
         const pickupCompleted = ['Picked Up', 'Arrived at Origin Hub', 'In Transit (Hub-to-Hub)', 'Arrived at Destination Hub', 'Delivered'].includes(active.status);
         const dropoffCompleted = active.status === 'Delivered';
 
+        const totalDistanceVal = active.current_route_geometry 
+          ? (isIntercity ? Math.round(calculatedDist * 1.1) : 11.4) 
+          : (isIntercity ? Math.round(calculatedDist * 1.25) : 15.2);
+
         this.activeJob = {
           trackingNumber: active.tracking_number || '',
           orderId: active.delivery_id,
@@ -187,8 +192,9 @@ export class ActiveJobComponent implements OnInit, AfterViewInit, OnDestroy {
           receiverName: active.recipient_name || active.customer_name || '—',
           receiverPhone: active.recipient_phone || active.customer_phone || '—',
           eta: active.estimated_delivery_at ? formatDateTime(active.estimated_delivery_at) : '18:00',
-          totalRoute: `${calculatedDist} km`,
-          totalDistance: `${calculatedDist} km`,
+          totalRoute: `${totalDistanceVal} km`,
+          totalDistance: `${totalDistanceVal} km`,
+          googleMapsUrl: `https://www.google.com/maps/dir/?api=1&origin=${pCoords[0]},${pCoords[1]}&destination=${dCoords[0]},${dCoords[1]}`,
           payment_status: active.payment_status || 'Unpaid',
           created_at: formatTime(active.created_at),
           assigned_at: formatTime(active.assigned_at),
@@ -335,15 +341,34 @@ export class ActiveJobComponent implements OnInit, AfterViewInit, OnDestroy {
       this.routePolylines.forEach(p => p.remove());
       this.routePolylines = [];
 
-      // Calculate a detour waypoint to show an unoptimized route initially
-      const detourLat = (pickupCoords[0] + dropoffCoords[0]) / 2 + 0.012;
-      const detourLng = (pickupCoords[1] + dropoffCoords[1]) / 2 - 0.012;
-      const detourCoords: [number, number] = [detourLat, detourLng];
+      let routePoints: L.LatLngExpression[] = [];
 
-      const routePoints = await this.getOSRMRoute(pickupCoords, dropoffCoords, detourCoords);
+      // Check if an optimized route was already applied and stored in delivery
+      if (this.activeJobRaw && this.activeJobRaw.current_route_geometry) {
+        try {
+          const parsedGeom = JSON.parse(this.activeJobRaw.current_route_geometry);
+          if (Array.isArray(parsedGeom) && parsedGeom.length > 0) {
+            routePoints = parsedGeom;
+          }
+        } catch (e) {
+          console.error('Failed to parse current_route_geometry:', e);
+        }
+      }
+
+      // If no optimized geometry is stored, fetch unoptimized street route with detour
+      if (routePoints.length === 0) {
+        const detourLat = (pickupCoords[0] + dropoffCoords[0]) / 2 + 0.012;
+        const detourLng = (pickupCoords[1] + dropoffCoords[1]) / 2 - 0.012;
+        const detourCoords: [number, number] = [detourLat, detourLng];
+        routePoints = await this.getOSRMRoute(pickupCoords, dropoffCoords, detourCoords);
+      }
+
+      // Render the path
+      // If optimized route is applied, show it as solid green, else show it as regular blue
+      const pathColor = (this.activeJobRaw && this.activeJobRaw.current_route_geometry) ? '#2ec4b6' : '#5b9aff';
 
       const initPoly = L.polyline(routePoints, {
-        color: '#5b9aff',
+        color: pathColor,
         weight: 5,
         opacity: 0.8,
       }).addTo(this.map);

@@ -37,6 +37,7 @@ export interface Delivery {
   in_transit_at?: string | null;
   delivered_at?: string | null;
   agent_deactivating?: boolean;
+  current_route_geometry?: string | null;
 }
 
 export interface DeliveryListResponse {
