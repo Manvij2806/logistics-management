@@ -211,7 +211,7 @@ export class BookShipment implements OnInit {
     packageWeight: '',
     packageDimensions: '',
     priority: 'Normal',
-    paymentMethod: 'Cash on Delivery',
+    paymentMethod: 'Prepaid',
     notes: ''
   };
 

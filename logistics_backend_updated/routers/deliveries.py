@@ -93,12 +93,26 @@ def calculate_dynamic_eta(delivery: Delivery) -> datetime:
     start_time = delivery.created_at if delivery.created_at else datetime.now(timezone.utc)
     
     offset_hours = get_address_offset_hours(delivery.pickup_address, delivery.drop_address)
-    if offset_hours == 96:
-        total_transit_hours = 84  # 3.5 days (different states)
-    elif offset_hours == 48:
-        total_transit_hours = 36  # 1.5 days (different cities, same state)
+    
+    priority_lower = (delivery.priority or '').lower()
+    if priority_lower == "same day":
+        total_transit_hours = 12  # Same Day
+    elif priority_lower == "next day":
+        total_transit_hours = 24  # Next Day
+    elif priority_lower == "express":
+        if offset_hours == 96:
+            total_transit_hours = 36  # Express Interstate: 36h instead of 84h
+        elif offset_hours == 48:
+            total_transit_hours = 18  # Express Intercity: 18h instead of 36h
+        else:
+            total_transit_hours = 4   # Express Same City: 4h instead of 6h
     else:
-        total_transit_hours = 6   # 6 hours (same city)
+        if offset_hours == 96:
+            total_transit_hours = 84
+        elif offset_hours == 48:
+            total_transit_hours = 36
+        else:
+            total_transit_hours = 6
         
     status_lower = delivery.status.lower() if delivery.status else ""
     now_utc = datetime.now(timezone.utc)
