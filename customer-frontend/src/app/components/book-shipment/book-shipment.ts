@@ -181,6 +181,7 @@ export class BookShipment implements OnInit {
   declaredValue: number | null = null;
   insuranceOptIn: boolean = false;
   codAmount: number | null = null; // Order value if COD
+  previousDeclaredValue: number | null = null;
   
   // Real-time pricing results
   calculatedVolumetricWeight = 0;
@@ -389,6 +390,13 @@ export class BookShipment implements OnInit {
   }
 
   recalculatePrice(): void {
+    if (this.form.paymentMethod === 'COD') {
+      if (this.codAmount === null || this.codAmount === 0 || this.codAmount === this.previousDeclaredValue) {
+        this.codAmount = this.declaredValue;
+      }
+    }
+    this.previousDeclaredValue = this.declaredValue;
+
     const weight = parseFloat(this.form.packageWeight) || 0;
     const length = this.pkgLength || 0;
     const width = this.pkgWidth || 0;

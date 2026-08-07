@@ -222,6 +222,7 @@ export class CreateDelivery {
   declaredValue: number | null = null;
   insuranceOptIn: boolean = false;
   codAmount: number | null = null; // Order value if COD
+  previousDeclaredValue: number | null = null;
   
   // Real-time pricing results
   calculatedVolumetricWeight = 0;
@@ -456,6 +457,13 @@ export class CreateDelivery {
   }
 
   recalculatePrice(): void {
+    if (this.paymentMethod === 'COD') {
+      if (this.codAmount === null || this.codAmount === 0 || this.codAmount === this.previousDeclaredValue) {
+        this.codAmount = this.declaredValue;
+      }
+    }
+    this.previousDeclaredValue = this.declaredValue;
+
     const weight = this.form.weight || 0;
     const length = this.pkgLength || 0;
     const width = this.pkgWidth || 0;
