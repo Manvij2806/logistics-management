@@ -80,7 +80,7 @@
                   pInputText
                   list="pickup-cities-list"
                   [(ngModel)]="pickup.city"
-                  (ngModelChange)="updatePickupAddress()"
+                  (ngModelChange)="onPickupCityChange()"
                   placeholder="Enter City"
                   class="w-full"
                   [class.input-error]="formErrors.pickupAddress"
@@ -172,7 +172,7 @@
                   pInputText
                   list="delivery-cities-list"
                   [(ngModel)]="delivery.city"
-                  (ngModelChange)="updateDeliveryAddress()"
+                  (ngModelChange)="onDeliveryCityChange()"
                   placeholder="Enter City"
                   class="w-full"
                   [class.input-error]="formErrors.deliveryAddress"

@@ -44,6 +44,130 @@ export class BookShipment implements OnInit {
     'West Bengal': ['Kolkata', 'Howrah', 'Durgapur', 'Asansol', 'Siliguri']
   };
 
+  defaultPincodes: Record<string, string> = {
+    'agra': '282001',
+    'ahmedabad': '380001',
+    'ajmer': '305001',
+    'ambala': '133001',
+    'amritsar': '143001',
+    'anantnag': '192101',
+    'asansol': '713301',
+    'aurangabad': '431001',
+    'bangalore': '560001',
+    'banglore': '560001',
+    'baramulla': '193101',
+    'bathinda': '151001',
+    'belagavi': '590001',
+    'bengaluru': '560001',
+    'bhagalpur': '812001',
+    'bhavnagar': '364001',
+    'bhilai': '490001',
+    'bhopal': '462001',
+    'bhubaneswar': '751001',
+    'bikaner': '334001',
+    'bilaspur': '495001',
+    'bokaro steel city': '827001',
+    'chennai': '600001',
+    'coimbatore': '641001',
+    'cuttack': '753001',
+    'darbhanga': '846001',
+    'delhi': '110001',
+    'deoghar': '814112',
+    'dharamsala': '176215',
+    'dharamshala': '176215',
+    'dhanbad': '826001',
+    'dibrugarh': '786001',
+    'durgapur': '713201',
+    'dwarka': '110075',
+    'faridabad': '121001',
+    'gaya': '823001',
+    'ghaziabad': '201001',
+    'goa': '403001',
+    'guntur': '522001',
+    'gurugram': '122001',
+    'guwahati': '781001',
+    'gwalior': '474001',
+    'howrah': '711101',
+    'hubballi': '580020',
+    'hyderabad': '500001',
+    'indore': '452001',
+    'jabalpur': '482001',
+    'jaipur': '302001',
+    'jalandhar': '144001',
+    'jammu': '180001',
+    'jamshedpur': '831001',
+    'jodhpur': '342001',
+    'jorhat': '785001',
+    'kamla nagar': '282005',
+    'kanpur': '208001',
+    'karimnagar': '505001',
+    'kathua': '184101',
+    'khammam': '507001',
+    'kochi': '682001',
+    'kolkata': '700001',
+    'kollam': '691001',
+    'korba': '495677',
+    'kota': '324001',
+    'kozhikode': '673001',
+    'lucknow': '226001',
+    'ludhiana': '141001',
+    'madurai': '625001',
+    'mangaluru': '575001',
+    'mapusa': '403507',
+    'margao': '403601',
+    'medical college': '282002',
+    'meerut': '250001',
+    'mumbai': '400001',
+    'mysuru': '570001',
+    'nagaon': '782001',
+    'nagpur': '440001',
+    'nashik': '422001',
+    'nellore': '524001',
+    'new delhi': '110001',
+    'nizamabad': '503001',
+    'noida': '201301',
+    'panaji': '403001',
+    'panipat': '132103',
+    'patiala': '147001',
+    'patna': '800001',
+    'ponda': '403401',
+    'pratap nagar': '282010',
+    'prayagraj': '211001',
+    'pune': '411001',
+    'puri': '752001',
+    'raipur': '492001',
+    'rajkot': '360001',
+    'rajnandgaon': '491441',
+    'ranchi': '834001',
+    'rohini': '110085',
+    'rourkela': '769001',
+    'salem': '636001',
+    'hybrid': '122001',
+    'sambalpur': '768001',
+    'shimla': '171001',
+    'silchar': '788001',
+    'siliguri': '734001',
+    'solan': '173212',
+    'srinagar': '190001',
+    'surat': '395003',
+    'thane': '400601',
+    'thiruvananthapuram': '695001',
+    'thrissur': '680001',
+    'tiruchirappalli': '620001',
+    'tirupati': '517501',
+    'udaipur': '313001',
+    'ujjain': '456001',
+    'una': '174303',
+    'vadodara': '390001',
+    'varanasi': '221001',
+    'vasant kunj': '110070',
+    'vasco da gama': '403802',
+    'vijayawada': '520001',
+    'visakhapatnam': '530001',
+    'warangal': '506001',
+    'yamunanagar': '135001'
+  };
+
   statesList: string[] = [];
 
   // Calculation variables
@@ -145,6 +269,22 @@ export class BookShipment implements OnInit {
       this.delivery.pincode
     ].map(p => p?.trim()).filter(Boolean);
     this.form.deliveryAddress = parts.join(', ');
+  }
+
+  onPickupCityChange(): void {
+    const city = (this.pickup.city || '').trim().toLowerCase();
+    if (city && this.defaultPincodes[city]) {
+      this.pickup.pincode = this.defaultPincodes[city];
+    }
+    this.updatePickupAddress();
+  }
+
+  onDeliveryCityChange(): void {
+    const city = (this.delivery.city || '').trim().toLowerCase();
+    if (city && this.defaultPincodes[city]) {
+      this.delivery.pincode = this.defaultPincodes[city];
+    }
+    this.updateDeliveryAddress();
   }
 
   getPickupCities(): string[] {
