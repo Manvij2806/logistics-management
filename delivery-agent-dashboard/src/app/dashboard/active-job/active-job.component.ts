@@ -44,6 +44,7 @@ export class ActiveJobComponent implements OnInit, AfterViewInit, OnDestroy {
     totalRoute: '0 km',
     totalDistance: '0 km',
     payment_status: 'Unpaid',
+    googleMapsUrl: '',
     created_at: '',
     assigned_at: '',
     picked_up_at: '',
