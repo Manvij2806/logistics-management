@@ -197,7 +197,7 @@ export class ActiveJobComponent implements OnInit, AfterViewInit, OnDestroy {
           totalDistance: `${totalDistanceVal} km`,
           googleMapsUrl: active.current_route_geometry
             ? `https://www.google.com/maps/dir/?api=1&origin=${pCoords[0]},${pCoords[1]}&destination=${dCoords[0]},${dCoords[1]}`
-            : `https://www.google.com/maps/dir/?api=1&origin=${pCoords[0]},${pCoords[1]}&destination=${dCoords[0]},${dCoords[1]}&waypoints=${(pCoords[0] + dCoords[0]) / 2 + 0.012},${(pCoords[1] + dCoords[1]) / 2 - 0.012}`,
+            : `https://www.google.com/maps/dir/?api=1&origin=${pCoords[0]},${pCoords[1]}&destination=${dCoords[0]},${dCoords[1]}&waypoints=${(pCoords[0] + dCoords[0]) / 2 + (isIntercity ? 1.5 : 0.012)},${(pCoords[1] + dCoords[1]) / 2 - (isIntercity ? 1.5 : 0.012)}`,
           payment_status: active.payment_status || 'Unpaid',
           created_at: formatTime(active.created_at),
           assigned_at: formatTime(active.assigned_at),
@@ -360,8 +360,16 @@ export class ActiveJobComponent implements OnInit, AfterViewInit, OnDestroy {
 
       // If no optimized geometry is stored, fetch unoptimized street route with detour
       if (routePoints.length === 0) {
-        const detourLat = (pickupCoords[0] + dropoffCoords[0]) / 2 + 0.012;
-        const detourLng = (pickupCoords[1] + dropoffCoords[1]) / 2 - 0.012;
+        const pickupAddr = (this.activeJobRaw?.pickup_address || '').toLowerCase();
+        const dropAddr = (this.activeJobRaw?.drop_address || '').toLowerCase();
+        const cities = ["delhi", "noida", "gurugram", "faridabad", "ghaziabad", "agra", "mumbai", "bangalore", "banglore", "bengaluru", "chennai", "kolkata", "pune", "hyderabad", "jaipur", "lucknow", "gwalior"];
+        const city1 = cities.find(c => pickupAddr.includes(c));
+        const city2 = cities.find(c => dropAddr.includes(c));
+        const isIntercityVal = city1 && city2 && city1 !== city2;
+
+        const offset = isIntercityVal ? 1.5 : 0.012;
+        const detourLat = (pickupCoords[0] + dropoffCoords[0]) / 2 + offset;
+        const detourLng = (pickupCoords[1] + dropoffCoords[1]) / 2 - offset;
         const detourCoords: [number, number] = [detourLat, detourLng];
         routePoints = await this.getOSRMRoute(pickupCoords, dropoffCoords, detourCoords);
       }

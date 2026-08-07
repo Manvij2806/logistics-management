@@ -88,7 +88,7 @@ export class TrackDelivery implements OnInit, OnDestroy {
             current_route_geometry: found.current_route_geometry,
             googleMapsUrl: found.current_route_geometry
               ? `https://www.google.com/maps/dir/?api=1&origin=${pCoords[0]},${pCoords[1]}&destination=${dCoords[0]},${dCoords[1]}`
-              : `https://www.google.com/maps/dir/?api=1&origin=${pCoords[0]},${pCoords[1]}&destination=${dCoords[0]},${dCoords[1]}&waypoints=${(pCoords[0] + dCoords[0]) / 2 + 0.012},${(pCoords[1] + dCoords[1]) / 2 - 0.012}`,
+              : `https://www.google.com/maps/dir/?api=1&origin=${pCoords[0]},${pCoords[1]}&destination=${dCoords[0]},${dCoords[1]}&waypoints=${(pCoords[0] + dCoords[0]) / 2 + (isIntercityVal ? 1.5 : 0.012)},${(pCoords[1] + dCoords[1]) / 2 - (isIntercityVal ? 1.5 : 0.012)}`,
             timeline: [
               { status: 'Created', time: '10:00 AM' },
               { status: found.status, time: '10:30 AM' }
@@ -485,8 +485,10 @@ export class TrackDelivery implements OnInit, OnDestroy {
 
       // If no optimized geometry is stored, fetch unoptimized street route with detour
       if (routePoints.length === 0) {
-        const detourLat = (pickupCoords[0] + dropoffCoords[0]) / 2 + 0.012;
-        const detourLng = (pickupCoords[1] + dropoffCoords[1]) / 2 - 0.012;
+        const isIntercityVal = this.isIntercity(this.shipment);
+        const offset = isIntercityVal ? 1.5 : 0.012;
+        const detourLat = (pickupCoords[0] + dropoffCoords[0]) / 2 + offset;
+        const detourLng = (pickupCoords[1] + dropoffCoords[1]) / 2 - offset;
         const detourCoords: [number, number] = [detourLat, detourLng];
         routePoints = await this.getOSRMRoute(pickupCoords, dropoffCoords, detourCoords);
       }
