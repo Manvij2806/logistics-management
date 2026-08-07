@@ -14,10 +14,6 @@ export class HeaderComponent implements OnInit, OnDestroy, OnChanges {
   @Input() currentView: string = 'dashboard';
   @Output() viewChanged = new EventEmitter<string>();
 
-  openAiChat(): void {
-    this.viewChanged.emit('logistics-ai');
-  }
-
   searchQuery: string = '';
   private searchSub: Subscription | undefined;
   private unreadSub: Subscription | undefined;

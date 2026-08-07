@@ -27,7 +27,6 @@ export class Sidebar implements OnInit {
     { label: 'Dashboard', route: '/dashboard', icon: 'dashboard' },
     { label: 'Deliveries', route: '/deliveries', icon: 'deliveries' },
     { label: 'Agents', route: '/agents', icon: 'agents' },
-    { label: 'Logistics AI', route: '/logistics-ai', icon: 'assistant' },
   ];
 
   filteredNavItems = computed(() => {
