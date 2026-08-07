@@ -432,6 +432,86 @@ def create_delivery(
         if agent_user:
             agent_id = agent_user.id
 
+    import math
+    import re
+    
+    actual_weight = 0.0
+    if payload.package_weight:
+        try:
+            w_match = re.findall(r'[\d\.]+', str(payload.package_weight))
+            if w_match:
+                actual_weight = float(w_match[0])
+        except Exception:
+            pass
+
+    # Recalculate price on backend
+    vol_weight = ((payload.pkg_length or 0.0) * (payload.pkg_width or 0.0) * (payload.pkg_height or 0.0)) / 5000.0
+    billable_weight = max(actual_weight, vol_weight)
+    billable_weight = math.ceil(billable_weight * 2.0) / 2.0
+    
+    base_charge = 0.0
+    if billable_weight <= 0.5:
+        base_charge = 50.0
+    elif billable_weight <= 1.0:
+        base_charge = 60.0
+    elif billable_weight <= 2.0:
+        base_charge = 75.0
+    elif billable_weight <= 3.0:
+        base_charge = 90.0
+    elif billable_weight <= 5.0:
+        base_charge = 120.0
+    elif billable_weight <= 10.0:
+        base_charge = 180.0
+    elif billable_weight <= 15.0:
+        base_charge = 240.0
+    elif billable_weight <= 20.0:
+        base_charge = 300.0
+    elif billable_weight <= 25.0:
+        base_charge = 360.0
+    elif billable_weight <= 30.0:
+        base_charge = 420.0
+    else:
+        base_charge = 420.0
+
+    dist = payload.delivery_distance or 0.0
+    dist_charge = 0.0
+    if dist <= 5:
+        dist_charge = 20.0
+    elif dist <= 10:
+        dist_charge = 30.0
+    elif dist <= 20:
+        dist_charge = 50.0
+    elif dist <= 50:
+        dist_charge = 80.0
+    elif dist <= 100:
+        dist_charge = 120.0
+    elif dist <= 250:
+        dist_charge = 180.0
+    elif dist <= 500:
+        dist_charge = 250.0
+    elif dist <= 1000:
+        dist_charge = 350.0
+    else:
+        dist_charge = 500.0
+
+    service_charge = 0.0
+    prio_lower = (payload.priority or "").lower()
+    if "express" in prio_lower:
+        service_charge = 100.0
+    elif "next day" in prio_lower:
+        service_charge = 75.0
+    elif "same day" in prio_lower:
+        service_charge = 150.0
+
+    cod_charge = 0.0
+    if payload.payment_method == "COD":
+        cod_charge = max(30.0, 0.02 * (payload.cod_amount or 0.0))
+
+    fragile_charge = 50.0 if payload.is_fragile else 0.0
+    insurance_charge = 0.01 * (payload.declared_value or 0.0) if payload.insurance_opt_in else 0.0
+
+    recalculated_charge = base_charge + dist_charge + service_charge + cod_charge + fragile_charge + insurance_charge
+
     new_delivery = Delivery(
         delivery_id=delivery_id,
         tracking_number=tracking_number,
@@ -458,6 +538,16 @@ def create_delivery(
         priority=payload.priority if payload.priority else "Normal",
         payment_status=payload.payment_status if payload.payment_status else "Unpaid",
         payment_method=payload.payment_method,
+        payment_responsibility=payload.payment_responsibility or "Sender",
+        delivery_charge=recalculated_charge,
+        cod_amount=payload.cod_amount or 0.0,
+        pkg_length=payload.pkg_length or 0.0,
+        pkg_width=payload.pkg_width or 0.0,
+        pkg_height=payload.pkg_height or 0.0,
+        delivery_distance=payload.delivery_distance or 0.0,
+        is_fragile=payload.is_fragile or False,
+        declared_value=payload.declared_value or 0.0,
+        insurance_opt_in=payload.insurance_opt_in or False,
     )
 
 

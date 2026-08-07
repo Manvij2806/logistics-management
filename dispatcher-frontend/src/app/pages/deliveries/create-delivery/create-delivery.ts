@@ -86,6 +86,33 @@ export class CreateDelivery {
     pincode: ''
   };
 
+  // Calculation variables
+  pkgLength: number | null = null;
+  pkgWidth: number | null = null;
+  pkgHeight: number | null = null;
+  deliveryDistance: number | null = null;
+  deliveryType: string = 'Standard'; // Standard / Express / Next Day / Same Day
+  paymentMethod: string = 'Prepaid'; // Prepaid / COD
+  paymentResponsibility: string = 'Sender'; // Sender / Receiver
+  isFragile: boolean = false;
+  declaredValue: number | null = null;
+  insuranceOptIn: boolean = false;
+  codAmount: number | null = null; // Order value if COD
+  
+  // Real-time pricing results
+  calculatedVolumetricWeight = 0;
+  calculatedBillableWeight = 0;
+  baseWeightCharge = 0;
+  distanceCharge = 0;
+  serviceCharge = 0;
+  codCharge = 0;
+  fragileCharge = 0;
+  insuranceCharge = 0;
+  totalCharge = 0;
+
+  // Checkout modal
+  showCheckoutModal = false;
+
   form = {
     pickupAddress: '',
     deliveryAddress: '',
@@ -266,23 +293,127 @@ export class CreateDelivery {
       this.formErrors.weight = 'Weight is required';
     }
 
+    if (this.pkgLength === null || this.pkgLength <= 0) {
+      this.formErrors.pkgLength = 'Length is required';
+    }
+    if (this.pkgWidth === null || this.pkgWidth <= 0) {
+      this.formErrors.pkgWidth = 'Width is required';
+    }
+    if (this.pkgHeight === null || this.pkgHeight <= 0) {
+      this.formErrors.pkgHeight = 'Height is required';
+    }
+    if (this.deliveryDistance === null || this.deliveryDistance <= 0) {
+      this.formErrors.deliveryDistance = 'Distance is required';
+    }
+    if (this.paymentMethod === 'COD' && (this.codAmount === null || this.codAmount <= 0)) {
+      this.formErrors.codAmount = 'COD amount is required';
+    }
+    if (this.insuranceOptIn && (this.declaredValue === null || this.declaredValue <= 0)) {
+      this.formErrors.declaredValue = 'Declared value is required';
+    }
+
     return Object.keys(this.formErrors).length === 0;
+  }
+
+  recalculatePrice(): void {
+    const weight = this.form.weight || 0;
+    const length = this.pkgLength || 0;
+    const width = this.pkgWidth || 0;
+    const height = this.pkgHeight || 0;
+    const distance = this.deliveryDistance || 0;
+    const declared = this.declaredValue || 0;
+    const orderValue = this.codAmount || 0;
+
+    // Step 2: Volumetric weight
+    const volWeight = (length * width * height) / 5000;
+    this.calculatedVolumetricWeight = Math.round(volWeight * 100) / 100;
+
+    // Step 3: Billable weight
+    let billWeight = Math.max(weight, volWeight);
+    billWeight = Math.ceil(billWeight * 2) / 2;
+    this.calculatedBillableWeight = billWeight;
+
+    // Step 4: Base weight charge
+    let base = 0;
+    if (billWeight <= 0.5) base = 50;
+    else if (billWeight <= 1.0) base = 60;
+    else if (billWeight <= 2.0) base = 75;
+    else if (billWeight <= 3.0) base = 90;
+    else if (billWeight <= 5.0) base = 120;
+    else if (billWeight <= 10.0) base = 180;
+    else if (billWeight <= 15.0) base = 240;
+    else if (billWeight <= 20.0) base = 300;
+    else if (billWeight <= 25.0) base = 360;
+    else base = 420;
+    this.baseWeightCharge = base;
+
+    // Step 5: Distance charge
+    let distChg = 0;
+    if (distance <= 5) distChg = 20;
+    else if (distance <= 10) distChg = 30;
+    else if (distance <= 20) distChg = 50;
+    else if (distance <= 50) distChg = 80;
+    else if (distance <= 100) distChg = 120;
+    else if (distance <= 250) distChg = 180;
+    else if (distance <= 500) distChg = 250;
+    else if (distance <= 1000) distChg = 350;
+    else distChg = 500;
+    this.distanceCharge = distChg;
+
+    // Step 6: Service charge
+    let svc = 0;
+    if (this.deliveryType === 'Next Day') svc = 75;
+    else if (this.deliveryType === 'Express') svc = 100;
+    else if (this.deliveryType === 'Same Day') svc = 150;
+    this.serviceCharge = svc;
+
+    // Step 7: COD charge
+    let cod = 0;
+    if (this.paymentMethod === 'COD') {
+      cod = Math.max(30, 0.02 * orderValue);
+    }
+    this.codCharge = cod;
+
+    // Step 8: Fragile charge
+    this.fragileCharge = this.isFragile ? 50 : 0;
+
+    // Step 9: Insurance charge
+    this.insuranceCharge = this.insuranceOptIn ? Math.round(0.01 * declared * 100) / 100 : 0;
+
+    // Step 10: Final Price
+    this.totalCharge = this.baseWeightCharge + this.distanceCharge + this.serviceCharge + this.codCharge + this.fragileCharge + this.insuranceCharge;
   }
 
   createOrder(): void {
     if (!this.validate()) return;
 
+    if (this.paymentResponsibility === 'Sender' && this.paymentMethod === 'Prepaid') {
+      this.showCheckoutModal = true;
+    } else {
+      this.submitOrder('Unpaid');
+    }
+  }
+
+  payAndSubmit(): void {
+    this.showCheckoutModal = false;
+    this.submitOrder('Paid');
+  }
+
+  submitOrder(paymentStatus: string): void {
     const handlingNotes = this.form.specialHandling.length
       ? `Special Handling: ${this.form.specialHandling.join(', ')}. `
       : '';
 
-    const payload: DeliveryCreate = {
+    const payload: any = {
       pickup_address: this.form.pickupAddress.trim(),
       drop_address: this.form.deliveryAddress.trim(),
       customer_name: this.form.recipientName.trim(),
       customer_phone: this.form.recipientPhone.trim(),
-      package_details: `${this.form.packageType} | ${this.form.weight}kg | ${this.form.packageDescription}`.trim(),
-      notes: `${handlingNotes}Priority: ${this.form.priority}. ${this.form.specialInstructions}`.trim(),
+      package_description: this.form.packageType,
+      package_weight: String(this.form.weight),
+      package_dimensions: `${this.pkgLength}x${this.pkgWidth}x${this.pkgHeight}`,
+      priority: this.deliveryType,
+      notes: `${handlingNotes}Instructions: ${this.form.specialInstructions}`.trim(),
       agent: null,
       recipient_name: this.form.recipientName.trim(),
       recipient_address: this.delivery.line1.trim() + (this.delivery.line2 ? ', ' + this.delivery.line2.trim() : ''),
@@ -292,8 +423,19 @@ export class CreateDelivery {
       sender_address: this.pickup.line1.trim() + (this.pickup.line2 ? ', ' + this.pickup.line2.trim() : ''),
       sender_pincode: this.pickup.pincode.trim(),
       sender_phone: this.form.senderPhone.trim(),
+      payment_method: this.paymentMethod,
+      payment_responsibility: this.paymentResponsibility,
+      payment_status: paymentStatus,
+      delivery_charge: this.totalCharge,
+      cod_amount: this.paymentMethod === 'COD' ? (this.codAmount || 0) : 0,
+      pkg_length: this.pkgLength || 0,
+      pkg_width: this.pkgWidth || 0,
+      pkg_height: this.pkgHeight || 0,
+      delivery_distance: this.deliveryDistance || 0,
+      is_fragile: this.isFragile,
+      declared_value: this.declaredValue || 0,
+      insurance_opt_in: this.insuranceOptIn
     };
-
 
     this.deliveryService.createDelivery(payload).subscribe({
       next: () => {

@@ -124,6 +124,16 @@ class Delivery(Base):
     delivered_at       = Column(DateTime(timezone=True), nullable=True)
     estimated_delivery_at = Column(DateTime(timezone=True), nullable=True)
     current_route_geometry = Column(String, nullable=True)
+    payment_responsibility = Column(String, nullable=True, default="Sender")
+    delivery_charge = Column(Float, nullable=True, default=0.0)
+    cod_amount = Column(Float, nullable=True, default=0.0)
+    pkg_length = Column(Float, nullable=True, default=0.0)
+    pkg_width = Column(Float, nullable=True, default=0.0)
+    pkg_height = Column(Float, nullable=True, default=0.0)
+    delivery_distance = Column(Float, nullable=True, default=0.0)
+    is_fragile = Column(Boolean, nullable=True, default=False)
+    declared_value = Column(Float, nullable=True, default=0.0)
+    insurance_opt_in = Column(Boolean, nullable=True, default=False)
 
 
 class Package(Base):
@@ -256,6 +266,36 @@ def init_db():
                 conn.execute(text("ALTER TABLE deliveries ADD COLUMN current_route_geometry VARCHAR DEFAULT NULL"))
                 conn.commit()
                 print("Migration: 'current_route_geometry' column added successfully.")
+            if "payment_responsibility" not in existing_cols:
+                conn.execute(text("ALTER TABLE deliveries ADD COLUMN payment_responsibility VARCHAR DEFAULT 'Sender'"))
+                conn.commit()
+            if "delivery_charge" not in existing_cols:
+                conn.execute(text("ALTER TABLE deliveries ADD COLUMN delivery_charge DOUBLE PRECISION DEFAULT 0.0"))
+                conn.commit()
+            if "cod_amount" not in existing_cols:
+                conn.execute(text("ALTER TABLE deliveries ADD COLUMN cod_amount DOUBLE PRECISION DEFAULT 0.0"))
+                conn.commit()
+            if "pkg_length" not in existing_cols:
+                conn.execute(text("ALTER TABLE deliveries ADD COLUMN pkg_length DOUBLE PRECISION DEFAULT 0.0"))
+                conn.commit()
+            if "pkg_width" not in existing_cols:
+                conn.execute(text("ALTER TABLE deliveries ADD COLUMN pkg_width DOUBLE PRECISION DEFAULT 0.0"))
+                conn.commit()
+            if "pkg_height" not in existing_cols:
+                conn.execute(text("ALTER TABLE deliveries ADD COLUMN pkg_height DOUBLE PRECISION DEFAULT 0.0"))
+                conn.commit()
+            if "delivery_distance" not in existing_cols:
+                conn.execute(text("ALTER TABLE deliveries ADD COLUMN delivery_distance DOUBLE PRECISION DEFAULT 0.0"))
+                conn.commit()
+            if "is_fragile" not in existing_cols:
+                conn.execute(text("ALTER TABLE deliveries ADD COLUMN is_fragile BOOLEAN DEFAULT FALSE"))
+                conn.commit()
+            if "declared_value" not in existing_cols:
+                conn.execute(text("ALTER TABLE deliveries ADD COLUMN declared_value DOUBLE PRECISION DEFAULT 0.0"))
+                conn.commit()
+            if "insurance_opt_in" not in existing_cols:
+                conn.execute(text("ALTER TABLE deliveries ADD COLUMN insurance_opt_in BOOLEAN DEFAULT FALSE"))
+                conn.commit()
 
             # Migration for newusers table
             try:

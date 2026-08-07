@@ -119,6 +119,8 @@ export class DeliveryDetails implements OnInit {
     this.router.navigate(['/deliveries', id, 'details']);
   }
 
+  showBillModal = false;
+
   private setDeliveryData(res: any) {
     this.delivery = {
       id: res.delivery_id,
@@ -129,7 +131,7 @@ export class DeliveryDetails implements OnInit {
         day: '2-digit', month: 'short', year: 'numeric',
         hour: '2-digit', minute: '2-digit'
       }),
-      priority: 'Normal',
+      priority: res.priority || 'Normal',
       pickup: {
         address: res.pickup_address,
         contact: res.sender_name || '—',
@@ -143,11 +145,24 @@ export class DeliveryDetails implements OnInit {
 
       package: {
         details: res.package_details || '—',
+        description: res.package_description || '—',
+        weight: res.package_weight || '—',
+        dimensions: res.package_dimensions || '—',
       },
       agent: res.agent || 'Not Assigned',
       notes: res.notes || '—',
       payment_status: res.payment_status || 'Unpaid',
       payment_method: res.payment_method || null,
+      payment_responsibility: res.payment_responsibility || 'Sender',
+      delivery_charge: res.delivery_charge || 0,
+      cod_amount: res.cod_amount || 0,
+      pkg_length: res.pkg_length || 0,
+      pkg_width: res.pkg_width || 0,
+      pkg_height: res.pkg_height || 0,
+      delivery_distance: res.delivery_distance || 0,
+      is_fragile: res.is_fragile || false,
+      declared_value: res.declared_value || 0,
+      insurance_opt_in: res.insurance_opt_in || false,
       created_at: res.created_at,
       assigned_at: res.assigned_at,
       picked_up_at: res.picked_up_at,

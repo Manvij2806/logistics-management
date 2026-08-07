@@ -32,6 +32,16 @@ export interface Delivery {
   accepted: string | null;
   payment_status?: string;
   payment_method?: string | null;
+  payment_responsibility?: string | null;
+  delivery_charge?: number | null;
+  cod_amount?: number | null;
+  pkg_length?: number | null;
+  pkg_width?: number | null;
+  pkg_height?: number | null;
+  delivery_distance?: number | null;
+  is_fragile?: boolean | null;
+  declared_value?: number | null;
+  insurance_opt_in?: boolean | null;
   assigned_at?: string | null;
   picked_up_at?: string | null;
   in_transit_at?: string | null;

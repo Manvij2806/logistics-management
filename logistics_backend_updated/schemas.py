@@ -55,6 +55,16 @@ class DeliveryCreate(BaseModel):
     accepted: Optional[str] = "Pending"
     payment_status: Optional[str] = "Unpaid"
     payment_method: Optional[str] = None
+    payment_responsibility: Optional[str] = "Sender"
+    delivery_charge: Optional[float] = 0.0
+    cod_amount: Optional[float] = 0.0
+    pkg_length: Optional[float] = 0.0
+    pkg_width: Optional[float] = 0.0
+    pkg_height: Optional[float] = 0.0
+    delivery_distance: Optional[float] = 0.0
+    is_fragile: Optional[bool] = False
+    declared_value: Optional[float] = 0.0
+    insurance_opt_in: Optional[bool] = False
 
     @field_validator("customer_phone")
     @classmethod
@@ -137,6 +147,16 @@ class DeliveryUpdate(BaseModel):
     payment_status: Optional[str] = None
     payment_method: Optional[str] = None
     current_route_geometry: Optional[str] = None
+    payment_responsibility: Optional[str] = None
+    delivery_charge: Optional[float] = None
+    cod_amount: Optional[float] = None
+    pkg_length: Optional[float] = None
+    pkg_width: Optional[float] = None
+    pkg_height: Optional[float] = None
+    delivery_distance: Optional[float] = None
+    is_fragile: Optional[bool] = None
+    declared_value: Optional[float] = None
+    insurance_opt_in: Optional[bool] = None
 
 
 class DeliveryResponse(BaseModel):
@@ -178,6 +198,16 @@ class DeliveryResponse(BaseModel):
     accepted: Optional[str] = "Pending"
     payment_status: Optional[str] = "Unpaid"
     payment_method: Optional[str] = None
+    payment_responsibility: Optional[str] = "Sender"
+    delivery_charge: Optional[float] = 0.0
+    cod_amount: Optional[float] = 0.0
+    pkg_length: Optional[float] = 0.0
+    pkg_width: Optional[float] = 0.0
+    pkg_height: Optional[float] = 0.0
+    delivery_distance: Optional[float] = 0.0
+    is_fragile: Optional[bool] = False
+    declared_value: Optional[float] = 0.0
+    insurance_opt_in: Optional[bool] = False
     agent_deactivating: Optional[bool] = False
     current_route_geometry: Optional[str] = None
 

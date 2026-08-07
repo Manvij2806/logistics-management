@@ -44,6 +44,19 @@ export class ActiveJobComponent implements OnInit, AfterViewInit, OnDestroy {
     totalRoute: '0 km',
     totalDistance: '0 km',
     payment_status: 'Unpaid',
+    payment_method: 'Prepaid',
+    payment_responsibility: 'Sender',
+    priority: 'Normal',
+    package_weight: '0',
+    delivery_charge: 0,
+    cod_amount: 0,
+    pkg_length: 0,
+    pkg_width: 0,
+    pkg_height: 0,
+    delivery_distance: 0,
+    is_fragile: false,
+    declared_value: 0,
+    insurance_opt_in: false,
     googleMapsUrl: '',
     created_at: '',
     assigned_at: '',
@@ -67,6 +80,7 @@ export class ActiveJobComponent implements OnInit, AfterViewInit, OnDestroy {
   selectedReason = 'Heavy Traffic';
   optimizationNotes = '';
   optMessage = '';
+  showBillModal = false;
   private routePolylines: L.Polyline[] = [];
   private lastDeliveryId: number | null = null;
   private lastDeliveryStatus: string | null = null;
@@ -199,6 +213,19 @@ export class ActiveJobComponent implements OnInit, AfterViewInit, OnDestroy {
             ? `https://www.google.com/maps/dir/?api=1&origin=${pCoords[0]},${pCoords[1]}&destination=${dCoords[0]},${dCoords[1]}`
             : `https://www.google.com/maps/dir/?api=1&origin=${pCoords[0]},${pCoords[1]}&destination=${dCoords[0]},${dCoords[1]}&waypoints=${(pCoords[0] + dCoords[0]) / 2 + (isIntercity ? 1.5 : 0.012)},${(pCoords[1] + dCoords[1]) / 2 - (isIntercity ? 1.5 : 0.012)}`,
           payment_status: active.payment_status || 'Unpaid',
+          payment_method: active.payment_method || 'Prepaid',
+          payment_responsibility: active.payment_responsibility || 'Sender',
+          priority: active.priority || 'Normal',
+          package_weight: active.package_weight || '0',
+          delivery_charge: active.delivery_charge || 0,
+          cod_amount: active.cod_amount || 0,
+          pkg_length: active.pkg_length || 0,
+          pkg_width: active.pkg_width || 0,
+          pkg_height: active.pkg_height || 0,
+          delivery_distance: active.delivery_distance || 0,
+          is_fragile: active.is_fragile || false,
+          declared_value: active.declared_value || 0,
+          insurance_opt_in: active.insurance_opt_in || false,
           created_at: formatTime(active.created_at),
           assigned_at: formatTime(active.assigned_at),
           picked_up_at: formatTime(active.picked_up_at),
