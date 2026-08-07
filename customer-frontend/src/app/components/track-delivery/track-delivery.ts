@@ -86,7 +86,9 @@ export class TrackDelivery implements OnInit, OnDestroy {
             destCoords: { x: 380, y: 320 },
             currentCoords: { x: 250, y: 235 },
             current_route_geometry: found.current_route_geometry,
-            googleMapsUrl: `https://www.google.com/maps/dir/?api=1&origin=${pCoords[0]},${pCoords[1]}&destination=${dCoords[0]},${dCoords[1]}`,
+            googleMapsUrl: found.current_route_geometry
+              ? `https://www.google.com/maps/dir/?api=1&origin=${pCoords[0]},${pCoords[1]}&destination=${dCoords[0]},${dCoords[1]}`
+              : `https://www.google.com/maps/dir/?api=1&origin=${pCoords[0]},${pCoords[1]}&destination=${dCoords[0]},${dCoords[1]}&waypoints=${(pCoords[0] + dCoords[0]) / 2 + 0.012},${(pCoords[1] + dCoords[1]) / 2 - 0.012}`,
             timeline: [
               { status: 'Created', time: '10:00 AM' },
               { status: found.status, time: '10:30 AM' }

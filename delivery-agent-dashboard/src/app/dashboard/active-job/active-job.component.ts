@@ -195,7 +195,9 @@ export class ActiveJobComponent implements OnInit, AfterViewInit, OnDestroy {
           eta: active.estimated_delivery_at ? formatDateTime(active.estimated_delivery_at) : '18:00',
           totalRoute: `${totalDistanceVal} km`,
           totalDistance: `${totalDistanceVal} km`,
-          googleMapsUrl: `https://www.google.com/maps/dir/?api=1&origin=${pCoords[0]},${pCoords[1]}&destination=${dCoords[0]},${dCoords[1]}`,
+          googleMapsUrl: active.current_route_geometry
+            ? `https://www.google.com/maps/dir/?api=1&origin=${pCoords[0]},${pCoords[1]}&destination=${dCoords[0]},${dCoords[1]}`
+            : `https://www.google.com/maps/dir/?api=1&origin=${pCoords[0]},${pCoords[1]}&destination=${dCoords[0]},${dCoords[1]}&waypoints=${(pCoords[0] + dCoords[0]) / 2 + 0.012},${(pCoords[1] + dCoords[1]) / 2 - 0.012}`,
           payment_status: active.payment_status || 'Unpaid',
           created_at: formatTime(active.created_at),
           assigned_at: formatTime(active.assigned_at),
