@@ -145,7 +145,7 @@ export class ActiveJobComponent implements OnInit, AfterViewInit, OnDestroy {
 
         const getCityOnly = (addr: string): string => {
           const addrLower = (addr || '').toLowerCase();
-          const cities = ["delhi", "noida", "gurugram", "faridabad", "ghaziabad", "agra", "mumbai", "bangalore", "bengaluru", "chennai", "kolkata", "pune", "hyderabad", "jaipur", "lucknow", "gwalior"];
+          const cities = ["delhi", "noida", "gurugram", "faridabad", "ghaziabad", "agra", "mumbai", "bangalore", "banglore", "bengaluru", "chennai", "kolkata", "pune", "hyderabad", "jaipur", "lucknow", "gwalior"];
           const found = cities.find(c => addrLower.includes(c));
           if (found) {
             return found.charAt(0).toUpperCase() + found.slice(1);
@@ -156,7 +156,7 @@ export class ActiveJobComponent implements OnInit, AfterViewInit, OnDestroy {
         // Check if intercity
         const pickupAddr = active.pickup_address.toLowerCase();
         const dropAddr = active.drop_address.toLowerCase();
-        const cities = ["delhi", "noida", "gurugram", "faridabad", "ghaziabad", "agra", "mumbai", "bangalore", "bengaluru", "chennai", "kolkata", "pune", "hyderabad", "jaipur", "lucknow", "gwalior"];
+        const cities = ["delhi", "noida", "gurugram", "faridabad", "ghaziabad", "agra", "mumbai", "bangalore", "banglore", "bengaluru", "chennai", "kolkata", "pune", "hyderabad", "jaipur", "lucknow", "gwalior"];
         const city1 = cities.find(c => pickupAddr.includes(c));
         const city2 = cities.find(c => dropAddr.includes(c));
         const isIntercity = city1 && city2 && city1 !== city2;
@@ -397,7 +397,7 @@ export class ActiveJobComponent implements OnInit, AfterViewInit, OnDestroy {
     // Check if intercity
     const pickupAddr = d.pickup_address.toLowerCase();
     const dropAddr = d.drop_address.toLowerCase();
-    const cities = ["delhi", "noida", "gurugram", "faridabad", "ghaziabad", "agra", "mumbai", "bangalore", "bengaluru", "chennai", "kolkata", "pune", "hyderabad", "jaipur", "lucknow", "gwalior"];
+    const cities = ["delhi", "noida", "gurugram", "faridabad", "ghaziabad", "agra", "mumbai", "bangalore", "banglore", "bengaluru", "chennai", "kolkata", "pune", "hyderabad", "jaipur", "lucknow", "gwalior"];
     const city1 = cities.find(c => pickupAddr.includes(c));
     const city2 = cities.find(c => dropAddr.includes(c));
     const isIntercity = city1 && city2 && city1 !== city2;
@@ -426,7 +426,7 @@ export class ActiveJobComponent implements OnInit, AfterViewInit, OnDestroy {
     // Check if intercity
     const pickupAddr = d.pickup_address.toLowerCase();
     const dropAddr = d.drop_address.toLowerCase();
-    const cities = ["delhi", "noida", "gurugram", "faridabad", "ghaziabad", "agra", "mumbai", "bangalore", "bengaluru", "chennai", "kolkata", "pune", "hyderabad", "jaipur", "lucknow", "gwalior"];
+    const cities = ["delhi", "noida", "gurugram", "faridabad", "ghaziabad", "agra", "mumbai", "bangalore", "banglore", "bengaluru", "chennai", "kolkata", "pune", "hyderabad", "jaipur", "lucknow", "gwalior"];
     const city1 = cities.find(c => pickupAddr.includes(c));
     const city2 = cities.find(c => dropAddr.includes(c));
     const isIntercity = city1 && city2 && city1 !== city2;
@@ -461,7 +461,7 @@ export class ActiveJobComponent implements OnInit, AfterViewInit, OnDestroy {
     
     const pickupAddr = d.pickup_address.toLowerCase();
     const dropAddr = d.drop_address.toLowerCase();
-    const cities = ["delhi", "noida", "gurugram", "faridabad", "ghaziabad", "agra", "mumbai", "bangalore", "bengaluru", "chennai", "kolkata", "pune", "hyderabad", "jaipur", "lucknow", "gwalior"];
+    const cities = ["delhi", "noida", "gurugram", "faridabad", "ghaziabad", "agra", "mumbai", "bangalore", "banglore", "bengaluru", "chennai", "kolkata", "pune", "hyderabad", "jaipur", "lucknow", "gwalior"];
     const city1 = cities.find(c => pickupAddr.includes(c));
     const city2 = cities.find(c => dropAddr.includes(c));
     const isIntercity = city1 && city2 && city1 !== city2;

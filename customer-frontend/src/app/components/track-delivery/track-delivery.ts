@@ -201,7 +201,7 @@ export class TrackDelivery implements OnInit, OnDestroy {
       if (city1 && city2 && city1 !== city2) return true;
     }
     
-    const cities = ['delhi', 'noida', 'gurugram', 'gurgaon', 'faridabad', 'ghaziabad', 'agra', 'mumbai', 'bangalore', 'bengaluru', 'chennai', 'kolkata', 'pune', 'hyderabad', 'jaipur', 'lucknow', 'kanpur'];
+    const cities = ['delhi', 'noida', 'gurugram', 'gurgaon', 'faridabad', 'ghaziabad', 'agra', 'mumbai', 'bangalore', 'banglore', 'bengaluru', 'chennai', 'kolkata', 'pune', 'hyderabad', 'jaipur', 'lucknow', 'kanpur'];
     const city1 = cities.find(c => pLoc.includes(c));
     const city2 = cities.find(c => dLoc.includes(c));
     if (city1 && city2 && city1 !== city2) return true;

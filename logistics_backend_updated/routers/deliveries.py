@@ -50,7 +50,7 @@ def get_address_offset_hours(pickup: str, drop: str) -> int:
     words1 = clean_words(pickup)
     words2 = clean_words(drop)
     
-    cities = {'delhi', 'noida', 'gurugram', 'gurgaon', 'faridabad', 'ghaziabad', 'agra', 'mumbai', 'bangalore', 'bengaluru', 'chennai', 'kolkata', 'pune', 'hyderabad', 'jaipur', 'lucknow', 'kanpur'}
+    cities = {'delhi', 'noida', 'gurugram', 'gurgaon', 'faridabad', 'ghaziabad', 'agra', 'mumbai', 'bangalore', 'banglore', 'bengaluru', 'chennai', 'kolkata', 'pune', 'hyderabad', 'jaipur', 'lucknow', 'kanpur'}
     
     city1 = next((w for w in words1 if w in cities), None)
     city2 = next((w for w in words2 if w in cities), None)
@@ -234,7 +234,7 @@ def get_city_from_address(address: str) -> Optional[str]:
     if not address:
         return None
     addr_lower = address.lower()
-    known_cities = ["agra", "mumbai", "delhi", "noida", "gwalior"]
+    known_cities = ["agra", "mumbai", "delhi", "noida", "gwalior", "bangalore", "banglore", "bengaluru"]
     for city in known_cities:
         if city in addr_lower:
             return city
