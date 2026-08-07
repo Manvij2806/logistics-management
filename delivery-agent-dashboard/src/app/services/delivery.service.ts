@@ -210,6 +210,17 @@ export class DeliveryService {
 
     if (addr.includes('faridabad')) return [28.4089, 77.3178];
     if (addr.includes('ghaziabad')) return [28.6692, 77.4538];
+
+    // Bangalore sub-localities
+    if (addr.includes('bangalore') || addr.includes('banglore') || addr.includes('bengaluru')) {
+      if (addr.includes('hsr') || addr.includes('hsr layout')) return [12.9141, 77.6411];
+      if (addr.includes('koramangala')) return [12.9279, 77.6271];
+      if (addr.includes('kamla nagar') || addr.includes('kamlanagar')) return [12.9912, 77.5385];
+      if (addr.includes('indiranagar')) return [12.9719, 77.6412];
+      if (addr.includes('whitefield')) return [12.9698, 77.7500];
+      return [12.9716, 77.5946];
+    }
+
     return [28.6139, 77.209];
   }
 
