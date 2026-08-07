@@ -28,116 +28,236 @@
     </div>
   }
 
+  <!-- Datalists for States and Cities -->
+  <datalist id="states-list">
+    @for (state of statesList; track state) {
+      <option [value]="state"></option>
+    }
+  </datalist>
+
   <form (submit)="onSubmit()" class="booking-form" [class.form-disabled]="isSubmitting() || submitSuccess()">
-    <!-- Grid Layout: Left Column (Addresses), Right Column (Package Details) -->
+    <!-- Grid Layout: Left Column (Addresses & Details), Right Column (Package Details) -->
     <div class="form-grid">
       <!-- COLUMN 1: ADDRESS DETAILS -->
       <div class="grid-column">
-        <!-- CARD 1: SENDER / PICKUP -->
+        
+        <!-- CARD 1: PICKUP ADDRESS -->
         <div class="form-card">
           <div class="card-header">
             <i class="pi pi-map-marker pin-pickup"></i>
-            <h3>1. Pickup Details</h3>
+            <h3>1. Pickup Address *</h3>
           </div>
           
           <div class="form-group">
-            <label for="senderName">Sender Full Name *</label>
-            <input type="text" id="senderName" [(ngModel)]="form.senderName" name="senderName" [class.error]="errors['senderName']" placeholder="e.g. Surya Gupta" />
-            @if (errors['senderName']) { <span class="field-error">{{ errors['senderName'] }}</span> }
+            <label for="pickupLine1">Address Line 1 *</label>
+            <input 
+              type="text" 
+              id="pickupLine1" 
+              [(ngModel)]="pickup.line1" 
+              (ngModelChange)="updatePickupAddress()"
+              name="pickupLine1" 
+              [class.error]="errors['pickupAddress']" 
+              placeholder="Street Address" 
+            />
           </div>
 
           <div class="form-group">
-            <label for="senderPhone">Sender Mobile Number *</label>
-            <input type="text" id="senderPhone" [(ngModel)]="form.senderPhone" name="senderPhone" [class.error]="errors['senderPhone']" placeholder="10-digit mobile number" />
-            @if (errors['senderPhone']) { <span class="field-error">{{ errors['senderPhone'] }}</span> }
+            <label for="pickupLine2">Address Line 2</label>
+            <input 
+              type="text" 
+              id="pickupLine2" 
+              [(ngModel)]="pickup.line2" 
+              (ngModelChange)="updatePickupAddress()"
+              name="pickupLine2" 
+              placeholder="Street Address Line 2" 
+            />
           </div>
 
-          <div class="form-group">
-            <label for="pickupAddress">Pickup Street Address *</label>
-            <input type="text" id="pickupAddress" [(ngModel)]="form.pickupAddress" name="pickupAddress" [class.error]="errors['pickupAddress']" placeholder="House/Flat No, Building, Street Address" />
-            @if (errors['pickupAddress']) { <span class="field-error">{{ errors['pickupAddress'] }}</span> }
-          </div>
+          <!-- State / City / Pincode Flex Row -->
+          <div class="address-fields-row">
+            <div class="form-group flex-1">
+              <label for="pickupState">State</label>
+              <input 
+                type="text" 
+                id="pickupState" 
+                [(ngModel)]="pickup.state" 
+                (ngModelChange)="updatePickupAddress()"
+                name="pickupState" 
+                list="states-list"
+                placeholder="Enter State" 
+              />
+            </div>
 
-          <div class="form-row-2">
-            <div class="form-group">
-              <label for="pickupCity">Pickup Hub City *</label>
-              <input
-                type="text"
-                id="pickupCity"
-                [(ngModel)]="form.pickupCity"
-                name="pickupCity"
+            <div class="form-group flex-1">
+              <label for="pickupCity">City *</label>
+              <input 
+                type="text" 
+                id="pickupCity" 
+                [(ngModel)]="pickup.city" 
+                (ngModelChange)="updatePickupAddress()"
+                name="pickupCity" 
                 list="pickup-cities-list"
-                [class.error]="errors['pickupCity']"
-                placeholder="Enter or select city"
+                [class.error]="errors['pickupCity']" 
+                placeholder="Enter City" 
               />
               <datalist id="pickup-cities-list">
-                @for (city of allCities; track city) {
+                @for (city of getPickupCities(); track city) {
                   <option [value]="city"></option>
                 }
               </datalist>
-              @if (errors['pickupCity']) { <span class="field-error">{{ errors['pickupCity'] }}</span> }
             </div>
 
-            <div class="form-group">
-              <label for="pickupPincode">Pickup Pincode *</label>
-              <input type="text" id="pickupPincode" [(ngModel)]="form.pickupPincode" name="pickupPincode" maxlength="6" [class.error]="errors['pickupPincode']" placeholder="6-digit PIN code" />
-              @if (errors['pickupPincode']) { <span class="field-error">{{ errors['pickupPincode'] }}</span> }
+            <div class="form-group flex-1">
+              <label for="pickupPincode">Pincode *</label>
+              <input 
+                type="text" 
+                id="pickupPincode" 
+                [(ngModel)]="pickup.pincode" 
+                (ngModelChange)="updatePickupAddress()"
+                name="pickupPincode" 
+                maxlength="6" 
+                [class.error]="errors['pickupPincode']" 
+                placeholder="Postal code" 
+              />
             </div>
           </div>
+          
+          <!-- Validation Errors -->
+          @if (errors['pickupAddress']) { <span class="field-error-block">{{ errors['pickupAddress'] }}</span> }
+          @if (errors['pickupCity']) { <span class="field-error-block">{{ errors['pickupCity'] }}</span> }
+          @if (errors['pickupPincode']) { <span class="field-error-block">{{ errors['pickupPincode'] }}</span> }
         </div>
 
-        <!-- CARD 2: RECIPIENT / DROPOFF -->
+        <!-- CARD 2: DELIVERY ADDRESS -->
         <div class="form-card">
           <div class="card-header">
             <i class="pi pi-flag pin-dropoff"></i>
-            <h3>2. Delivery Details</h3>
+            <h3>2. Delivery Address *</h3>
           </div>
 
           <div class="form-group">
-            <label for="recipientName">Recipient Full Name *</label>
-            <input type="text" id="recipientName" [(ngModel)]="form.recipientName" name="recipientName" [class.error]="errors['recipientName']" placeholder="e.g. Rajesh Kumar" />
-            @if (errors['recipientName']) { <span class="field-error">{{ errors['recipientName'] }}</span> }
+            <label for="deliveryLine1">Address Line 1 *</label>
+            <input 
+              type="text" 
+              id="deliveryLine1" 
+              [(ngModel)]="delivery.line1" 
+              (ngModelChange)="updateDeliveryAddress()"
+              name="deliveryLine1" 
+              [class.error]="errors['dropAddress']" 
+              placeholder="Street Address" 
+            />
           </div>
 
           <div class="form-group">
-            <label for="recipientPhone">Recipient Mobile Number *</label>
-            <input type="text" id="recipientPhone" [(ngModel)]="form.recipientPhone" name="recipientPhone" [class.error]="errors['recipientPhone']" placeholder="10-digit mobile number" />
-            @if (errors['recipientPhone']) { <span class="field-error">{{ errors['recipientPhone'] }}</span> }
+            <label for="deliveryLine2">Address Line 2</label>
+            <input 
+              type="text" 
+              id="deliveryLine2" 
+              [(ngModel)]="delivery.line2" 
+              (ngModelChange)="updateDeliveryAddress()"
+              name="deliveryLine2" 
+              placeholder="Street Address Line 2" 
+            />
           </div>
 
-          <div class="form-group">
-            <label for="dropAddress">Delivery Street Address *</label>
-            <input type="text" id="dropAddress" [(ngModel)]="form.dropAddress" name="dropAddress" [class.error]="errors['dropAddress']" placeholder="House/Flat No, Building, Street Address" />
-            @if (errors['dropAddress']) { <span class="field-error">{{ errors['dropAddress'] }}</span> }
-          </div>
-
-          <div class="form-row-2">
-            <div class="form-group">
-              <label for="dropCity">Delivery Hub City *</label>
-              <input
-                type="text"
-                id="dropCity"
-                [(ngModel)]="form.dropCity"
-                name="dropCity"
-                list="drop-cities-list"
-                [class.error]="errors['dropCity']"
-                placeholder="Enter or select city"
+          <!-- State / City / Pincode Flex Row -->
+          <div class="address-fields-row">
+            <div class="form-group flex-1">
+              <label for="deliveryState">State</label>
+              <input 
+                type="text" 
+                id="deliveryState" 
+                [(ngModel)]="delivery.state" 
+                (ngModelChange)="updateDeliveryAddress()"
+                name="deliveryState" 
+                list="states-list"
+                placeholder="Enter State" 
               />
-              <datalist id="drop-cities-list">
-                @for (city of allCities; track city) {
+            </div>
+
+            <div class="form-group flex-1">
+              <label for="deliveryCity">City *</label>
+              <input 
+                type="text" 
+                id="deliveryCity" 
+                [(ngModel)]="delivery.city" 
+                (ngModelChange)="updateDeliveryAddress()"
+                name="deliveryCity" 
+                list="delivery-cities-list"
+                [class.error]="errors['dropCity']" 
+                placeholder="Enter City" 
+              />
+              <datalist id="delivery-cities-list">
+                @for (city of getDeliveryCities(); track city) {
                   <option [value]="city"></option>
                 }
               </datalist>
-              @if (errors['dropCity']) { <span class="field-error">{{ errors['dropCity'] }}</span> }
+            </div>
+
+            <div class="form-group flex-1">
+              <label for="deliveryPincode">Pincode *</label>
+              <input 
+                type="text" 
+                id="deliveryPincode" 
+                [(ngModel)]="delivery.pincode" 
+                (ngModelChange)="updateDeliveryAddress()"
+                name="deliveryPincode" 
+                maxlength="6" 
+                [class.error]="errors['dropPincode']" 
+                placeholder="Postal Code" 
+              />
+            </div>
+          </div>
+
+          <!-- Validation Errors -->
+          @if (errors['dropAddress']) { <span class="field-error-block">{{ errors['dropAddress'] }}</span> }
+          @if (errors['dropCity']) { <span class="field-error-block">{{ errors['dropCity'] }}</span> }
+          @if (errors['dropPincode']) { <span class="field-error-block">{{ errors['dropPincode'] }}</span> }
+        </div>
+
+        <!-- TWO COLUMN ROW: SENDER & RECIPIENT DETAILS -->
+        <div class="details-grid-row">
+          <!-- CARD 3: SENDER DETAILS -->
+          <div class="form-card flex-1">
+            <div class="card-header">
+              <i class="pi pi-user pin-pickup"></i>
+              <h3>3. Sender Details</h3>
+            </div>
+            
+            <div class="form-group">
+              <label for="senderName">Sender Name *</label>
+              <input type="text" id="senderName" [(ngModel)]="form.senderName" name="senderName" [class.error]="errors['senderName']" placeholder="Enter Full Name" />
+              @if (errors['senderName']) { <span class="field-error">{{ errors['senderName'] }}</span> }
             </div>
 
             <div class="form-group">
-              <label for="dropPincode">Delivery Pincode *</label>
-              <input type="text" id="dropPincode" [(ngModel)]="form.dropPincode" name="dropPincode" maxlength="6" [class.error]="errors['dropPincode']" placeholder="6-digit PIN code" />
-              @if (errors['dropPincode']) { <span class="field-error">{{ errors['dropPincode'] }}</span> }
+              <label for="senderPhone">Sender Phone *</label>
+              <input type="text" id="senderPhone" [(ngModel)]="form.senderPhone" name="senderPhone" maxlength="10" [class.error]="errors['senderPhone']" placeholder="+91" />
+              @if (errors['senderPhone']) { <span class="field-error">{{ errors['senderPhone'] }}</span> }
+            </div>
+          </div>
+
+          <!-- CARD 4: RECIPIENT DETAILS -->
+          <div class="form-card flex-1">
+            <div class="card-header">
+              <i class="pi pi-user pin-dropoff"></i>
+              <h3>4. Recipient Details</h3>
+            </div>
+
+            <div class="form-group">
+              <label for="recipientName">Recipient Name *</label>
+              <input type="text" id="recipientName" [(ngModel)]="form.recipientName" name="recipientName" [class.error]="errors['recipientName']" placeholder="Enter Full Name" />
+              @if (errors['recipientName']) { <span class="field-error">{{ errors['recipientName'] }}</span> }
+            </div>
+
+            <div class="form-group">
+              <label for="recipientPhone">Recipient Phone *</label>
+              <input type="text" id="recipientPhone" [(ngModel)]="form.recipientPhone" name="recipientPhone" maxlength="10" [class.error]="errors['recipientPhone']" placeholder="+91" />
+              @if (errors['recipientPhone']) { <span class="field-error">{{ errors['recipientPhone'] }}</span> }
             </div>
           </div>
         </div>
+
       </div>
 
       <!-- COLUMN 2: PACKAGE DETAILS & OPTIONS -->
@@ -145,7 +265,7 @@
         <div class="form-card">
           <div class="card-header">
             <i class="pi pi-box icon-package"></i>
-            <h3>3. Package & Payment Details</h3>
+            <h3>5. Package & Payment Details</h3>
           </div>
 
           <div class="form-group">

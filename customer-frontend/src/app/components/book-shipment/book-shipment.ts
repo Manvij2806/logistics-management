@@ -19,19 +19,42 @@ export class BookShipment implements OnInit {
 
   currentUser = this.authService.currentUser;
 
+  indiaStatesCities: Record<string, string[]> = {
+    'Andhra Pradesh': ['Visakhapatnam', 'Vijayawada', 'Guntur', 'Nellore', 'Tirupati'],
+    'Assam': ['Guwahati', 'Dibrugarh', 'Silchar', 'Jorhat', 'Nagaon'],
+    'Bihar': ['Patna', 'Gaya', 'Bhagalpur', 'Muzaffarpur', 'Darbhanga'],
+    'Chhattisgarh': ['Raipur', 'Bhilai', 'Bilaspur', 'Korba', 'Rajnandgaon'],
+    'Delhi': ['Delhi', 'New Delhi', 'Dwarka', 'Rohini', 'Vasant Kunj'],
+    'Goa': ['Panaji', 'Margao', 'Vasco da Gama', 'Mapusa', 'Ponda'],
+    'Gujarat': ['Ahmedabad', 'Surat', 'Vadodara', 'Rajkot', 'Bhavnagar'],
+    'Haryana': ['Gurugram', 'Faridabad', 'Panipat', 'Ambala', 'Yamunanagar'],
+    'Himachal Pradesh': ['Shimla', 'Dharamshala', 'Solan', 'Mandi', 'Una'],
+    'Jammu and Kashmir': ['Srinagar', 'Jammu', 'Anantnag', 'Baramulla', 'Kathua'],
+    'Jharkhand': ['Ranchi', 'Jamshedpur', 'Dhanbad', 'Bokaro Steel City', 'Deoghar'],
+    'Karnataka': ['Banglore', 'Bangalore', 'Bengaluru', 'Mysuru', 'Hubballi', 'Mangaluru', 'Belagavi'],
+    'Kerala': ['Thiruvananthapuram', 'Kochi', 'Kozhikode', 'Thrissur', 'Kollam'],
+    'Madhya Pradesh': ['Indore', 'Bhopal', 'Jabalpur', 'Gwalior', 'Ujjain'],
+    'Maharashtra': ['Mumbai', 'Pune', 'Nagpur', 'Thane', 'Nashik', 'Aurangabad', 'Navi Mumbai'],
+    'Odisha': ['Bhubaneswar', 'Cuttack', 'Rourkela', 'Puri', 'Sambalpur'],
+    'Punjab': ['Ludhiana', 'Amritsar', 'Jalandhar', 'Patiala', 'Bathinda'],
+    'Rajasthan': ['Jaipur', 'Jodhpur', 'Udaipur', 'Kota', 'Bikaner', 'Ajmer'],
+    'Tamil Nadu': ['Chennai', 'Coimbatore', 'Madurai', 'Tiruchirappalli', 'Salem'],
+    'Telangana': ['Hyderabad', 'Warangal', 'Nizamabad', 'Khammam', 'Karimnagar'],
+    'Uttar Pradesh': ['Lucknow', 'Kanpur', 'Noida', 'Ghaziabad', 'Agra', 'Varanasi', 'Meerut', 'Prayagraj'],
+    'West Bengal': ['Kolkata', 'Howrah', 'Durgapur', 'Asansol', 'Siliguri']
+  };
+
+  statesList: string[] = [];
+
   // Form Model
   form = {
     senderName: '',
     senderPhone: '',
     pickupAddress: '',
-    pickupCity: '',
-    pickupPincode: '',
     
     recipientName: '',
     recipientPhone: '',
-    dropAddress: '',
-    dropCity: '',
-    dropPincode: '',
+    deliveryAddress: '',
     
     packageDescription: '',
     packageWeight: '',
@@ -41,25 +64,23 @@ export class BookShipment implements OnInit {
     notes: ''
   };
 
-  // Indian Cities Suggestions List
-  allCities: string[] = [
-    'Agra', 'Ahmedabad', 'Ajmer', 'Ambala', 'Amritsar', 'Anantnag', 'Asansol', 'Aurangabad',
-    'Bangalore', 'Baramulla', 'Bathinda', 'Belagavi', 'Bengaluru', 'Bhagalpur', 'Bhilai',
-    'Bhopal', 'Bhubaneswar', 'Bikaner', 'Bilaspur', 'Bokaro Steel City', 'Chennai', 'Cuttack',
-    'Deoghar', 'Delhi', 'Dharamshala', 'Dhanbad', 'Dibrugarh', 'Durgapur', 'Dwarka',
-    'Faridabad', 'Gaya', 'Ghaziabad', 'Goa', 'Guntur', 'Gurgaon', 'Gurugram', 'Guwahati',
-    'Gwalior', 'Howrah', 'Hubballi', 'Hyderabad', 'Indore', 'Itanagar', 'Jabalpur', 'Jaipur',
-    'Jalandhar', 'Jammu', 'Jamshedpur', 'Jodhpur', 'Jorhat', 'Kanpur', 'Karimnagar', 'Kathua',
-    'Khammam', 'Kochi', 'Kolkata', 'Kollam', 'Korba', 'Kota', 'Kozhikode', 'Kurnool',
-    'Lucknow', 'Ludhiana', 'Madurai', 'Mangaluru', 'Mapusa', 'Margao', 'Mandi', 'Meerut',
-    'Mumbai', 'Muzaffarpur', 'Mysuru', 'Nagaon', 'Nagpur', 'Naharlagun', 'Nashik',
-    'Navi Mumbai', 'Nellore', 'New Delhi', 'Nizamabad', 'Noida', 'Panaji', 'Panipat',
-    'Pasighat', 'Patiala', 'Patna', 'Ponda', 'Pune', 'Puri', 'Purnia', 'Prayagraj',
-    'Raipur', 'Rajkot', 'Rajnandgaon', 'Ranchi', 'Rohini', 'Rourkela', 'Salem', 'Sambalpur',
-    'Shimla', 'Silchar', 'Siliguri', 'Solan', 'Srinagar', 'Surat', 'Thane', 'Thiruvananthapuram',
-    'Thrissur', 'Tiruchirappalli', 'Udaipur', 'Ujjain', 'Una', 'Vadodara', 'Varanasi',
-    'Vasant Kunj', 'Vasco da Gama', 'Vijayawada', 'Visakhapatnam', 'Warangal', 'Yamunanagar'
-  ];
+  // Individual fields for Pickup Address
+  pickup = {
+    line1: '',
+    line2: '',
+    city: '',
+    state: '',
+    pincode: ''
+  };
+
+  // Individual fields for Delivery Address
+  delivery = {
+    line1: '',
+    line2: '',
+    city: '',
+    state: '',
+    pincode: ''
+  };
 
   // Form State
   errors: Record<string, string> = {};
@@ -68,11 +89,60 @@ export class BookShipment implements OnInit {
   submitError = signal<string | null>(null);
 
   ngOnInit(): void {
+    this.statesList = Object.keys(this.indiaStatesCities);
     const user = this.currentUser();
     if (user) {
       this.form.senderName = user.full_name || '';
       this.form.senderPhone = user.phone_number || '';
     }
+  }
+
+  // Concatenate input fields to update the single pickup address string
+  updatePickupAddress(): void {
+    const parts = [
+      this.pickup.line1,
+      this.pickup.line2,
+      this.pickup.city,
+      this.pickup.state,
+      this.pickup.pincode
+    ].map(p => p?.trim()).filter(Boolean);
+    this.form.pickupAddress = parts.join(', ');
+  }
+
+  // Concatenate input fields to update the single delivery address string
+  updateDeliveryAddress(): void {
+    const parts = [
+      this.delivery.line1,
+      this.delivery.line2,
+      this.delivery.city,
+      this.delivery.state,
+      this.delivery.pincode
+    ].map(p => p?.trim()).filter(Boolean);
+    this.form.deliveryAddress = parts.join(', ');
+  }
+
+  getPickupCities(): string[] {
+    const state = this.pickup.state.trim();
+    const key = Object.keys(this.indiaStatesCities).find(
+      k => k.toLowerCase() === state.toLowerCase()
+    );
+    return key ? this.indiaStatesCities[key] : [];
+  }
+
+  getDeliveryCities(): string[] {
+    const state = this.delivery.state.trim();
+    const key = Object.keys(this.indiaStatesCities).find(
+      k => k.toLowerCase() === state.toLowerCase()
+    );
+    return key ? this.indiaStatesCities[key] : [];
+  }
+
+  normalizeAddress(address: string): string {
+    return address
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
   }
 
   validate(): boolean {
@@ -88,17 +158,17 @@ export class BookShipment implements OnInit {
       this.errors['senderPhone'] = 'Enter a valid 10-digit phone number';
     }
 
-    if (!this.form.pickupAddress.trim()) {
-      this.errors['pickupAddress'] = 'Pickup address is required';
+    if (!this.pickup.line1.trim()) {
+      this.errors['pickupAddress'] = 'Pickup address line 1 is required';
     }
 
-    if (!this.form.pickupCity.trim()) {
+    if (!this.pickup.city.trim()) {
       this.errors['pickupCity'] = 'Pickup city is required';
     }
 
-    if (!this.form.pickupPincode.trim()) {
+    if (!this.pickup.pincode.trim()) {
       this.errors['pickupPincode'] = 'Pincode is required';
-    } else if (!/^\d{6}$/.test(this.form.pickupPincode)) {
+    } else if (!/^\d{6}$/.test(this.pickup.pincode)) {
       this.errors['pickupPincode'] = 'Enter a valid 6-digit pincode';
     }
 
@@ -112,17 +182,17 @@ export class BookShipment implements OnInit {
       this.errors['recipientPhone'] = 'Enter a valid 10-digit phone number';
     }
 
-    if (!this.form.dropAddress.trim()) {
-      this.errors['dropAddress'] = 'Drop address is required';
+    if (!this.delivery.line1.trim()) {
+      this.errors['dropAddress'] = 'Drop address line 1 is required';
     }
 
-    if (!this.form.dropCity.trim()) {
+    if (!this.delivery.city.trim()) {
       this.errors['dropCity'] = 'Delivery city is required';
     }
 
-    if (!this.form.dropPincode.trim()) {
+    if (!this.delivery.pincode.trim()) {
       this.errors['dropPincode'] = 'Pincode is required';
-    } else if (!/^\d{6}$/.test(this.form.dropPincode)) {
+    } else if (!/^\d{6}$/.test(this.delivery.pincode)) {
       this.errors['dropPincode'] = 'Enter a valid 6-digit pincode';
     }
 
@@ -137,24 +207,24 @@ export class BookShipment implements OnInit {
     this.isSubmitting.set(true);
     this.submitError.set(null);
 
-    // Build the addresses using standard formatted strings (matching the editor format)
-    const pickup_address = `${this.form.pickupAddress.trim()}, ${this.form.pickupCity.trim()}, ${this.form.pickupPincode.trim()}`;
-    const drop_address = `${this.form.dropAddress.trim()}, ${this.form.dropCity.trim()}, ${this.form.dropPincode.trim()}`;
+    // Build the addresses using standard formatted strings
+    const pickup_address = `${this.pickup.line1.trim()}${this.pickup.line2 ? ', ' + this.pickup.line2.trim() : ''}, ${this.pickup.city.trim()}, ${this.pickup.state.trim()}, ${this.pickup.pincode.trim()}`;
+    const drop_address = `${this.delivery.line1.trim()}${this.delivery.line2 ? ', ' + this.delivery.line2.trim() : ''}, ${this.delivery.city.trim()}, ${this.delivery.state.trim()}, ${this.delivery.pincode.trim()}`;
 
     const payload = {
       pickup_address,
       drop_address,
-      customer_name: this.form.recipientName.trim(), // The customer who receives the delivery updates
+      customer_name: this.form.recipientName.trim(),
       customer_phone: this.form.recipientPhone.replace(/\s+/g, ''),
       
       sender_name: this.form.senderName.trim(),
-      sender_address: this.form.pickupAddress.trim(),
-      sender_pincode: this.form.pickupPincode.trim(),
+      sender_address: this.pickup.line1.trim() + (this.pickup.line2 ? ', ' + this.pickup.line2.trim() : ''),
+      sender_pincode: this.pickup.pincode.trim(),
       sender_phone: this.form.senderPhone.replace(/\s+/g, ''),
       
       recipient_name: this.form.recipientName.trim(),
-      recipient_address: this.form.dropAddress.trim(),
-      recipient_pincode: this.form.dropPincode.trim(),
+      recipient_address: this.delivery.line1.trim() + (this.delivery.line2 ? ', ' + this.delivery.line2.trim() : ''),
+      recipient_pincode: this.delivery.pincode.trim(),
       recipient_phone: this.form.recipientPhone.replace(/\s+/g, ''),
       
       package_description: this.form.packageDescription.trim() || null,
@@ -173,7 +243,7 @@ export class BookShipment implements OnInit {
         this.submitSuccess.set(true);
         // Refresh view or redirect back to dashboard
         setTimeout(() => {
-          window.location.reload(); // Quick refresh to update the active deliveries list
+          window.location.reload();
         }, 1500);
       },
       error: (err) => {
