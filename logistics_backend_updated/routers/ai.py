@@ -814,6 +814,40 @@ def get_ai_response(
         if "deliveries" in res:
             injected_tool_context = f"\n[System Data: Your deliveries: {json.dumps(res['deliveries'])}]"
 
+    elif "status" in q_clean or "track" in q_clean:
+        tracking_match = re.search(r'(del-\d+|trk\d+)', q_clean)
+        if tracking_match:
+            trkid = tracking_match.group(1).upper()
+            res = execute_tool("get_delivery_status", {"tracking_number": trkid}, role, current_user, db)
+            if "error" not in res:
+                injected_tool_context = f"\n[System Data: Status details of delivery {trkid}: {json.dumps(res)}]"
+        elif "last" in q_clean or "latest" in q_clean:
+            # Query the last delivery depending on the user's role
+            d = None
+            if role == "Customer":
+                d = db.query(Delivery).filter(
+                    or_(
+                        Delivery.customer_phone == current_user.phone_number,
+                        Delivery.customer_name == current_user.fullname,
+                        Delivery.sender_name == current_user.fullname,
+                        Delivery.recipient_name == current_user.fullname,
+                        Delivery.sender_phone == current_user.phone_number,
+                        Delivery.recipient_phone == current_user.phone_number
+                    )
+                ).order_by(Delivery.created_at.desc()).first()
+            elif role == "Agent":
+                d = db.query(Delivery).filter(Delivery.agent_id == current_user.id).order_by(Delivery.created_at.desc()).first()
+            elif role == "Dispatcher" and current_user.city:
+                city_lower = f"%{current_user.city.strip().lower()}%"
+                d = db.query(Delivery).filter(
+                    or_(Delivery.pickup_address.ilike(city_lower), Delivery.drop_address.ilike(city_lower))
+                ).order_by(Delivery.created_at.desc()).first()
+            else: # Admin
+                d = db.query(Delivery).order_by(Delivery.created_at.desc()).first()
+                
+            if d:
+                injected_tool_context = f"\n[System Data: The most recent delivery in the system is {d.delivery_id} ({d.tracking_number}). Status: {d.status}, Pickup: {d.pickup_address}, Drop: {d.drop_address}, ETA: {d.estimated_delivery_at.isoformat() if d.estimated_delivery_at else 'N/A'}]"
+
     if injected_tool_context:
         messages[-1]["content"] += injected_tool_context
 
