@@ -69,7 +69,7 @@ ALLOWED_TOOLS = {
     "CUSTOMER": ["get_my_deliveries", "get_delivery_status", "calculate_delivery_price"],
     "AGENT": ["get_my_deliveries", "get_delivery_status", "get_delivery_details"],
     "DISPATCHER": ["get_delivery_status", "get_delivery_details", "get_available_agents", "get_agent_workload", "get_pending_deliveries", "get_delivery_history", "calculate_delivery_price"],
-    "ADMIN": ["get_delivery_status", "get_delivery_details", "get_available_agents", "get_agent_workload", "get_pending_deliveries", "get_delivery_history", "get_dashboard_statistics", "calculate_delivery_price"]
+    "ADMIN": ["get_delivery_status", "get_delivery_details", "get_available_agents", "get_agent_workload", "get_pending_deliveries", "get_delivery_history", "get_dashboard_statistics", "calculate_delivery_price", "get_users_list", "get_user_details"]
 }
 
 def execute_tool(tool_name: str, args: dict, user_role: str, current_user: User, db: Session) -> dict:
@@ -397,6 +397,53 @@ def execute_tool(tool_name: str, args: dict, user_role: str, current_user: User,
                 "total_delivery_charge": total
             }
 
+        # Tool 10: Get Users List
+        elif tool_name == "get_users_list":
+            users = db.query(User).all()
+            return {
+                "users": [
+                    {
+                        "user_id": u.id,
+                        "fullname": u.fullname,
+                        "username": u.username,
+                        "email": u.email,
+                        "phone": u.phone_number,
+                        "role": u.role.name if u.role else "Unknown",
+                        "status": u.status,
+                        "city": u.city
+                    }
+                    for u in users
+                ]
+            }
+
+        # Tool 11: Get User Details
+        elif tool_name == "get_user_details":
+            name_query = str(args.get("username_or_name", "")).strip()
+            if not name_query:
+                return {"error": "Username or full name is required."}
+            u = db.query(User).filter(
+                or_(
+                    User.fullname.ilike(f"%{name_query}%"),
+                    User.username.ilike(f"%{name_query}%"),
+                    User.email.ilike(f"%{name_query}%")
+                )
+            ).first()
+            if not u:
+                return {"error": f"User '{name_query}' not found."}
+            return {
+                "user_id": u.id,
+                "fullname": u.fullname,
+                "username": u.username,
+                "email": u.email,
+                "phone": u.phone_number,
+                "role": u.role.name if u.role else "Unknown",
+                "status": u.status,
+                "city": u.city,
+                "active_deliveries": u.active_deliveries,
+                "deactivate_after_delivery": u.deactivate_after_delivery,
+                "created_at": u.created_at.isoformat() if u.created_at else None
+            }
+
     except Exception as ex:
         return {"error": f"Tool execution failed: {ex}"}
 
@@ -517,6 +564,27 @@ SYSTEM_TOOLS = [
                 "required": ["weight", "length", "width", "height", "distance"]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_users_list",
+            "description": "Retrieve the list of registered users in the system (Admins, Dispatchers, Agents, Customers). Restricted to admins."
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_user_details",
+            "description": "Fetch complete details (fullname, phone, email, status, active deliveries, city) of a registered user. Restricted to admins.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "username_or_name": {"type": "string", "description": "The username or full name of the user"}
+                },
+                "required": ["username_or_name"]
+            }
+        }
     }
 ]
 
@@ -583,6 +651,42 @@ def run_local_fallback_query(question: str, user_role: str, current_user: User, 
         for d in dels:
             response += f"| `{d['delivery_id']}` | {d['pickup']} | {d['drop']} |\n"
         return response
+
+    # 4b. Users list fallback
+    elif "user" in q_lower:
+        if role_upper != "ADMIN":
+            return response + "❌ Security restriction: Only Admins can query user information."
+        
+        # Check if they are asking for specific details of a name
+        target_name = None
+        for word in q_lower.split():
+            clean_word = word.strip("?,.!:;()\"'")
+            if clean_word not in ("user", "users", "list", "get", "show", "details", "info", "give", "of", "about", "describe", "find"):
+                target_name = clean_word
+                break
+        
+        if target_name:
+            res = execute_tool("get_user_details", {"username_or_name": target_name}, user_role, current_user, db)
+            if "error" in res:
+                return response + f"❌ {res['error']}"
+            response += f"#### 👤 User Details: {res['fullname']} ({res['role']})\n\n"
+            response += f"* **User ID**: `{res['user_id']}`\n"
+            response += f"* **Username**: `{res['username']}`\n"
+            response += f"* **Email**: {res['email']}\n"
+            response += f"* **Phone**: {res['phone'] or 'N/A'}\n"
+            response += f"* **City**: {res['city'] or 'N/A'}\n"
+            response += f"* **Status**: {res['status']}\n"
+            response += f"* **Active Deliveries**: {res['active_deliveries'] or 0}\n"
+            return response
+        else:
+            res = execute_tool("get_users_list", {}, user_role, current_user, db)
+            if "error" in res:
+                return response + f"❌ {res['error']}"
+            users = res.get("users", [])
+            response += "| User ID | Name | Username | Role | City | Status |\n| :--- | :--- | :--- | :--- | :--- | :--- |\n"
+            for u in users:
+                response += f"| `{u['user_id']}` | **{u['fullname']}** | `{u['username']}` | {u['role']} | {u['city'] or 'N/A'} | {u['status']} |\n"
+            return response
 
     # 5. Specific tracking ID detection
     tracking_match = re.search(r'(del-\d+|trk\d+)', q_lower)
