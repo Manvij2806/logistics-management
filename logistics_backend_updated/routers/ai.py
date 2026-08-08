@@ -688,6 +688,41 @@ def run_local_fallback_query(question: str, user_role: str, current_user: User, 
                 response += f"| `{u['user_id']}` | **{u['fullname']}** | `{u['username']}` | {u['role']} | {u['city'] or 'N/A'} | {u['status']} |\n"
             return response
 
+
+    # 4c. Last/Latest status fallback when Ollama is offline
+    elif ("status" in q_lower or "track" in q_lower) and ("last" in q_lower or "latest" in q_lower):
+        d = None
+        if role_upper == "CUSTOMER":
+            d = db.query(Delivery).filter(
+                or_(
+                    Delivery.customer_phone == current_user.phone_number,
+                    Delivery.customer_name == current_user.fullname,
+                    Delivery.sender_name == current_user.fullname,
+                    Delivery.recipient_name == current_user.fullname,
+                    Delivery.sender_phone == current_user.phone_number,
+                    Delivery.recipient_phone == current_user.phone_number
+                )
+            ).order_by(Delivery.created_at.desc()).first()
+        elif role_upper == "AGENT":
+            d = db.query(Delivery).filter(Delivery.agent_id == current_user.id).order_by(Delivery.created_at.desc()).first()
+        elif role_upper == "DISPATCHER" and current_user.city:
+            city_lower = f"%{current_user.city.strip().lower()}%"
+            d = db.query(Delivery).filter(
+                or_(Delivery.pickup_address.ilike(city_lower), Delivery.drop_address.ilike(city_lower))
+            ).order_by(Delivery.created_at.desc()).first()
+        else: # Admin
+            d = db.query(Delivery).order_by(Delivery.created_at.desc()).first()
+            
+        if d:
+            response += f"#### 📦 Latest Shipment Status: {d.delivery_id} ({d.tracking_number})\n\n"
+            response += f"* **Current Status**: **{d.status}**\n"
+            response += f"* **Pickup Address**: {d.pickup_address}\n"
+            response += f"* **Drop Address**: {d.drop_address}\n"
+            response += f"* **Estimated Delivery**: {d.estimated_delivery_at.isoformat() if d.estimated_delivery_at else 'N/A'}\n"
+            return response
+        else:
+            return response + "No recent shipments found in your account."
+
     # 5. Specific tracking ID detection
     tracking_match = re.search(r'(del-\d+|trk\d+)', q_lower)
     if tracking_match:
