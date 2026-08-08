@@ -42,7 +42,7 @@ export class StatsCardsComponent implements OnInit, OnDestroy {
             dCoords[0],
             dCoords[1],
           );
-          const earnVal = 2000;
+          const earnVal = d.delivery_charge || 0;
 
           totalDistance += dist;
           totalEarnings += earnVal;

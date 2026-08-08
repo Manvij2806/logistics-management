@@ -121,6 +121,38 @@
             <h3 class="estimate-time">{{ shipment.eta }}</h3>
           </div>
 
+          <!-- Online Payment Alert Section -->
+          @if (shipment.payment_status === 'Unpaid') {
+            <div class="payment-alert-box" style="margin: 12px 0; padding: 14px; background: #fef2f2; border: 1px solid #fee2e2; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px; font-family: 'Outfit', sans-serif;">
+              <div style="display: flex; align-items: flex-start; gap: 10px;">
+                <i class="pi pi-exclamation-triangle" style="color: #ef4444; font-size: 20px; margin-top: 2px;"></i>
+                <div style="display: flex; flex-direction: column; gap: 2px;">
+                  <span style="font-weight: 700; color: #991b1b; font-size: 14px;">PAYMENT REQUIRED</span>
+                  <span style="font-size: 12.5px; color: #7f1d1d; line-height: 1.4;">
+                    @if (shipment.payment_responsibility === 'Sender') {
+                      Please pay the shipping charge of <strong>₹{{ shipment.delivery_charge }}</strong> online to complete shipment booking.
+                    } @else {
+                      Please pay the order value of <strong>₹{{ shipment.cod_amount || shipment.delivery_charge }}</strong> online to receive delivery.
+                    }
+                  </span>
+                </div>
+              </div>
+              <button pButton 
+                      label="Pay Now" 
+                      icon="pi pi-credit-card" 
+                      class="p-button-danger p-button-sm pay-now-btn" 
+                      style="font-family: 'Outfit', sans-serif; font-weight: 600; white-space: nowrap; flex-shrink: 0;"
+                      (click)="payShipment()">
+              </button>
+            </div>
+          }
+          @else if (shipment.payment_status === 'Paid') {
+            <div class="payment-success-box" style="margin: 12px 0; padding: 12px; background: #f0fdf4; border: 1px solid #dcfce7; border-radius: 12px; display: flex; align-items: center; gap: 10px; font-family: 'Outfit', sans-serif; color: #166534; font-size: 13px; font-weight: 600;">
+              <i class="pi pi-check-circle" style="color: #22c55e; font-size: 18px;"></i>
+              <span>Payment Completed: Thank you, this shipment has been fully paid online!</span>
+            </div>
+          }
+
           <!-- Timeline details (Simple 2-dot timeline) -->
           <div class="result-timeline">
             <div class="timeline-item">

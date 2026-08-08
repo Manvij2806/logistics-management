@@ -75,6 +75,7 @@ export class TrackDelivery implements OnInit, OnDestroy {
 
           this.shipment = {
             id: found.delivery_id,
+            dbId: found.id,
             status: found.status,
              eta: found.status === 'Delivered' ? 'Delivered' : 
                   (found.estimated_delivery_at ? new Date(found.estimated_delivery_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : 'ETA: 18:00'),
@@ -105,6 +106,11 @@ export class TrackDelivery implements OnInit, OnDestroy {
             arrived_destination_at: found.arrived_destination_at,
             out_for_delivery_at: found.out_for_delivery_at,
             delivered_at: found.delivered_at,
+            payment_status: found.payment_status || 'Unpaid',
+            payment_method: found.payment_method || 'Prepaid',
+            payment_responsibility: found.payment_responsibility || 'Sender',
+            delivery_charge: found.delivery_charge || 0,
+            cod_amount: found.cod_amount || 0,
           };
           this.isTracking = true;
           this.errorMessage = '';
@@ -123,6 +129,19 @@ export class TrackDelivery implements OnInit, OnDestroy {
         this.errorMessage = 'Failed to load tracking details.';
         this.isTracking = false;
         this.shipment = null;
+      }
+    });
+  }
+
+  payShipment() {
+    if (!this.shipment || !this.shipment.dbId) return;
+    this.deliveryService.updateDelivery(this.shipment.dbId, { payment_status: 'Paid' }).subscribe({
+      next: (res) => {
+        this.shipment.payment_status = 'Paid';
+        this.errorMessage = '';
+      },
+      error: () => {
+        this.errorMessage = 'Online payment processing failed. Please try again.';
       }
     });
   }

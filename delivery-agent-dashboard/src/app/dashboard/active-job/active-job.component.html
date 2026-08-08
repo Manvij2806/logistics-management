@@ -9,7 +9,7 @@
 
   <div *ngIf="hasActiveJob" class="job-content">
     <!-- Receiver Payment Alert Banner -->
-    <div *ngIf="activeJob.payment_responsibility === 'Receiver' || (activeJob.payment_method === 'COD')" 
+    <div *ngIf="(activeJob.payment_responsibility === 'Receiver' || activeJob.payment_method === 'COD') && activeJob.payment_status === 'Unpaid'" 
          class="payment-warning-banner" 
          style="display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; padding: 14px; background: #fffbeb; border: 1px solid #fef3c7; border-radius: 8px; color: #b45309; font-family: 'Outfit', sans-serif;">
       <div style="display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px;">
