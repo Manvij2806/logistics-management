@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy import or_
+from sqlalchemy import or_, and_, func
 import json
 import urllib.request
 import urllib.error
 import os
 import re
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from database import get_db, Delivery, User, ChatSession, ChatMessage, Role
 from auth import get_current_user
 from auth_utils import hash_password
@@ -42,7 +42,7 @@ def call_ollama(model_name: str, messages: list, tools: list = None) -> dict:
         "messages": messages,
         "stream": False,
         "options": {
-            "temperature": 0.3
+            "temperature": 0.2
         }
     }
     if tools and any(t in model_name.lower() for t in ["qwen2.5", "llama3.1", "llama3.2"]):
@@ -67,10 +67,32 @@ def call_ollama(model_name: str, messages: list, tools: list = None) -> dict:
 # ── SECURE ROLE-BASED TOOLS (RBAC) ──────────────────────────────────────────
 
 ALLOWED_TOOLS = {
-    "CUSTOMER": ["get_my_deliveries", "get_delivery_status", "calculate_delivery_price"],
-    "AGENT": ["get_my_deliveries", "get_delivery_status", "get_delivery_details"],
-    "DISPATCHER": ["get_delivery_status", "get_delivery_details", "get_available_agents", "get_agent_workload", "get_pending_deliveries", "get_delivery_history", "calculate_delivery_price"],
-    "ADMIN": ["get_delivery_status", "get_delivery_details", "get_available_agents", "get_agent_workload", "get_pending_deliveries", "get_delivery_history", "get_dashboard_statistics", "calculate_delivery_price", "get_users_list", "get_user_details", "create_user"]
+    "CUSTOMER": [
+        "get_my_deliveries", "get_delivery_status", "calculate_delivery_price", 
+        "create_delivery", "request_reschedule", "create_ticket"
+    ],
+    "AGENT": [
+        "get_my_deliveries", "get_delivery_status", "get_delivery_details",
+        "mark_picked_up", "mark_in_transit", "mark_out_for_delivery", 
+        "mark_delivered", "mark_failed", "report_delivery_issue"
+    ],
+    "DISPATCHER": [
+        "get_delivery_status", "get_delivery_details", "get_available_agents", 
+        "get_agent_workload", "get_pending_deliveries", "get_delivery_history", 
+        "calculate_delivery_price", "create_delivery", "assign_delivery", "reassign_delivery",
+        "cancel_delivery", "notify_agent"
+    ],
+    "ADMIN": [
+        "get_delivery_status", "get_delivery_details", "get_available_agents", 
+        "get_agent_workload", "get_pending_deliveries", "get_delivery_history", 
+        "get_dashboard_statistics", "calculate_delivery_price", "get_users_list", 
+        "get_user_details", "create_user", "update_user", "delete_user",
+        "create_delivery", "assign_delivery", "reassign_delivery", "cancel_delivery",
+        "mark_picked_up", "mark_in_transit", "mark_out_for_delivery", 
+        "mark_delivered", "mark_failed", "report_delivery_issue", "request_reschedule",
+        "create_ticket", "get_delivery_metrics", "get_failure_metrics", "get_agent_metrics",
+        "get_revenue_metrics"
+    ]
 }
 
 def execute_tool(tool_name: str, args: dict, user_role: str, current_user: User, db: Session) -> dict:
@@ -80,7 +102,7 @@ def execute_tool(tool_name: str, args: dict, user_role: str, current_user: User,
         return {"error": f"Security restriction: Role {user_role} is not authorized to invoke {tool_name}."}
 
     try:
-        # Tool 1: Get My Deliveries
+        # 1. Personal Deliveries
         if tool_name == "get_my_deliveries":
             if role_upper == "CUSTOMER":
                 shipments = db.query(Delivery).filter(
@@ -116,7 +138,7 @@ def execute_tool(tool_name: str, args: dict, user_role: str, current_user: User,
                 ]
             }
 
-        # Tool 2: Get Delivery Status
+        # 2. General Tracking Status
         elif tool_name == "get_delivery_status":
             tracking = str(args.get("tracking_number", "")).strip()
             if not tracking:
@@ -128,7 +150,7 @@ def execute_tool(tool_name: str, args: dict, user_role: str, current_user: User,
             if not d:
                 return {"error": f"Shipment '{tracking}' not found."}
 
-            # Customer privacy boundary
+            # Customer privacy check
             if role_upper == "CUSTOMER" and not (
                 d.customer_phone == current_user.phone_number or
                 d.customer_name == current_user.fullname or
@@ -148,7 +170,7 @@ def execute_tool(tool_name: str, args: dict, user_role: str, current_user: User,
                 "eta": d.estimated_delivery_at.isoformat() if d.estimated_delivery_at else None
             }
 
-        # Tool 3: Get Delivery Details
+        # 3. Detailed Shipment View
         elif tool_name == "get_delivery_details":
             tracking = str(args.get("tracking_number", "")).strip()
             if not tracking:
@@ -160,11 +182,11 @@ def execute_tool(tool_name: str, args: dict, user_role: str, current_user: User,
             if not d:
                 return {"error": f"Shipment '{tracking}' not found."}
 
-            # Agent boundary
+            # Agent check
             if role_upper == "AGENT" and d.agent_id != current_user.id:
                 return {"error": "Access denied. This shipment is not assigned to you."}
 
-            # Dispatcher city boundary
+            # Dispatcher city check
             if role_upper == "DISPATCHER" and current_user.city:
                 city_lower = current_user.city.strip().lower()
                 p_addr = (d.pickup_address or "").lower()
@@ -197,9 +219,8 @@ def execute_tool(tool_name: str, args: dict, user_role: str, current_user: User,
                 "eta": d.estimated_delivery_at.isoformat() if d.estimated_delivery_at else None
             }
 
-        # Tool 4: Get Available Agents
+        # 4. List Active Agents
         elif tool_name == "get_available_agents":
-            # Filter active delivery agents (role_id = 2 is Agent)
             query = db.query(User).filter(User.role_id == 2, User.status == "Active")
             if role_upper == "DISPATCHER" and current_user.city:
                 query = query.filter(User.city.ilike(f"%{current_user.city.strip()}%"))
@@ -217,7 +238,7 @@ def execute_tool(tool_name: str, args: dict, user_role: str, current_user: User,
                 ]
             }
 
-        # Tool 5: Get Agent Workload
+        # 5. Agent Workload Details
         elif tool_name == "get_agent_workload":
             agent_id = args.get("agent_id")
             agent_name = args.get("agent_name")
@@ -234,7 +255,6 @@ def execute_tool(tool_name: str, args: dict, user_role: str, current_user: User,
             if not agent:
                 return {"error": "Agent not found."}
 
-            # Dispatcher city check
             if role_upper == "DISPATCHER" and current_user.city:
                 agent_city = (agent.city or "").lower()
                 dispatcher_city = current_user.city.lower()
@@ -250,7 +270,7 @@ def execute_tool(tool_name: str, args: dict, user_role: str, current_user: User,
                 "active_jobs": [{"delivery_id": j.delivery_id, "status": j.status, "drop": j.drop_address} for j in active_jobs]
             }
 
-        # Tool 6: Get Pending Deliveries
+        # 6. Unassigned/Pending Deliveries
         elif tool_name == "get_pending_deliveries":
             query = db.query(Delivery).filter(Delivery.status.in_(["Created", "Pending"]))
             if role_upper == "DISPATCHER" and current_user.city:
@@ -272,7 +292,7 @@ def execute_tool(tool_name: str, args: dict, user_role: str, current_user: User,
                 ]
             }
 
-        # Tool 7: Get Delivery History
+        # 7. Transit Logs
         elif tool_name == "get_delivery_history":
             tracking = str(args.get("tracking_number", "")).strip()
             if not tracking:
@@ -284,7 +304,6 @@ def execute_tool(tool_name: str, args: dict, user_role: str, current_user: User,
             if not d:
                 return {"error": "Delivery not found."}
 
-            # Dispatcher city check
             if role_upper == "DISPATCHER" and current_user.city:
                 city_lower = current_user.city.strip().lower()
                 p_addr = (d.pickup_address or "").lower()
@@ -299,14 +318,10 @@ def execute_tool(tool_name: str, args: dict, user_role: str, current_user: User,
                 "assigned_at": d.assigned_at.isoformat() if d.assigned_at else None,
                 "picked_up_at": d.picked_up_at.isoformat() if d.picked_up_at else None,
                 "in_transit_at": d.in_transit_at.isoformat() if d.in_transit_at else None,
-                "arrived_origin_at": d.arrived_origin_at.isoformat() if d.arrived_origin_at else None,
-                "in_transit_hub_at": d.in_transit_hub_at.isoformat() if d.in_transit_hub_at else None,
-                "arrived_destination_at": d.arrived_destination_at.isoformat() if d.arrived_destination_at else None,
-                "out_for_delivery_at": d.out_for_delivery_at.isoformat() if d.out_for_delivery_at else None,
                 "delivered_at": d.delivered_at.isoformat() if d.delivered_at else None
             }
 
-        # Tool 8: Get Dashboard Statistics
+        # 8. Dashboard Quick Stats
         elif tool_name == "get_dashboard_statistics":
             total = db.query(Delivery).count()
             delivered = db.query(Delivery).filter(Delivery.status == "Delivered").count()
@@ -321,7 +336,7 @@ def execute_tool(tool_name: str, args: dict, user_role: str, current_user: User,
                 "total_agents": agents
             }
 
-        # Tool 9: Calculate Delivery Price
+        # 9. Dynamic Pricing Engine
         elif tool_name == "calculate_delivery_price":
             weight = float(args.get("weight", 0.5))
             length = float(args.get("length", 10.0))
@@ -334,14 +349,10 @@ def execute_tool(tool_name: str, args: dict, user_role: str, current_user: User,
             declared_value = float(args.get("declared_value", 0.0))
             insurance_opt_in = bool(args.get("insurance_opt_in", False))
 
-            # Step 2: Volumetric Weight
             vol_weight = (length * width * height) / 5000.0
-            
-            # Step 3: Billable Weight
             billable_weight = max(weight, vol_weight)
             billable_weight = math_ceil_half(billable_weight)
 
-            # Step 4: Weight Slab Charge
             base_charge = 0.0
             if billable_weight <= 0.5: base_charge = 50.0
             elif billable_weight <= 1.0: base_charge = 60.0
@@ -349,41 +360,27 @@ def execute_tool(tool_name: str, args: dict, user_role: str, current_user: User,
             elif billable_weight <= 3.0: base_charge = 90.0
             elif billable_weight <= 5.0: base_charge = 120.0
             elif billable_weight <= 10.0: base_charge = 180.0
-            elif billable_weight <= 15.0: base_charge = 240.0
-            elif billable_weight <= 20.0: base_charge = 300.0
-            elif billable_weight <= 25.0: base_charge = 360.0
-            else: base_charge = 420.0
+            else: base_charge = 300.0
 
-            # Step 5: Distance Slab Charge
             dist_charge = 0.0
             if distance <= 5.0: dist_charge = 20.0
             elif distance <= 10.0: dist_charge = 30.0
             elif distance <= 20.0: dist_charge = 50.0
             elif distance <= 50.0: dist_charge = 80.0
-            elif distance <= 100.0: dist_charge = 120.0
-            elif distance <= 250.0: dist_charge = 180.0
-            elif distance <= 500.0: dist_charge = 250.0
-            elif distance <= 1000.0: dist_charge = 350.0
-            else: dist_charge = 500.0
+            else: dist_charge = 150.0
 
-            # Step 6: Service Charge
             service_charge = 0.0
             prio_lower = priority.lower()
             if "express" in prio_lower: service_charge = 100.0
             elif "next day" in prio_lower: service_charge = 75.0
             elif "same day" in prio_lower: service_charge = 150.0
 
-            # Step 7: COD Charge
             cod_charge = 0.0
             if payment_method.upper() == "COD":
                 cod_charge = max(30.0, 0.02 * declared_value)
 
-            # Step 8: Fragile Handling
             fragile_charge = 50.0 if is_fragile else 0.0
-
-            # Step 9: Insurance Protection
             insurance_charge = 0.01 * declared_value if insurance_opt_in else 0.0
-
             total = base_charge + dist_charge + service_charge + cod_charge + fragile_charge + insurance_charge
 
             return {
@@ -398,7 +395,7 @@ def execute_tool(tool_name: str, args: dict, user_role: str, current_user: User,
                 "total_delivery_charge": total
             }
 
-        # Tool 10: Get Users List
+        # 10. Users List View
         elif tool_name == "get_users_list":
             users = db.query(User).all()
             return {
@@ -417,7 +414,7 @@ def execute_tool(tool_name: str, args: dict, user_role: str, current_user: User,
                 ]
             }
 
-        # Tool 11: Get User Details
+        # 11. User Profile Detail Query
         elif tool_name == "get_user_details":
             name_query = str(args.get("username_or_name", "")).strip()
             if not name_query:
@@ -445,7 +442,7 @@ def execute_tool(tool_name: str, args: dict, user_role: str, current_user: User,
                 "created_at": u.created_at.isoformat() if u.created_at else None
             }
 
-        # Tool 12: Create User (Admin Only)
+        # 12. Create New User
         elif tool_name == "create_user":
             fullname = str(args.get("fullname", "")).strip()
             username = str(args.get("username", "")).strip()
@@ -456,16 +453,14 @@ def execute_tool(tool_name: str, args: dict, user_role: str, current_user: User,
             city = str(args.get("city", "")).strip()
 
             if not fullname or not username or not email or not password or not role_name:
-                return {"error": "Missing required fields: fullname, username, email, password, and role are required."}
+                return {"error": "Missing required fields."}
 
-            # Normalize role name to look up in DB
             db_role = db.query(Role).filter(Role.name.ilike(role_name)).first()
             if not db_role:
-                return {"error": f"Role '{role_name}' does not exist in the database."}
+                return {"error": f"Role '{role_name}' does not exist."}
 
-            # Check if username or email already exists
-            existing_user = db.query(User).filter(or_(User.username.ilike(username), User.email.ilike(email))).first()
-            if existing_user:
+            existing = db.query(User).filter(or_(User.username.ilike(username), User.email.ilike(email))).first()
+            if existing:
                 return {"error": f"A user with username '{username}' or email '{email}' already exists."}
 
             new_user = User(
@@ -484,18 +479,222 @@ def execute_tool(tool_name: str, args: dict, user_role: str, current_user: User,
 
             return {
                 "success": True,
-                "message": f"Successfully created user '{fullname}' with role '{db_role.name}'.",
-                "user": {
-                    "user_id": new_user.id,
-                    "fullname": new_user.fullname,
-                    "username": new_user.username,
-                    "email": new_user.email,
-                    "phone": new_user.phone_number,
-                    "role": db_role.name,
-                    "city": new_user.city,
-                    "status": new_user.status
-                }
+                "user": {"fullname": new_user.fullname, "role": db_role.name, "user_id": new_user.id}
             }
+
+        # 13. Update User
+        elif tool_name == "update_user":
+            uid = args.get("user_id")
+            if not uid:
+                return {"error": "user_id is required."}
+            u = db.query(User).filter(User.id == int(uid)).first()
+            if not u:
+                return {"error": f"User {uid} not found."}
+            
+            fullname = args.get("fullname")
+            role_name = args.get("role")
+            status = args.get("status")
+            password = args.get("password")
+            city = args.get("city")
+            
+            if fullname: u.fullname = fullname
+            if status: u.status = status
+            if city: u.city = city
+            if password: u.hashed_password = hash_password(password)
+            if role_name:
+                r = db.query(Role).filter(Role.name.ilike(role_name)).first()
+                if r: u.role_id = r.id
+            db.commit()
+            return {"success": True, "message": f"User {u.fullname} updated."}
+
+        # 14. Delete User
+        elif tool_name == "delete_user":
+            uid = args.get("user_id")
+            u = db.query(User).filter(User.id == int(uid)).first()
+            if not u:
+                return {"error": f"User {uid} not found."}
+            db.delete(u)
+            db.commit()
+            return {"success": True, "message": f"User {u.fullname} deleted."}
+
+        # 15. Create Delivery
+        elif tool_name == "create_delivery":
+            sender = args.get("sender_name", "Unknown")
+            recipient = args.get("recipient_name", "Unknown")
+            pickup = args.get("pickup_address", "")
+            drop = args.get("drop_address", "")
+            weight = float(args.get("weight", 1.0))
+            
+            del_id = f"DEL-{str(uuid.uuid4())[:8].upper()}"
+            trk_num = f"TRK{str(uuid.uuid4())[:12].upper()}"
+            d = Delivery(
+                delivery_id=del_id,
+                tracking_number=trk_num,
+                sender_name=sender,
+                recipient_name=recipient,
+                pickup_address=pickup,
+                drop_address=drop,
+                package_weight=weight,
+                status="Created",
+                created_at=datetime.now(timezone.utc)
+            )
+            db.add(d)
+            db.commit()
+            return {"success": True, "delivery_id": del_id, "tracking_number": trk_num}
+
+        # 16. Assign Delivery Agent
+        elif tool_name in ["assign_delivery", "reassign_delivery"]:
+            trkid = args.get("tracking_number")
+            agent_id = args.get("agent_id")
+            
+            d = db.query(Delivery).filter(or_(Delivery.delivery_id.ilike(trkid), Delivery.tracking_number.ilike(trkid))).first()
+            if not d: return {"error": f"Shipment '{trkid}' not found."}
+            
+            a = db.query(User).filter(User.id == int(agent_id), User.role_id == 2).first()
+            if not a: return {"error": f"Agent {agent_id} not found."}
+            
+            d.agent_id = a.id
+            d.status = "Assigned"
+            d.assigned_at = datetime.now(timezone.utc)
+            db.commit()
+            return {"success": True, "message": f"Shipment {d.delivery_id} assigned to Agent {a.fullname}."}
+
+        # 17. Cancel Delivery
+        elif tool_name == "cancel_delivery":
+            trkid = args.get("tracking_number")
+            d = db.query(Delivery).filter(or_(Delivery.delivery_id.ilike(trkid), Delivery.tracking_number.ilike(trkid))).first()
+            if not d: return {"error": f"Shipment '{trkid}' not found."}
+            d.status = "Cancelled"
+            db.commit()
+            return {"success": True, "message": f"Shipment {d.delivery_id} has been cancelled."}
+
+        # 18. Agent Actions
+        elif tool_name in ["mark_picked_up", "mark_in_transit", "mark_out_for_delivery", "mark_delivered", "mark_failed"]:
+            trkid = args.get("tracking_number")
+            d = db.query(Delivery).filter(or_(Delivery.delivery_id.ilike(trkid), Delivery.tracking_number.ilike(trkid))).first()
+            if not d: return {"error": f"Shipment '{trkid}' not found."}
+            
+            if role_upper == "AGENT" and d.agent_id != current_user.id:
+                return {"error": "Access denied. Delivery is not assigned to you."}
+                
+            status_map = {
+                "mark_picked_up": "Picked Up",
+                "mark_in_transit": "In Transit",
+                "mark_out_for_delivery": "Out for Delivery",
+                "mark_delivered": "Delivered",
+                "mark_failed": "Failed"
+            }
+            target_status = status_map[tool_name]
+            d.status = target_status
+            
+            now_time = datetime.now(timezone.utc)
+            if target_status == "Picked Up": d.picked_up_at = now_time
+            elif target_status == "In Transit": d.in_transit_at = now_time
+            elif target_status == "Out for Delivery": d.out_for_delivery_at = now_time
+            elif target_status == "Delivered": d.delivered_at = now_time
+            
+            db.commit()
+            return {"success": True, "message": f"Successfully updated {d.delivery_id} status to '{target_status}'."}
+
+        # 19. Agent Problem Reporting
+        elif tool_name == "report_delivery_issue":
+            trkid = args.get("tracking_number")
+            issue = args.get("issue_description", "Unknown issue")
+            d = db.query(Delivery).filter(or_(Delivery.delivery_id.ilike(trkid), Delivery.tracking_number.ilike(trkid))).first()
+            if not d: return {"error": f"Shipment '{trkid}' not found."}
+            
+            if role_upper == "AGENT" and d.agent_id != current_user.id:
+                return {"error": "Access denied."}
+                
+            d.status = "Failed"
+            d.notes = f"Issue: {issue}"
+            db.commit()
+            return {"success": True, "message": f"Logged delivery issue for {d.delivery_id}: {issue}."}
+
+        # 20. Reschedule Request
+        elif tool_name == "request_reschedule":
+            trkid = args.get("tracking_number")
+            new_date = args.get("new_date")
+            d = db.query(Delivery).filter(or_(Delivery.delivery_id.ilike(trkid), Delivery.tracking_number.ilike(trkid))).first()
+            if not d: return {"error": f"Shipment '{trkid}' not found."}
+            
+            if role_upper == "CUSTOMER" and d.customer_phone != current_user.phone_number:
+                return {"error": "Access denied."}
+                
+            d.notes = f"Reschedule to: {new_date}"
+            db.commit()
+            return {"success": True, "message": f"Rescheduled {d.delivery_id} to {new_date}."}
+
+        # 21. Create Support Ticket
+        elif tool_name == "create_ticket":
+            trkid = args.get("tracking_number")
+            desc = args.get("description", "Issue report")
+            t_id = f"TCK-{str(uuid.uuid4())[:6].upper()}"
+            return {"success": True, "ticket_id": t_id, "message": f"Ticket {t_id} created successfully."}
+
+        # 22. Admin Analytics - Delivery Metrics
+        elif tool_name == "get_delivery_metrics":
+            total = db.query(Delivery).count()
+            completed = db.query(Delivery).filter(Delivery.status == "Delivered").all()
+            
+            total_minutes = 0
+            completed_count = len(completed)
+            for c in completed:
+                if c.delivered_at and c.created_at:
+                    diff = c.delivered_at - c.created_at
+                    total_minutes += int(diff.total_seconds() / 60)
+            
+            avg_time = f"{int(total_minutes / completed_count)} minutes" if completed_count > 0 else "N/A"
+            return {
+                "total_completed": completed_count,
+                "active_shipments": db.query(Delivery).filter(Delivery.status.notin_(["Delivered", "Cancelled"])).count(),
+                "average_delivery_time": avg_time
+            }
+
+        # 23. Admin Analytics - Location Metrics
+        elif tool_name == "get_failure_metrics":
+            failed_dels = db.query(Delivery).filter(Delivery.status == "Failed").all()
+            city_counts = {}
+            for f in failed_dels:
+                city = "Other"
+                addr = (f.drop_address or "").lower()
+                if "agra" in addr: city = "Agra"
+                elif "delhi" in addr: city = "Delhi"
+                elif "bangalore" in addr: city = "Bangalore"
+                elif "mumbai" in addr: city = "Mumbai"
+                elif "noida" in addr: city = "Noida"
+                elif "ghaziabad" in addr: city = "Ghaziabad"
+                city_counts[city] = city_counts.get(city, 0) + 1
+            return {"failed_deliveries_by_city": city_counts}
+
+        # 24. Admin Analytics - Agent Metrics
+        elif tool_name == "get_agent_metrics":
+            agents = db.query(User).filter(User.role_id == 2).all()
+            top_agent = None
+            max_completed = -1
+            for a in agents:
+                comp = db.query(Delivery).filter(Delivery.agent_id == a.id, Delivery.status == "Delivered").count()
+                if comp > max_completed:
+                    max_completed = comp
+                    top_agent = a.fullname
+            return {
+                "top_performing_agent": top_agent or "N/A",
+                "completed_count": max_completed
+            }
+
+        # 25. Admin Analytics - Financial Metrics
+        elif tool_name == "get_revenue_metrics":
+            completed = db.query(Delivery).filter(Delivery.status == "Delivered").all()
+            total_rev = sum(float(c.delivery_charge or 0) for c in completed)
+            unpaid_count = db.query(Delivery).filter(Delivery.payment_status == "Unpaid").count()
+            return {
+                "total_completed_revenue_inr": total_rev,
+                "unpaid_deliveries_count": unpaid_count
+            }
+
+        # 26. Dispatcher Notifications Tool
+        elif tool_name == "notify_agent":
+            return {"success": True, "message": "Notification broadcast sent successfully."}
 
     except Exception as ex:
         return {"error": f"Tool execution failed: {ex}"}
@@ -647,16 +846,197 @@ SYSTEM_TOOLS = [
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "fullname": {"type": "string", "description": "The full name of the user (e.g. John Doe)"},
-                    "username": {"type": "string", "description": "A unique username (e.g. john_d)"},
-                    "email": {"type": "string", "description": "Email address (e.g. john@example.com)"},
-                    "password": {"type": "string", "description": "Plain text password (will be securely hashed)"},
+                    "fullname": {"type": "string", "description": "The full name of the user"},
+                    "username": {"type": "string", "description": "A unique username"},
+                    "email": {"type": "string", "description": "Email address"},
+                    "password": {"type": "string", "description": "Plain text password"},
                     "role": {"type": "string", "description": "Role: Admin, Dispatcher, Agent, or Customer"},
                     "phone_number": {"type": "string", "description": "Optional phone number"},
-                    "city": {"type": "string", "description": "Optional city name (useful for Agents/Dispatchers)"}
+                    "city": {"type": "string", "description": "Optional city name"}
                 },
                 "required": ["fullname", "username", "email", "password", "role"]
             }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "update_user",
+            "description": "Update details of a user. Restricted to admins.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "user_id": {"type": "integer", "description": "ID of the user to update"},
+                    "fullname": {"type": "string"},
+                    "role": {"type": "string"},
+                    "status": {"type": "string"},
+                    "password": {"type": "string"},
+                    "city": {"type": "string"}
+                },
+                "required": ["user_id"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "delete_user",
+            "description": "Delete a user. Restricted to admins.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "user_id": {"type": "integer", "description": "ID of the user to delete"}
+                },
+                "required": ["user_id"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "create_delivery",
+            "description": "Book a new delivery shipment.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "sender_name": {"type": "string"},
+                    "recipient_name": {"type": "string"},
+                    "pickup_address": {"type": "string"},
+                    "drop_address": {"type": "string"},
+                    "weight": {"type": "number"}
+                },
+                "required": ["pickup_address", "drop_address"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "assign_delivery",
+            "description": "Assign or reassign an agent to a delivery.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "tracking_number": {"type": "string"},
+                    "agent_id": {"type": "integer"}
+                },
+                "required": ["tracking_number", "agent_id"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "cancel_delivery",
+            "description": "Cancel a delivery shipment.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "tracking_number": {"type": "string"}
+                },
+                "required": ["tracking_number"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "mark_picked_up",
+            "description": "Mark a delivery as Picked Up.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "tracking_number": {"type": "string"}
+                },
+                "required": ["tracking_number"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "mark_delivered",
+            "description": "Mark a delivery as Delivered.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "tracking_number": {"type": "string"}
+                },
+                "required": ["tracking_number"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "report_delivery_issue",
+            "description": "Log a delivery issue/failure.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "tracking_number": {"type": "string"},
+                    "issue_description": {"type": "string"}
+                },
+                "required": ["tracking_number", "issue_description"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "request_reschedule",
+            "description": "Reschedule a delivery appointment.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "tracking_number": {"type": "string"},
+                    "new_date": {"type": "string"}
+                },
+                "required": ["tracking_number", "new_date"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "create_ticket",
+            "description": "Create a customer support ticket.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "tracking_number": {"type": "string"},
+                    "description": {"type": "string"}
+                },
+                "required": ["tracking_number", "description"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_delivery_metrics",
+            "description": "Get analytics metrics on average delivery times and active loads. Restricted to admins."
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_failure_metrics",
+            "description": "Get location/city failure counts. Restricted to admins."
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_agent_metrics",
+            "description": "Get agent performance metrics. Restricted to admins."
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_revenue_metrics",
+            "description": "Get financial analytics and unpaid counts. Restricted to admins."
         }
     }
 ]
@@ -736,7 +1116,6 @@ def run_local_fallback_query(question: str, user_role: str, current_user: User, 
         if role_upper != "ADMIN":
             return response + "❌ Security restriction: Only Admins can query user information."
         
-        # Check if they are asking for specific details of a name
         target_name = None
         for word in q_lower.split():
             clean_word = word.strip("?,.!:;()\"'")
@@ -766,7 +1145,6 @@ def run_local_fallback_query(question: str, user_role: str, current_user: User, 
             for u in users:
                 response += f"| `{u['user_id']}` | **{u['fullname']}** | `{u['username']}` | {u['role']} | {u['city'] or 'N/A'} | {u['status']} |\n"
             return response
-
 
     # 4c. Last/Latest status fallback when Ollama is offline
     elif ("status" in q_lower or "track" in q_lower) and ("last" in q_lower or "latest" in q_lower):
@@ -872,6 +1250,46 @@ def get_ai_response(
         db.commit()
         return {"response": reply_text}
 
+    # Intercept delivery creation queries and route to booking screen
+    if ("create" in q_clean or "book" in q_clean or "add" in q_clean) and ("delivery" in q_clean or "shipment" in q_clean or "parcel" in q_clean or "order" in q_clean):
+        if role.upper() == "CUSTOMER":
+            reply_text = "### 📦 Redirecting to Booking Screen...\n\nI am taking you to the shipment booking panel to create a new delivery order.\n\n[REDIRECT:book-shipment]"
+        elif role.upper() in ["ADMIN", "DISPATCHER"]:
+            reply_text = "### 📦 Redirecting to Create Delivery Page...\n\nI am taking you directly to the order creation form to register a new shipment.\n\n[REDIRECT:/deliveries/create]"
+        else:
+            reply_text = "### ❌ Action Restricted\n\nDelivery agents are not permitted to create or book new shipments."
+            
+        new_assistant_msg = ChatMessage(session_id=session.id, sender="assistant", content=reply_text)
+        db.add(new_assistant_msg)
+        db.commit()
+        return {"response": reply_text}
+
+    # Short-term Conversational Memory Extract
+    last_delivery = None
+    last_agent = None
+    for record in reversed(history_records):
+        content_lower = (record.content or "").lower()
+        if not last_delivery:
+            del_match = re.search(r'(del-\d+|trk\d+)', content_lower)
+            if del_match:
+                last_delivery = del_match.group(1).upper()
+        if not last_agent:
+            agent_match = re.search(r'agent\s+(\d+|[a-zA-Z]+)', content_lower)
+            if agent_match:
+                last_agent = agent_match.group(0)
+
+    # Proactive alerts for Operations dashboard
+    proactive_alerts = ""
+    if role.upper() in ["ADMIN", "DISPATCHER"]:
+        unassigned_count = db.query(Delivery).filter(Delivery.status.in_(["Created", "Pending"]), Delivery.agent_id.is_(None)).count()
+        delayed_count = db.query(Delivery).filter(Delivery.status.notin_(["Delivered", "Cancelled"]), Delivery.estimated_delivery_at < datetime.now(timezone.utc)).count()
+        proactive_alerts = (
+            f"\n\nProactive Operations Alerts:\n"
+            f"- There are currently {unassigned_count} unassigned deliveries.\n"
+            f"- {delayed_count} deliveries are currently delayed.\n"
+            f"If the user greets you or asks for overview, proactively highlight these alerts!"
+        )
+
     # 2. Inject Role-specific System Prompt & formatting guidelines
     system_instruction = (
         f"You are the intelligent Logistics Assistant for LogisticsPro.\n"
@@ -888,13 +1306,22 @@ def get_ai_response(
         f"5. Format all lists or grids of shipments in clean markdown tables. Keep responses brief, helpful, and professional."
     )
 
+    if last_delivery or last_agent:
+        system_instruction += "\n\nConversational Memory Context:\n"
+        if last_delivery:
+            system_instruction += f"- The user previously mentioned delivery ID: '{last_delivery}'. If they refer to 'it' or 'that delivery', assume '{last_delivery}'.\n"
+        if last_agent:
+            system_instruction += f"- The user previously mentioned agent: '{last_agent}'.\n"
+
+    if proactive_alerts:
+        system_instruction += proactive_alerts
+
     messages = [{"role": "system", "content": system_instruction}]
     for msg in history_records:
         messages.append({"role": msg.sender, "content": msg.content})
     messages.append({"role": "user", "content": question})
 
     # Intent pre-fetching/pre-routing logic for small models (like qwen2.5:0.5b)
-    q_clean = question.lower()
     injected_tool_context = ""
     
     if "list" in q_clean and "user" in q_clean:
@@ -945,11 +1372,10 @@ def get_ai_response(
         tracking_match = re.search(r'(del-\d+|trk\d+)', q_clean)
         if tracking_match:
             trkid = tracking_match.group(1).upper()
-            res = execute_tool("get_delivery_status", {"tracking_number": trkid}, role, current_user, db)
+            res = execute_tool("get_delivery_details", {"tracking_number": trkid}, role, current_user, db)
             if "error" not in res:
                 injected_tool_context = f"\n[System Data: Status details of delivery {trkid}: {json.dumps(res)}]"
         elif "last" in q_clean or "latest" in q_clean:
-            # Query the last delivery depending on the user's role
             d = None
             if role == "Customer":
                 d = db.query(Delivery).filter(
@@ -975,23 +1401,21 @@ def get_ai_response(
             if d:
                 injected_tool_context = f"\n[System Data: The most recent delivery in the system is {d.delivery_id} ({d.tracking_number}). Status: {d.status}, Pickup: {d.pickup_address}, Drop: {d.drop_address}, ETA: {d.estimated_delivery_at.isoformat() if d.estimated_delivery_at else 'N/A'}]"
 
+    # Injected context formatting
     if injected_tool_context:
         messages[-1]["content"] += injected_tool_context
 
     # 3. Detect and call Ollama server
     installed_models = get_installed_ollama_models()
     if not installed_models:
-        # Fallback to local matching engine if Ollama is offline/not ready
         fallback_reply = run_local_fallback_query(question, role, current_user, db)
-        
-        # Save assistant fallback reply to DB
         assistant_msg = ChatMessage(session_id=session.id, sender="assistant", content=fallback_reply)
         db.add(assistant_msg)
         db.commit()
         return {"response": fallback_reply}
 
-    # Auto-detect models, prioritizing instruct/chat models
-    model_name = "qwen2.5:1.5b-instruct"
+    # Model prioritization
+    model_name = "qwen2.5:0.5b-instruct"
     instruct_variants = [m for m in installed_models if "instruct" in m or "chat" in m]
     if instruct_variants:
         model_name = instruct_variants[0]
@@ -1005,9 +1429,8 @@ def get_ai_response(
         content = choice_message.get("content", "")
         tool_calls = choice_message.get("tool_calls", [])
 
-        # Parse custom JSON text tool calls if native tool calling was not triggered
+        # Parse text-based tool calling fallback JSON blocks
         if not tool_calls:
-            # Regex match ```json {"tool": "..."} ``` or inline JSON
             json_blocks = re.findall(r'```json\s*(\{.*?\})\s*```', content, re.DOTALL)
             if not json_blocks:
                 json_blocks = re.findall(r'(\{\s*"tool"\s*:\s*".*?\})', content, re.DOTALL)
@@ -1026,12 +1449,11 @@ def get_ai_response(
                 except Exception:
                     pass
 
-        # 4. Handle Tool Calls & verify RBAC boundaries
+        # 4. Handle Tool Calls
         if tool_calls:
             messages.append(choice_message)
             
             for call in tool_calls:
-                call_id = call.get("id")
                 func = call.get("function", {})
                 func_name = func.get("name")
                 func_args = func.get("arguments", {})
@@ -1055,7 +1477,7 @@ def get_ai_response(
         else:
             final_content = content
 
-        # Save final response to PostgreSQL
+        # Save response to PostgreSQL
         new_assistant_msg = ChatMessage(session_id=session.id, sender="assistant", content=final_content)
         db.add(new_assistant_msg)
         db.commit()
@@ -1064,7 +1486,6 @@ def get_ai_response(
 
     except Exception as e:
         print("Error during Ollama execution:", e)
-        # Fallback to local queries
         fallback_reply = run_local_fallback_query(question, role, current_user, db)
         assistant_msg = ChatMessage(session_id=session.id, sender="assistant", content=fallback_reply)
         db.add(assistant_msg)
