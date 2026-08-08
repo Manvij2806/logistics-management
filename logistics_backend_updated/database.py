@@ -168,6 +168,30 @@ class DeliveryRouteOptimizationLog(Base):
     agent = relationship("User", foreign_keys=[agent_id])
 
 
+
+class ChatSession(Base):
+    __tablename__ = "chat_sessions"
+
+    id         = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id    = Column(Integer, ForeignKey("newusers.id"), nullable=False)
+    role       = Column(String(50), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    user = relationship("User", foreign_keys=[user_id])
+
+
+class ChatMessage(Base):
+    __tablename__ = "chat_messages"
+
+    id         = Column(Integer, primary_key=True, index=True)
+    session_id = Column(String(36), ForeignKey("chat_sessions.id", ondelete="CASCADE"), nullable=False)
+    sender     = Column(String(20), nullable=False)  # "user" or "assistant"
+    content    = Column(String, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    session = relationship("ChatSession", foreign_keys=[session_id])
+
+
 # ─────────────────────────────────────────────
 # DB DEPENDENCY
 # ─────────────────────────────────────────────

@@ -91,6 +91,10 @@ export class HeaderComponent implements OnInit, OnDestroy, OnChanges {
     this.showNotificationsDropdown = false;
   }
 
+  openAiChat(): void {
+    this.viewChanged.emit('logistics-ai');
+  }
+
   ngOnDestroy(): void {
     if (this.searchSub) {
       this.searchSub.unsubscribe();
