@@ -248,7 +248,25 @@ def get_city_from_address(address: str) -> Optional[str]:
     if not address:
         return None
     addr_lower = address.lower()
-    known_cities = ["agra", "mumbai", "delhi", "noida", "gwalior", "bangalore", "banglore", "bengaluru"]
+    known_cities = [
+        "agra", "ahmedabad", "ajmer", "ambala", "amritsar", "anantnag", "asansol", "aurangabad",
+        "bangalore", "baramulla", "bathinda", "belagavi", "bengaluru", "banglore", "bhagalpur", "bhilai",
+        "bhopal", "bhubaneswar", "bikaner", "bilaspur", "bokaro steel city", "chennai", "cuttack",
+        "deoghar", "delhi", "dharamshala", "dhanbad", "dibrugarh", "durgapur", "dwarka",
+        "faridabad", "gaya", "ghaziabad", "goa", "guntur", "gurgaon", "gurugram", "guwahati",
+        "gwalior", "howrah", "hubballi", "hyderabad", "indore", "itanagar", "jabalpur", "jaipur",
+        "jalandhar", "jammu", "jamshedpur", "jodhpur", "jorhat", "kanpur", "karimnagar", "kathua",
+        "khammam", "kochi", "kolkata", "kollam", "korba", "kota", "kozhikode", "kurnool",
+        "lucknow", "ludhiana", "madurai", "mangaluru", "mapusa", "margao", "mandi", "meerut",
+        "mumbai", "muzaffarpur", "mysuru", "nagaon", "nagpur", "naharlagun", "nashik",
+        "navi mumbai", "nellore", "new delhi", "nizamabad", "noida", "panaji", "panipat",
+        "pasighat", "patiala", "patna", "ponda", "pune", "puri", "purnia", "prayagraj",
+        "raipur", "rajkot", "rajnandgaon", "ranchi", "rohini", "rourkela", "salem", "sambalpur",
+        "shimla", "silchar", "siliguri", "solan", "srinagar", "surat", "thane", "thiruvananthapuram",
+        "thrissur", "tiruchirappalli", "udaipur", "ujjain", "una", "vadodara", "varanasi",
+        "vasant kunj", "vasco da gama", "vijayawada", "visakhapatnam", "warangal", "yamunanagar"
+    ]
+    known_cities = sorted(known_cities, key=len, reverse=True)
     for city in known_cities:
         if city in addr_lower:
             return city
