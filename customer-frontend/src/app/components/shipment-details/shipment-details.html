@@ -125,9 +125,9 @@
       <!-- Payment Option Section -->
       @if (shipment.status === 'Delivered' && (shipment.payment_status || 'Unpaid') === 'Unpaid' && !paymentSuccess()) {
         <div class="payment-section" style="margin-top: 20px; padding: 16px; background: #f9fafb; border-radius: 12px; border: 1px solid #e5e7eb;">
-          <h4 style="margin: 0 0 12px 0; font-family: 'Outfit', sans-serif; font-size: 15px; color: #1f2937;">Payment Required (Flat Rate)</h4>
+          <h4 style="margin: 0 0 12px 0; font-family: 'Outfit', sans-serif; font-size: 15px; color: #1f2937;">Payment Required ({{ shipment.payment_responsibility === 'Sender' ? 'Shipping Charge' : 'COD' }})</h4>
           <div style="font-size: 18px; font-weight: 700; color: #1e1b4b; margin-bottom: 16px;">
-            Amount Due: ₹2,000
+            Amount Due: ₹{{ (shipment.payment_responsibility === 'Sender' ? shipment.delivery_charge : (shipment.cod_amount || shipment.delivery_charge)) | number:'1.0-2' }}
           </div>
           
           <span style="font-size: 12px; color: #6b7280; display: block; margin-bottom: 8px;">Select Payment Method</span>
@@ -191,7 +191,7 @@
           <div>
             <h4 style="margin: 0; font-family: 'Outfit', sans-serif; font-size: 15px; color: #065f46;">Payment Successful</h4>
             <p style="margin: 2px 0 0 0; font-size: 12px; color: #047857;">
-              ₹2,000 received via {{ shipment.payment_method || selectedMethod() }}
+              ₹{{ (shipment.payment_responsibility === 'Sender' ? shipment.delivery_charge : (shipment.cod_amount || shipment.delivery_charge)) | number:'1.0-2' }} received via {{ shipment.payment_method || selectedMethod() }}
             </p>
           </div>
         </div>
