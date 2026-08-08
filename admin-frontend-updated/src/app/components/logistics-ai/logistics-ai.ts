@@ -2,6 +2,7 @@ import { Component, signal, ElementRef, ViewChild, inject } from '@angular/core'
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
 
 interface ChatMessage {
@@ -48,6 +49,7 @@ export class LogisticsAi {
   @ViewChild('fileInput') fileInputRef!: ElementRef<HTMLInputElement>;
 
   private http = inject(HttpClient);
+  private router = inject(Router);
 
   private readonly CHAT_KEY = 'admin_ai_chat_messages';
 
@@ -145,6 +147,22 @@ export class LogisticsAi {
           currentMsgs[currentMsgs.length - 1].message = res.response;
           this.messages.set([...currentMsgs]);
           this.saveMessages(this.messages());
+
+          // Parse redirection intent
+          if (res.response && res.response.includes('[REDIRECT:')) {
+            const match = res.response.match(/\[REDIRECT:(.*?)\]/);
+            if (match && match[1]) {
+              const targetPath = match[1].trim();
+              // Clean the token from visible response text
+              currentMsgs[currentMsgs.length - 1].message = res.response.replace(/\[REDIRECT:.*?\]/g, '').trim();
+              this.messages.set([...currentMsgs]);
+              this.saveMessages(this.messages());
+
+              setTimeout(() => {
+                this.router.navigate([targetPath]);
+              }, 1500);
+            }
+          }
         }
       },
       error: (err) => {

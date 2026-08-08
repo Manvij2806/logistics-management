@@ -8,8 +8,9 @@ import os
 import re
 import uuid
 from datetime import datetime, timezone
-from database import get_db, Delivery, User, ChatSession, ChatMessage
+from database import get_db, Delivery, User, ChatSession, ChatMessage, Role
 from auth import get_current_user
+from auth_utils import hash_password
 from pydantic import BaseModel
 from typing import Optional
 
@@ -69,7 +70,7 @@ ALLOWED_TOOLS = {
     "CUSTOMER": ["get_my_deliveries", "get_delivery_status", "calculate_delivery_price"],
     "AGENT": ["get_my_deliveries", "get_delivery_status", "get_delivery_details"],
     "DISPATCHER": ["get_delivery_status", "get_delivery_details", "get_available_agents", "get_agent_workload", "get_pending_deliveries", "get_delivery_history", "calculate_delivery_price"],
-    "ADMIN": ["get_delivery_status", "get_delivery_details", "get_available_agents", "get_agent_workload", "get_pending_deliveries", "get_delivery_history", "get_dashboard_statistics", "calculate_delivery_price", "get_users_list", "get_user_details"]
+    "ADMIN": ["get_delivery_status", "get_delivery_details", "get_available_agents", "get_agent_workload", "get_pending_deliveries", "get_delivery_history", "get_dashboard_statistics", "calculate_delivery_price", "get_users_list", "get_user_details", "create_user"]
 }
 
 def execute_tool(tool_name: str, args: dict, user_role: str, current_user: User, db: Session) -> dict:
@@ -444,6 +445,58 @@ def execute_tool(tool_name: str, args: dict, user_role: str, current_user: User,
                 "created_at": u.created_at.isoformat() if u.created_at else None
             }
 
+        # Tool 12: Create User (Admin Only)
+        elif tool_name == "create_user":
+            fullname = str(args.get("fullname", "")).strip()
+            username = str(args.get("username", "")).strip()
+            email = str(args.get("email", "")).strip()
+            password = str(args.get("password", ""))
+            role_name = str(args.get("role", "Customer")).strip()
+            phone_number = str(args.get("phone_number", "")).strip()
+            city = str(args.get("city", "")).strip()
+
+            if not fullname or not username or not email or not password or not role_name:
+                return {"error": "Missing required fields: fullname, username, email, password, and role are required."}
+
+            # Normalize role name to look up in DB
+            db_role = db.query(Role).filter(Role.name.ilike(role_name)).first()
+            if not db_role:
+                return {"error": f"Role '{role_name}' does not exist in the database."}
+
+            # Check if username or email already exists
+            existing_user = db.query(User).filter(or_(User.username.ilike(username), User.email.ilike(email))).first()
+            if existing_user:
+                return {"error": f"A user with username '{username}' or email '{email}' already exists."}
+
+            new_user = User(
+                fullname=fullname,
+                username=username,
+                email=email,
+                phone_number=phone_number if phone_number else None,
+                hashed_password=hash_password(password),
+                role_id=db_role.id,
+                status="Active",
+                city=city if city else None
+            )
+            db.add(new_user)
+            db.commit()
+            db.refresh(new_user)
+
+            return {
+                "success": True,
+                "message": f"Successfully created user '{fullname}' with role '{db_role.name}'.",
+                "user": {
+                    "user_id": new_user.id,
+                    "fullname": new_user.fullname,
+                    "username": new_user.username,
+                    "email": new_user.email,
+                    "phone": new_user.phone_number,
+                    "role": db_role.name,
+                    "city": new_user.city,
+                    "status": new_user.status
+                }
+            }
+
     except Exception as ex:
         return {"error": f"Tool execution failed: {ex}"}
 
@@ -585,6 +638,26 @@ SYSTEM_TOOLS = [
                 "required": ["username_or_name"]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "create_user",
+            "description": "Create a new user/agent/dispatcher/customer in the system. Restricted to admins.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "fullname": {"type": "string", "description": "The full name of the user (e.g. John Doe)"},
+                    "username": {"type": "string", "description": "A unique username (e.g. john_d)"},
+                    "email": {"type": "string", "description": "Email address (e.g. john@example.com)"},
+                    "password": {"type": "string", "description": "Plain text password (will be securely hashed)"},
+                    "role": {"type": "string", "description": "Role: Admin, Dispatcher, Agent, or Customer"},
+                    "phone_number": {"type": "string", "description": "Optional phone number"},
+                    "city": {"type": "string", "description": "Optional city name (useful for Agents/Dispatchers)"}
+                },
+                "required": ["fullname", "username", "email", "password", "role"]
+            }
+        }
     }
 ]
 
@@ -651,6 +724,12 @@ def run_local_fallback_query(question: str, user_role: str, current_user: User, 
         for d in dels:
             response += f"| `{d['delivery_id']}` | {d['pickup']} | {d['drop']} |\n"
         return response
+
+    # 4a. Create User fallback
+    elif ("create" in q_lower or "add" in q_lower or "register" in q_lower) and ("user" in q_lower or "agent" in q_lower or "dispatcher" in q_lower or "customer" in q_lower):
+        if role_upper != "ADMIN":
+            return response + "❌ Security restriction: Only Admins are authorized to create users."
+        return response + "To register a new user, please start the Ollama service. The AI model is required to parse the registration parameters from your message."
 
     # 4b. Users list fallback
     elif "user" in q_lower:
@@ -779,6 +858,19 @@ def get_ai_response(
     new_user_msg = ChatMessage(session_id=session.id, sender="user", content=question)
     db.add(new_user_msg)
     db.commit()
+
+    # Intercept user creation queries and route directly to Admin User Management screen
+    q_clean = question.lower()
+    if ("create" in q_clean or "add" in q_clean or "register" in q_clean or "new" in q_clean) and ("user" in q_clean or "agent" in q_clean or "dispatcher" in q_clean or "customer" in q_clean):
+        if role.upper() != "ADMIN":
+            reply_text = "### ❌ Access Denied\n\nSecurity boundary: Only the Administrator has permissions to manage or create users in the system."
+        else:
+            reply_text = "### 👤 Redirecting to User Management...\n\nI am taking you directly to the User Management dashboard where you can add new users and agents.\n\n[REDIRECT:/users]"
+        
+        new_assistant_msg = ChatMessage(session_id=session.id, sender="assistant", content=reply_text)
+        db.add(new_assistant_msg)
+        db.commit()
+        return {"response": reply_text}
 
     # 2. Inject Role-specific System Prompt & formatting guidelines
     system_instruction = (
