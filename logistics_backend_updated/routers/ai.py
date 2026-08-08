@@ -661,7 +661,7 @@ def run_local_fallback_query(question: str, user_role: str, current_user: User, 
         target_name = None
         for word in q_lower.split():
             clean_word = word.strip("?,.!:;()\"'")
-            if clean_word not in ("user", "users", "list", "get", "show", "details", "info", "give", "of", "about", "describe", "find"):
+            if clean_word not in ("user", "users", "list", "get", "show", "details", "info", "give", "of", "about", "describe", "find", "all"):
                 target_name = clean_word
                 break
         
@@ -765,6 +765,57 @@ def get_ai_response(
     for msg in history_records:
         messages.append({"role": msg.sender, "content": msg.content})
     messages.append({"role": "user", "content": question})
+
+    # Intent pre-fetching/pre-routing logic for small models (like qwen2.5:0.5b)
+    q_clean = question.lower()
+    injected_tool_context = ""
+    
+    if "list" in q_clean and "user" in q_clean:
+        res = execute_tool("get_users_list", {}, role, current_user, db)
+        if "users" in res:
+            injected_tool_context = f"\n[System Data: Here is the list of users from the database: {json.dumps(res['users'])}]"
+            
+    elif "detail" in q_clean and "user" in q_clean:
+        target_name = None
+        for word in question.split():
+            clean_word = word.strip("?,.!:;()\"'")
+            if clean_word.lower() not in ("user", "users", "list", "get", "show", "details", "info", "give", "of", "about", "describe", "find", "all"):
+                target_name = clean_word
+                break
+        if target_name:
+            res = execute_tool("get_user_details", {"username_or_name": target_name}, role, current_user, db)
+            if "error" not in res:
+                injected_tool_context = f"\n[System Data: Here are the details for user '{target_name}': {json.dumps(res)}]"
+                
+    elif "available" in q_clean and "agent" in q_clean:
+        res = execute_tool("get_available_agents", {}, role, current_user, db)
+        if "agents" in res:
+            injected_tool_context = f"\n[System Data: Available agents: {json.dumps(res['agents'])}]"
+            
+    elif "pending" in q_clean and "deliver" in q_clean:
+        res = execute_tool("get_pending_deliveries", {}, role, current_user, db)
+        if "pending_deliveries" in res:
+            injected_tool_context = f"\n[System Data: Pending deliveries: {json.dumps(res['pending_deliveries'])}]"
+
+    elif "workload" in q_clean and "agent" in q_clean:
+        target_agent = None
+        for word in question.split():
+            clean_word = word.strip("?,.!:;()\"'")
+            if clean_word.lower() not in ("agent", "agents", "workload", "get", "show", "details", "info", "give", "of", "about", "describe", "find", "work"):
+                target_agent = clean_word
+                break
+        if target_agent:
+            res = execute_tool("get_agent_workload", {"agent_name": target_agent}, role, current_user, db)
+            if "error" not in res:
+                injected_tool_context = f"\n[System Data: Workload of agent '{target_agent}': {json.dumps(res)}]"
+
+    elif "my deliveries" in q_clean or "my shipments" in q_clean or ("show" in q_clean and "deliver" in q_clean and role == "Customer"):
+        res = execute_tool("get_my_deliveries", {}, role, current_user, db)
+        if "deliveries" in res:
+            injected_tool_context = f"\n[System Data: Your deliveries: {json.dumps(res['deliveries'])}]"
+
+    if injected_tool_context:
+        messages[-1]["content"] += injected_tool_context
 
     # 3. Detect and call Ollama server
     installed_models = get_installed_ollama_models()
