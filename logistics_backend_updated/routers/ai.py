@@ -1185,15 +1185,32 @@ def run_local_fallback_query(question: str, user_role: str, current_user: User, 
     tracking_match = re.search(r'(del-\d+|trk\d+)', q_lower)
     if tracking_match:
         trkid = tracking_match.group(1).upper()
-        res = execute_tool("get_delivery_status", {"tracking_number": trkid}, user_role, current_user, db)
-        if "error" in res:
-            return response + f"❌ {res['error']}"
-        response += f"#### 📦 Shipment Status: {res['delivery_id']} ({res['tracking_number']})\n\n"
-        response += f"* **Current Status**: **{res['status']}**\n"
-        response += f"* **Pickup**: {res['pickup']}\n"
-        response += f"* **Drop**: {res['drop']}\n"
-        response += f"* **Estimated Delivery**: {res['eta'] or 'N/A'}\n"
-        return response
+        # Check if asking for bill/payment/price details
+        if any(w in q_lower for w in ["bill", "price", "charge", "payment", "cost", "fee", "amount", "breakdown"]):
+            res = execute_tool("get_delivery_details", {"tracking_number": trkid}, user_role, current_user, db)
+            if "error" in res:
+                return response + f"❌ {res['error']}"
+            response += f"#### 💵 Bill & Payment Breakdown: {res['delivery_id']} ({res['tracking_number'] or 'N/A'})\n\n"
+            response += f"* **Payment Status**: **{res['payment_status'] or 'Unpaid'}**\n"
+            response += f"* **Payment Responsibility**: {res['payment_responsibility'] or 'Sender'}\n"
+            response += f"* **Shipping Charge**: ₹{res['delivery_charge'] or 0.0}\n"
+            if res.get('payment_responsibility') == 'Receiver':
+                response += f"* **COD Amount to Collect**: ₹{res['cod_amount'] or 0.0}\n"
+            response += f"* **Declared Value**: ₹{res['declared_value'] or 0.0}\n"
+            response += f"* **Insurance Opt-in**: {'Yes' if res.get('insurance_opt_in') else 'No'}\n"
+            if res.get('payment_method'):
+                response += f"* **Payment Method**: {res['payment_method']}\n"
+            return response
+        else:
+            res = execute_tool("get_delivery_status", {"tracking_number": trkid}, user_role, current_user, db)
+            if "error" in res:
+                return response + f"❌ {res['error']}"
+            response += f"#### 📦 Shipment Status: {res['delivery_id']} ({res['tracking_number']})\n\n"
+            response += f"* **Current Status**: **{res['status']}**\n"
+            response += f"* **Pickup**: {res['pickup']}\n"
+            response += f"* **Drop**: {res['drop']}\n"
+            response += f"* **Estimated Delivery**: {res['eta'] or 'N/A'}\n"
+            return response
 
     return response + "Ollama server is offline. Please start the Ollama service to enable full natural language responses."
 
