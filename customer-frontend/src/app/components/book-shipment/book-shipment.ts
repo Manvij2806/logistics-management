@@ -238,6 +238,7 @@ export class BookShipment implements OnInit {
   isSubmitting = signal(false);
   submitSuccess = signal(false);
   submitError = signal<string | null>(null);
+  selectedCheckoutMethod = signal<'Card' | 'QR Code' | 'Cash'>('Card');
 
   ngOnInit(): void {
     this.statesList = Object.keys(this.indiaStatesCities);
@@ -478,8 +479,13 @@ export class BookShipment implements OnInit {
   }
 
   payAndBook(): void {
+    const method = this.selectedCheckoutMethod();
     this.showCheckoutModal = false;
-    this.submitBooking('Paid');
+    if (method === 'Cash') {
+      this.submitBooking('Unpaid');
+    } else {
+      this.submitBooking('Paid');
+    }
   }
 
   submitBooking(paymentStatus: string): void {
@@ -509,7 +515,7 @@ export class BookShipment implements OnInit {
       package_weight: this.form.packageWeight.trim() || null,
       package_dimensions: `${this.pkgLength}x${this.pkgWidth}x${this.pkgHeight}`,
       priority: this.deliveryType,
-      payment_method: this.form.paymentMethod,
+      payment_method: this.form.paymentMethod === 'Prepaid' ? this.selectedCheckoutMethod() : this.form.paymentMethod,
       notes: this.form.notes.trim() || null,
       status: 'Created',
       payment_status: paymentStatus,

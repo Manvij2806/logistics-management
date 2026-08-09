@@ -474,31 +474,84 @@
           </div>
         </div>
 
-        <!-- Credit Card Fields -->
-        <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
-          <div style="display: flex; flex-direction: column; gap: 4px;">
-            <label style="font-size: 12px; color: #475569; font-weight: 600;">Cardholder Name</label>
-            <input type="text" value="Yuvraj Jain" style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px;" readonly />
-          </div>
-          <div style="display: flex; flex-direction: column; gap: 4px;">
-            <label style="font-size: 12px; color: #475569; font-weight: 600;">Card Number</label>
-            <input type="text" value="•••• •••• •••• 4242" style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px;" readonly />
-          </div>
-          <div style="display: flex; gap: 12px;">
-            <div style="display: flex; flex-direction: column; gap: 4px; flex: 1;">
-              <label style="font-size: 12px; color: #475569; font-weight: 600;">Expiry Date</label>
-              <input type="text" value="12 / 29" style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px;" readonly />
-            </div>
-            <div style="display: flex; flex-direction: column; gap: 4px; flex: 1;">
-              <label style="font-size: 12px; color: #475569; font-weight: 600;">CVV Code</label>
-              <input type="password" value="•••" style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px;" readonly />
-            </div>
-          </div>
+        <!-- Payment Method Selector -->
+        <span style="font-size: 12px; color: #6b7280; display: block; margin-bottom: 8px; font-weight: 600;">Select Payment Method</span>
+        <div class="payment-methods-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 20px;">
+          <button 
+            type="button" 
+            (click)="selectedCheckoutMethod.set('QR Code')"
+            [style.border-color]="selectedCheckoutMethod() === 'QR Code' ? '#4f46e5' : '#e5e7eb'"
+            [style.background]="selectedCheckoutMethod() === 'QR Code' ? '#f5f3ff' : 'white'"
+            style="padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; font-family: inherit; font-size: 12px; font-weight: 600; color: #1e1b4b; transition: all 0.2s;">
+            <i class="pi pi-qrcode" style="font-size: 16px; color: #6366f1;"></i>
+            <span>QR Code</span>
+          </button>
+          
+          <button 
+            type="button" 
+            (click)="selectedCheckoutMethod.set('Card')"
+            [style.border-color]="selectedCheckoutMethod() === 'Card' ? '#4f46e5' : '#e5e7eb'"
+            [style.background]="selectedCheckoutMethod() === 'Card' ? '#f5f3ff' : 'white'"
+            style="padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; font-family: inherit; font-size: 12px; font-weight: 600; color: #1e1b4b; transition: all 0.2s;">
+            <i class="pi pi-credit-card" style="font-size: 16px; color: #6366f1;"></i>
+            <span>Card</span>
+          </button>
+
+          <button 
+            type="button" 
+            (click)="selectedCheckoutMethod.set('Cash')"
+            [style.border-color]="selectedCheckoutMethod() === 'Cash' ? '#4f46e5' : '#e5e7eb'"
+            [style.background]="selectedCheckoutMethod() === 'Cash' ? '#f5f3ff' : 'white'"
+            style="padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; font-family: inherit; font-size: 12px; font-weight: 600; color: #1e1b4b; transition: all 0.2s;">
+            <i class="pi pi-wallet" style="font-size: 16px; color: #6366f1;"></i>
+            <span>Cash</span>
+          </button>
         </div>
 
+        <!-- Dynamic Payment Method Inputs -->
+        <!-- 1. QR Code Display -->
+        @if (selectedCheckoutMethod() === 'QR Code') {
+          <div style="text-align: center; padding: 12px; border: 1px solid #e2e8f0; border-radius: 12px; margin-bottom: 20px; background: #fafafb;">
+            <img src="/qr_code.png" alt="Payment QR Code" style="width: 130px; height: 130px; display: block; margin: 0 auto 8px auto;" />
+            <span style="font-size: 11px; color: #6b7280;">Scan this QR code using any UPI app to pay.</span>
+          </div>
+        }
+
+        <!-- 2. Credit Card Fields -->
+        @if (selectedCheckoutMethod() === 'Card') {
+          <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+              <label style="font-size: 12px; color: #475569; font-weight: 600;">Cardholder Name</label>
+              <input type="text" value="Yuvraj Jain" style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px;" readonly />
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+              <label style="font-size: 12px; color: #475569; font-weight: 600;">Card Number</label>
+              <input type="text" value="•••• •••• •••• 4242" style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px;" readonly />
+            </div>
+            <div style="display: flex; gap: 12px;">
+              <div style="display: flex; flex-direction: column; gap: 4px; flex: 1;">
+                <label style="font-size: 12px; color: #475569; font-weight: 600;">Expiry Date</label>
+                <input type="text" value="12 / 29" style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px;" readonly />
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 4px; flex: 1;">
+                <label style="font-size: 12px; color: #475569; font-weight: 600;">CVV Code</label>
+                <input type="password" value="•••" style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px;" readonly />
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- 3. Cash Pickup Info -->
+        @if (selectedCheckoutMethod() === 'Cash') {
+          <div style="padding: 16px; border: 1px solid #fee2e2; background: #fff5f5; border-radius: 12px; margin-bottom: 20px; font-size: 13px; color: #991b1b; line-height: 1.5;">
+            <i class="pi pi-info-circle" style="font-size: 14px; margin-right: 4px;"></i>
+            <strong>Cash on Pickup:</strong> Hand over the cash amount of <strong>₹{{ totalCharge }}</strong> directly to the courier agent when they arrive at your pickup address. Your shipment status will update to Paid once collected.
+          </div>
+        }
+
         <!-- Pay Button -->
-        <button type="button" (click)="payAndBook()" style="width: 100%; padding: 14px; background: #22c55e; border: none; border-radius: 8px; color: white; font-weight: 700; font-size: 15px; cursor: pointer; transition: background 0.2s ease;">
-          Pay & Confirm Booking
+        <button type="button" (click)="payAndBook()" style="width: 100%; padding: 14px; background: #22c55e; border: none; border-radius: 8px; color: white; font-weight: 700; font-size: 15px; cursor: pointer; transition: background 0.2s ease; font-family: inherit;">
+          {{ selectedCheckoutMethod() === 'Cash' ? 'Confirm Booking (Pay on Pickup)' : 'Pay & Confirm Booking' }}
         </button>
 
         <div style="text-align: center; margin-top: 12px;">
