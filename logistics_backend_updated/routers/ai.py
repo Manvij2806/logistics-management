@@ -69,7 +69,7 @@ def call_ollama(model_name: str, messages: list, tools: list = None) -> dict:
 
 ALLOWED_TOOLS = {
     "CUSTOMER": [
-        "get_my_deliveries", "get_delivery_status", "calculate_delivery_price", 
+        "get_my_deliveries", "get_delivery_status", "get_delivery_details", "calculate_delivery_price", 
         "create_delivery", "request_reschedule", "create_ticket"
     ],
     "AGENT": [
@@ -182,6 +182,17 @@ def execute_tool(tool_name: str, args: dict, user_role: str, current_user: User,
             ).first()
             if not d:
                 return {"error": f"Shipment '{tracking}' not found."}
+
+            # Customer privacy check
+            if role_upper == "CUSTOMER" and not (
+                d.customer_phone == current_user.phone_number or
+                d.customer_name == current_user.fullname or
+                d.sender_name == current_user.fullname or
+                d.recipient_name == current_user.fullname or
+                d.sender_phone == current_user.phone_number or
+                d.recipient_phone == current_user.phone_number
+            ):
+                return {"error": "Access denied. You are not associated with this shipment."}
 
             # Agent check
             if role_upper == "AGENT" and d.agent_id != current_user.id:

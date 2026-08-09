@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy, Output, EventEmitter, HostListener, inject, signal, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Tag } from 'primeng/tag';
+import { Dialog } from 'primeng/dialog';
 import { DeliveryService, Delivery } from '../../services/delivery.service';
 import { AuthService } from '../../services/auth.service';
 import { ShipmentDetails } from '../shipment-details/shipment-details';
@@ -19,7 +20,7 @@ export interface CustomerNotification {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, Tag, ShipmentDetails],
+  imports: [CommonModule, Tag, ShipmentDetails, Dialog],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss'
 })
@@ -45,6 +46,11 @@ export class Dashboard implements OnInit, OnDestroy {
   selectedShipmentForDetails: Delivery | null = null;
   detailsVisible: boolean = false;
   showNotificationsDropdown = false;
+
+  billVisible = false;
+  selectedShipmentForBill: Delivery | null = null;
+  billPaymentProcessing = signal(false);
+  billPaymentSuccess = signal(false);
 
   toasts = signal<{ id: string; message: string }[]>([]);
   private pollSub?: Subscription;
@@ -352,6 +358,42 @@ export class Dashboard implements OnInit, OnDestroy {
 
   navigateTo(viewId: string) {
     this.viewChange.emit(viewId);
+  }
+
+  openBillBreakdown(shipment: Delivery, event: Event) {
+    event.stopPropagation(); // Prevent opening shipment details card
+    this.selectedShipmentForBill = shipment;
+    this.billPaymentSuccess.set(false);
+    this.billPaymentProcessing.set(false);
+    this.billVisible = true;
+  }
+
+  payBillFromModal() {
+    if (!this.selectedShipmentForBill) return;
+    this.billPaymentProcessing.set(true);
+
+    this.deliveryService.updateDelivery(this.selectedShipmentForBill.id, {
+      payment_status: 'Paid',
+      payment_method: 'Card' // Default card payment from quick checkout
+    }).subscribe({
+      next: (res) => {
+        this.billPaymentProcessing.set(false);
+        this.billPaymentSuccess.set(true);
+        this.selectedShipmentForBill = res; // update local modal data
+        
+        // Update it in the shipments list too
+        const idx = this.shipments.findIndex(s => s.id === res.id);
+        if (idx !== -1) {
+          this.shipments[idx] = res;
+        }
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Payment failed from bill modal', err);
+        this.billPaymentProcessing.set(false);
+        alert('Payment failed. Please try again.');
+      }
+    });
   }
 
   ngOnDestroy(): void {
