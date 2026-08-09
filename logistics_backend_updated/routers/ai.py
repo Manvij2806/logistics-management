@@ -41,6 +41,7 @@ def call_ollama(model_name: str, messages: list, tools: list = None) -> dict:
         "model": model_name,
         "messages": messages,
         "stream": False,
+        "keep_alive": -1,
         "options": {
             "temperature": 0.2
         }
@@ -1414,13 +1415,16 @@ def get_ai_response(
         db.commit()
         return {"response": fallback_reply}
 
-    # Model prioritization
+    # Model prioritization: Prefer the lightweight 0.5b model for fast CPU inference
     model_name = "qwen2.5:0.5b-instruct"
-    instruct_variants = [m for m in installed_models if "instruct" in m or "chat" in m]
-    if instruct_variants:
-        model_name = instruct_variants[0]
-    elif installed_models:
-        model_name = installed_models[0]
+    if "qwen2.5:0.5b-instruct" in installed_models:
+        model_name = "qwen2.5:0.5b-instruct"
+    else:
+        instruct_variants = [m for m in installed_models if "instruct" in m or "chat" in m]
+        if instruct_variants:
+            model_name = instruct_variants[0]
+        elif installed_models:
+            model_name = installed_models[0]
 
     try:
         # First Chat Completion
