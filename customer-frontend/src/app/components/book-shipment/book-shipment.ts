@@ -492,31 +492,31 @@ export class BookShipment implements OnInit {
     this.isSubmitting.set(true);
     this.submitError.set(null);
 
-    const pickup_address = `${this.pickup.line1.trim()}${this.pickup.line2 ? ', ' + this.pickup.line2.trim() : ''}, ${this.pickup.city.trim()}, ${this.pickup.state.trim()}, ${this.pickup.pincode.trim()}`;
-    const drop_address = `${this.delivery.line1.trim()}${this.delivery.line2 ? ', ' + this.delivery.line2.trim() : ''}, ${this.delivery.city.trim()}, ${this.delivery.state.trim()}, ${this.delivery.pincode.trim()}`;
+    const pickup_address = `${(this.pickup.line1 || '').trim()}${this.pickup.line2 ? ', ' + (this.pickup.line2 || '').trim() : ''}, ${(this.pickup.city || '').trim()}, ${(this.pickup.state || '').trim()}, ${(this.pickup.pincode || '').trim()}`;
+    const drop_address = `${(this.delivery.line1 || '').trim()}${this.delivery.line2 ? ', ' + (this.delivery.line2 || '').trim() : ''}, ${(this.delivery.city || '').trim()}, ${(this.delivery.state || '').trim()}, ${(this.delivery.pincode || '').trim()}`;
 
     const payload = {
       pickup_address,
       drop_address,
-      customer_name: this.form.recipientName.trim(),
-      customer_phone: this.form.recipientPhone.replace(/\s+/g, ''),
+      customer_name: (this.form.recipientName || '').trim(),
+      customer_phone: String(this.form.recipientPhone || '').replace(/\s+/g, ''),
       
-      sender_name: this.form.senderName.trim(),
-      sender_address: this.pickup.line1.trim() + (this.pickup.line2 ? ', ' + this.pickup.line2.trim() : ''),
-      sender_pincode: this.pickup.pincode.trim(),
-      sender_phone: this.form.senderPhone.replace(/\s+/g, ''),
+      sender_name: (this.form.senderName || '').trim(),
+      sender_address: (this.pickup.line1 || '').trim() + (this.pickup.line2 ? ', ' + this.pickup.line2.trim() : ''),
+      sender_pincode: (this.pickup.pincode || '').trim(),
+      sender_phone: String(this.form.senderPhone || '').replace(/\s+/g, ''),
       
-      recipient_name: this.form.recipientName.trim(),
-      recipient_address: this.delivery.line1.trim() + (this.delivery.line2 ? ', ' + this.delivery.line2.trim() : ''),
-      recipient_pincode: this.delivery.pincode.trim(),
-      recipient_phone: this.form.recipientPhone.replace(/\s+/g, ''),
+      recipient_name: (this.form.recipientName || '').trim(),
+      recipient_address: (this.delivery.line1 || '').trim() + (this.delivery.line2 ? ', ' + this.delivery.line2.trim() : ''),
+      recipient_pincode: (this.delivery.pincode || '').trim(),
+      recipient_phone: String(this.form.recipientPhone || '').replace(/\s+/g, ''),
       
-      package_description: this.form.packageDescription.trim() || null,
-      package_weight: this.form.packageWeight.trim() || null,
+      package_description: this.form.packageDescription ? String(this.form.packageDescription).trim() : null,
+      package_weight: this.form.packageWeight ? String(this.form.packageWeight).trim() : null,
       package_dimensions: `${this.pkgLength}x${this.pkgWidth}x${this.pkgHeight}`,
       priority: this.deliveryType,
       payment_method: this.form.paymentMethod === 'Prepaid' ? this.selectedCheckoutMethod() : this.form.paymentMethod,
-      notes: this.form.notes.trim() || null,
+      notes: this.form.notes ? String(this.form.notes).trim() : null,
       status: 'Created',
       payment_status: paymentStatus,
       payment_responsibility: this.paymentResponsibility,
