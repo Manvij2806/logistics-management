@@ -216,8 +216,17 @@ def init_db():
     from sqlalchemy import text
     try:
         with engine.connect() as conn:
+            # Query deliveries columns
             result = conn.execute(text("SELECT column_name FROM information_schema.columns WHERE table_name='deliveries'"))
             existing_cols = {row[0] for row in result.fetchall()}
+            
+            # Query newusers columns
+            result_users = conn.execute(text("SELECT column_name FROM information_schema.columns WHERE table_name='newusers'"))
+            existing_user_cols = {row[0] for row in result_users.fetchall()}
+
+            # Bypasses concurrent deadlock of ALTER TABLE commands if columns are already migrated
+            if "insurance_opt_in" in existing_cols and "city" in existing_user_cols:
+                return
 
             # Backfill city names in deliveries table if they are missing but pincodes match (Disabled: run once completed)
             pass
