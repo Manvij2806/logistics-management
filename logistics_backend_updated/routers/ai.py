@@ -27,7 +27,7 @@ class ChatRequest(BaseModel):
 def get_installed_ollama_models() -> list:
     """Query the local Ollama instance for installed models."""
     try:
-        req = urllib.request.Request("http://localhost:11434/api/tags", method="GET")
+        req = urllib.request.Request("http://127.0.0.1:11434/api/tags", method="GET")
         with urllib.request.urlopen(req, timeout=3) as resp:
             data = json.loads(resp.read().decode("utf-8"))
             return [m["name"] for m in data.get("models", [])]
@@ -36,7 +36,7 @@ def get_installed_ollama_models() -> list:
 
 def call_ollama(model_name: str, messages: list, tools: list = None) -> dict:
     """Post chat query to local Ollama server."""
-    url = "http://localhost:11434/api/chat"
+    url = "http://127.0.0.1:11434/api/chat"
     payload = {
         "model": model_name,
         "messages": messages,
