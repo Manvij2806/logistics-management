@@ -12,7 +12,7 @@ import { Subscription } from 'rxjs';
 export class StatsCardsComponent implements OnInit, OnDestroy {
   stats = [
     { label: 'Agent Name', value: 'Loading...', icon: 'person', iconBg: '#4169e1' },
-    { label: 'Total Earnings', value: 'Rs. 0', icon: 'account_balance_wallet', iconBg: '#12b76a' },
+    { label: 'Total Payments', value: 'Rs. 0', icon: 'account_balance_wallet', iconBg: '#12b76a' },
     { label: 'Total Distance', value: '0 km', icon: 'straighten', iconBg: '#f79009' },
   ];
 
@@ -42,7 +42,7 @@ export class StatsCardsComponent implements OnInit, OnDestroy {
             dCoords[0],
             dCoords[1],
           );
-          const earnVal = d.delivery_charge || 0;
+          const earnVal = this.deliveryService.getPaymentAmount(d);
 
           totalDistance += dist;
           totalEarnings += earnVal;
@@ -52,7 +52,7 @@ export class StatsCardsComponent implements OnInit, OnDestroy {
       this.stats = [
         { label: 'Agent Name', value: agentName, icon: 'person', iconBg: '#4169e1' },
         {
-          label: 'Total Earnings',
+          label: 'Total Payments',
           value: `Rs. ${totalEarnings.toLocaleString('en-IN')}`,
           icon: 'account_balance_wallet',
           iconBg: '#12b76a',

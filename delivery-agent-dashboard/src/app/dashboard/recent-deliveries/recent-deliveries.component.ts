@@ -64,7 +64,7 @@ export class RecentDeliveriesComponent implements OnInit, OnDestroy {
           dCoords[0],
           dCoords[1]
         );
-        const earnVal = this.deliveryService.getEarnings(dist);
+        const earnVal = this.deliveryService.getPaymentAmount(d);
 
         let formattedDate = 'N/A';
         if (d.created_at) {

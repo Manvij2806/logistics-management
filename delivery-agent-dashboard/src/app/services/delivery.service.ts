@@ -249,7 +249,14 @@ export class DeliveryService {
     return Math.round(R * c);
   }
 
-  getEarnings(distance: number): number {
-    return 2000;
+  getPaymentAmount(d: any): number {
+    let amount = 0;
+    if (d.payment_method === 'COD') {
+      amount += (d.cod_amount || 0);
+    }
+    if (d.payment_responsibility === 'Receiver') {
+      amount += (d.delivery_charge || 0);
+    }
+    return amount;
   }
 }
