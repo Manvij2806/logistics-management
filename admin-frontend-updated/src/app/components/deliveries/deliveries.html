@@ -10,9 +10,14 @@
     <div class="table-toolbar">
       <div class="search-box">
         <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z">
+          </path>
         </svg>
+
         <input
           type="text"
           placeholder="Search by ID, tracking, customer, address, agent..."
@@ -20,22 +25,44 @@
           (ngModelChange)="onSearchChange($event)"
         />
       </div>
+
       <div class="toolbar-right">
-        <select class="status-select" [ngModel]="statusFilter()" (ngModelChange)="onStatusChange($event)">
+        <select
+          class="status-select"
+          [ngModel]="statusFilter()"
+          (ngModelChange)="onStatusChange($event)"
+        >
           <option value="">All Statuses</option>
-          <option *ngFor="let s of statuses" [value]="s">{{ s }}</option>
+          <option *ngFor="let s of statuses" [value]="s">
+            {{ s }}
+          </option>
         </select>
-        <button class="btn btn-primary" (click)="openCreateModal()">Create Delivery</button>
+
+        <button
+          class="btn btn-primary"
+          (click)="openCreateModal()"
+        >
+          Create Delivery
+        </button>
       </div>
-      <div class="api-error" *ngIf="loadError()">{{ loadError() }}</div>
+
+      <div class="api-error" *ngIf="loadError()">
+        {{ loadError() }}
+      </div>
     </div>
 
     <div class="table-container">
-      <div *ngIf="isLoading()" style="padding: 48px; text-align: center; color: var(--text-muted);">
+      <div
+        *ngIf="isLoading()"
+        style="padding: 48px; text-align: center; color: var(--text-muted);"
+      >
         Loading deliveries...
       </div>
 
-      <table class="data-table" *ngIf="!isLoading()">
+      <table
+        class="data-table"
+        *ngIf="!isLoading()"
+      >
         <thead>
           <tr>
             <th>Delivery ID</th>
@@ -52,47 +79,151 @@
             <th>Actions</th>
           </tr>
         </thead>
+
         <tbody>
           <tr *ngIf="deliveries().length === 0">
-            <td colspan="11" class="empty-cell">No deliveries found.</td>
+            <td
+              colspan="11"
+              class="empty-cell"
+            >
+              No deliveries found.
+            </td>
           </tr>
+
           <tr *ngFor="let d of deliveries()">
-            <td class="cell-id">{{ d.delivery_id }}</td>
-            <td class="cell-tracking">{{ d.tracking_number ?? '—' }}</td>
-            <td class="cell-name">{{ d.customer_name }}</td>
-            <td class="cell-phone">{{ d.customer_phone }}</td>
-            <td class="cell-address" [title]="d.pickup_address">{{ d.pickup_address }}</td>
-            <td class="cell-address" [title]="d.drop_address">{{ d.drop_address }}</td>
+            <td class="cell-id">
+              {{ d.delivery_id }}
+            </td>
+
+            <td class="cell-tracking">
+              {{ d.tracking_number ?? '—' }}
+            </td>
+
+            <td class="cell-name">
+              {{ d.customer_name }}
+            </td>
+
+            <td class="cell-phone">
+              {{ d.customer_phone }}
+            </td>
+
+            <td
+              class="cell-address"
+              [title]="d.pickup_address"
+            >
+              {{ d.pickup_address }}
+            </td>
+
+            <td
+              class="cell-address"
+              [title]="d.drop_address"
+            >
+              {{ d.drop_address }}
+            </td>
+
             <td class="cell-agent">
-              <select class="table-select" [ngModel]="d.agent ?? 'Unassigned'" (ngModelChange)="onUpdateAgent(d, $event)">
-                <option *ngFor="let ag of agents()" [value]="ag">{{ ag }}</option>
+              <select
+                class="table-select"
+                [ngModel]="d.agent ?? 'Unassigned'"
+                (ngModelChange)="onUpdateAgent(d, $event)"
+              >
+                <option
+                  *ngFor="let ag of agents()"
+                  [value]="ag"
+                >
+                  {{ ag }}
+                </option>
               </select>
             </td>
+
             <td>
-              <select class="table-select status-select-cell" [ngModel]="d.status" (ngModelChange)="onUpdateStatus(d, $event)" [ngClass]="getStatusClass(d.status)">
-                <option *ngFor="let s of statuses" [value]="s">{{ s }}</option>
+              <select
+                class="table-select status-select-cell"
+                [ngModel]="d.status"
+                (ngModelChange)="onUpdateStatus(d, $event)"
+                [ngClass]="getStatusClass(d.status)"
+              >
+                <option
+                  *ngFor="let s of statuses"
+                  [value]="s"
+                >
+                  {{ s }}
+                </option>
               </select>
             </td>
+
             <td>
-              <span class="badge" [ngClass]="d.payment_status === 'Paid' ? 'badge-paid' : 'badge-unpaid'">
+              <span
+                class="badge"
+                [ngClass]="d.payment_status === 'Paid'
+                  ? 'badge-paid'
+                  : 'badge-unpaid'"
+              >
                 {{ d.payment_status ?? 'Unpaid' }}
-                <span *ngIf="d.payment_status === 'Paid' && d.payment_method">
+
+                <span
+                  *ngIf="
+                    d.payment_status === 'Paid' &&
+                    d.payment_method
+                  "
+                >
                   ({{ d.payment_method }})
                 </span>
               </span>
             </td>
-            <td class="cell-notes" [title]="d.notes">{{ d.notes }}</td>
-            <td class="cell-date">{{ d.created_at | date:'dd MMM yyyy' }}</td>
+
+            <td
+              class="cell-notes"
+              [title]="d.notes"
+            >
+              {{ d.notes }}
+            </td>
+
+            <td class="cell-date">
+              {{ d.created_at | date:'dd MMM yyyy' }}
+            </td>
+
             <td class="cell-actions">
               <div style="display: flex; gap: 8px;">
-                <button class="action-icon-btn edit-btn" (click)="openEditModal(d)" title="Edit Delivery">
-                  <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                <button
+                  class="action-icon-btn edit-btn"
+                  (click)="openEditModal(d)"
+                  title="Edit Delivery"
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                    />
                   </svg>
                 </button>
-                <button class="action-icon-btn delete-btn" (click)="onDeleteDelivery(d)" title="Delete Delivery">
-                  <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+
+                <button
+                  class="action-icon-btn delete-btn"
+                  (click)="onDeleteDelivery(d)"
+                  title="Delete Delivery"
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    />
                   </svg>
                 </button>
               </div>
@@ -102,334 +233,1116 @@
       </table>
     </div>
 
-    <div class="pagination" *ngIf="!isLoading() && total() > 0">
+    <div
+      class="pagination"
+      *ngIf="!isLoading() && total() > 0"
+    >
       <span class="pagination-info">
-        Showing {{ (page() - 1) * pageSize() + 1 }}–{{ page() * pageSize() > total() ? total() : page() * pageSize() }} of {{ total() }}
+        Showing
+        {{ (page() - 1) * pageSize() + 1 }}–{{
+          page() * pageSize() > total()
+            ? total()
+            : page() * pageSize()
+        }}
+        of {{ total() }}
       </span>
+
       <div class="pagination-controls">
-        <button class="btn btn-outline" [disabled]="page() <= 1" (click)="goToPage(page() - 1)">Previous</button>
-        <span class="page-number">Page {{ page() }} of {{ totalPages() }}</span>
-        <button class="btn btn-outline" [disabled]="page() >= totalPages()" (click)="goToPage(page() + 1)">Next</button>
+        <button
+          class="btn btn-outline"
+          [disabled]="page() <= 1"
+          (click)="goToPage(page() - 1)"
+        >
+          Previous
+        </button>
+
+        <span class="page-number">
+          Page {{ page() }} of {{ totalPages() }}
+        </span>
+
+        <button
+          class="btn btn-outline"
+          [disabled]="page() >= totalPages()"
+          (click)="goToPage(page() + 1)"
+        >
+          Next
+        </button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Create Delivery Modal -->
-<div class="modal-overlay" *ngIf="showCreateModal()" (click)="closeModals()">
-  <div class="modal-content large-modal" (click)="$event.stopPropagation()">
+
+<!-- ========================================================= -->
+<!-- CREATE DELIVERY MODAL -->
+<!-- ========================================================= -->
+
+<div
+  class="modal-overlay"
+  *ngIf="showCreateModal()"
+  (click)="closeModals()"
+>
+  <div
+    class="modal-content large-modal"
+    (click)="$event.stopPropagation()"
+  >
+
     <div class="modal-header">
       <h2>Create New Delivery Order</h2>
-      <button class="btn-close" (click)="closeModals()">&times;</button>
+
+      <button
+        class="btn-close"
+        (click)="closeModals()"
+      >
+        &times;
+      </button>
     </div>
 
     <form (ngSubmit)="onCreateSubmit()">
+
       <div class="modal-body">
-        <p class="modal-description" style="color: #6b7280; font-size: 13px; margin-bottom: 20px;">Unique tracking number generated automatically. Default status is "Created".</p>
-        
+
+        <p
+          class="modal-description"
+          style="color: #6b7280; font-size: 13px; margin-bottom: 20px;"
+        >
+          Unique tracking number generated automatically.
+          Default status is "Created".
+        </p>
+
+
+        <!-- ================================================= -->
+        <!-- SENDER + RECIPIENT -->
+        <!-- ================================================= -->
+
         <div class="modal-form-grid">
-          <!-- SENDER DETAILS COLUMN -->
+
+          <!-- SENDER DETAILS -->
+
           <div class="form-column-section">
+
             <h3>Sender details</h3>
-            
-            <div class="form-group">
-              <label style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;">Sender Name *</label>
-              <input type="text" [(ngModel)]="deliveryForm.sender_name" name="sender_name" class="form-control" style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;" placeholder="Sender Full Name">
-            </div>
 
             <div class="form-group">
-              <label style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;">Sender Address *</label>
-              <textarea [(ngModel)]="deliveryForm.sender_address" name="sender_address" class="form-control text-area-address" style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;" placeholder="Pickup Address"></textarea>
+              <label
+                style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;"
+              >
+                Sender Name *
+              </label>
+
+              <input
+                type="text"
+                [(ngModel)]="deliveryForm.sender_name"
+                name="sender_name"
+                class="form-control"
+                style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;"
+                placeholder="Sender Full Name"
+              >
             </div>
 
-            <div class="form-group">
-              <label style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;">Sender Pincode *</label>
-              <input type="text" [(ngModel)]="deliveryForm.sender_pincode" name="sender_pincode" class="form-control" style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;" placeholder="6-digit pincode">
-            </div>
 
             <div class="form-group">
-              <label style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;">Sender Phone *</label>
-              <input type="text" [(ngModel)]="deliveryForm.sender_phone" name="sender_phone" class="form-control" style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;" placeholder="10-digit phone number">
+              <label
+                style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;"
+              >
+                Sender Address *
+              </label>
+
+              <textarea
+                [(ngModel)]="deliveryForm.sender_address"
+                name="sender_address"
+                class="form-control text-area-address"
+                style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;"
+                placeholder="Pickup Address"
+              ></textarea>
             </div>
+
+
+            <div class="form-group">
+              <label
+                style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;"
+              >
+                Sender Pincode *
+              </label>
+
+              <input
+                type="text"
+                [(ngModel)]="deliveryForm.sender_pincode"
+                name="sender_pincode"
+                class="form-control"
+                style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;"
+                placeholder="6-digit pincode"
+              >
+            </div>
+
+
+            <div class="form-group">
+              <label
+                style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;"
+              >
+                Sender Phone *
+              </label>
+
+              <input
+                type="text"
+                [(ngModel)]="deliveryForm.sender_phone"
+                name="sender_phone"
+                class="form-control"
+                style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;"
+                placeholder="10-digit phone number"
+              >
+            </div>
+
+
+            <!-- NEW SENDER EMAIL -->
+
+            <div class="form-group">
+              <label
+                style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;"
+              >
+                Sender Email *
+              </label>
+
+              <input
+                type="email"
+                [(ngModel)]="deliveryForm.sender_email"
+                name="sender_email"
+                class="form-control"
+                style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;"
+                placeholder="sender@gmail.com"
+                required
+              >
+            </div>
+
           </div>
 
-          <!-- RECIPIENT DETAILS COLUMN -->
+
+          <!-- RECIPIENT DETAILS -->
+
           <div class="form-column-section">
+
             <h3>Recipient details</h3>
 
             <div class="form-group">
-              <label style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;">Recipient Name *</label>
-              <input type="text" [(ngModel)]="deliveryForm.recipient_name" name="recipient_name" class="form-control" style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;" placeholder="Recipient Full Name">
+              <label
+                style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;"
+              >
+                Recipient Name *
+              </label>
+
+              <input
+                type="text"
+                [(ngModel)]="deliveryForm.recipient_name"
+                name="recipient_name"
+                class="form-control"
+                style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;"
+                placeholder="Recipient Full Name"
+              >
             </div>
 
-            <div class="form-group">
-              <label style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;">Recipient Address *</label>
-              <textarea [(ngModel)]="deliveryForm.recipient_address" name="recipient_address" class="form-control text-area-address" style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;" placeholder="Delivery Address"></textarea>
-            </div>
 
             <div class="form-group">
-              <label style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;">Recipient Pincode *</label>
-              <input type="text" [(ngModel)]="deliveryForm.recipient_pincode" name="recipient_pincode" class="form-control" style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;" placeholder="6-digit pincode">
+              <label
+                style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;"
+              >
+                Recipient Address *
+              </label>
+
+              <textarea
+                [(ngModel)]="deliveryForm.recipient_address"
+                name="recipient_address"
+                class="form-control text-area-address"
+                style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;"
+                placeholder="Delivery Address"
+              ></textarea>
             </div>
+
+
             <div class="form-group">
-              <label style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;">Recipient Phone *</label>
-              <input type="text" [(ngModel)]="deliveryForm.recipient_phone" name="recipient_phone" class="form-control" style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;" placeholder="10-digit phone number">
+              <label
+                style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;"
+              >
+                Recipient Pincode *
+              </label>
+
+              <input
+                type="text"
+                [(ngModel)]="deliveryForm.recipient_pincode"
+                name="recipient_pincode"
+                class="form-control"
+                style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;"
+                placeholder="6-digit pincode"
+              >
             </div>
+
+
+            <div class="form-group">
+              <label
+                style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;"
+              >
+                Recipient Phone *
+              </label>
+
+              <input
+                type="text"
+                [(ngModel)]="deliveryForm.recipient_phone"
+                name="recipient_phone"
+                class="form-control"
+                style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;"
+                placeholder="10-digit phone number"
+              >
+            </div>
+
+
+            <!-- NEW RECIPIENT EMAIL -->
+
+            <div class="form-group">
+              <label
+                style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;"
+              >
+                Recipient Email *
+              </label>
+
+              <input
+                type="email"
+                [(ngModel)]="deliveryForm.recipient_email"
+                name="recipient_email"
+                class="form-control"
+                style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;"
+                placeholder="recipient@gmail.com"
+                required
+              >
+            </div>
+
           </div>
+
         </div>
 
 
         <hr class="form-divider">
 
+
+        <!-- ================================================= -->
+        <!-- PACKAGE + SETTINGS -->
+        <!-- ================================================= -->
+
         <div class="modal-form-grid">
+
           <!-- PACKAGE DETAILS -->
+
           <div class="form-column-section">
+
             <h3>Package Details</h3>
 
             <div class="form-group">
-              <label style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;">Description (Optional)</label>
-              <input type="text" [(ngModel)]="deliveryForm.package_description" name="package_description" class="form-control" style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;" placeholder="e.g. 2kg parcel, fragile electronics">
+              <label
+                style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;"
+              >
+                Description (Optional)
+              </label>
+
+              <input
+                type="text"
+                [(ngModel)]="deliveryForm.package_description"
+                name="package_description"
+                class="form-control"
+                style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;"
+                placeholder="e.g. 2kg parcel, fragile electronics"
+              >
             </div>
+
 
             <div class="form-row-2col">
+
               <div class="form-group">
-                <label style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;">Weight (Optional)</label>
-                <input type="text" [(ngModel)]="deliveryForm.package_weight" name="package_weight" class="form-control" style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;" placeholder="e.g. 1.5 kg">
+                <label
+                  style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;"
+                >
+                  Weight (Optional)
+                </label>
+
+                <input
+                  type="text"
+                  [(ngModel)]="deliveryForm.package_weight"
+                  name="package_weight"
+                  class="form-control"
+                  style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;"
+                  placeholder="e.g. 1.5 kg"
+                >
               </div>
+
+
               <div class="form-group">
-                <label style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;">Dimensions (Optional)</label>
-                <input type="text" [(ngModel)]="deliveryForm.package_dimensions" name="package_dimensions" class="form-control" style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;" placeholder="e.g. 30x20x10 cm">
+                <label
+                  style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;"
+                >
+                  Dimensions (Optional)
+                </label>
+
+                <input
+                  type="text"
+                  [(ngModel)]="deliveryForm.package_dimensions"
+                  name="package_dimensions"
+                  class="form-control"
+                  style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;"
+                  placeholder="e.g. 30x20x10 cm"
+                >
               </div>
+
             </div>
+
           </div>
 
-          <!-- CUSTOMER CONTACT & ADDITIONAL INFO -->
+
+          <!-- CUSTOMER CONTACT -->
+
           <div class="form-column-section">
+
             <h3>Customer Contact & Settings</h3>
 
             <div class="form-group">
-              <label style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;">Customer Phone Number *</label>
-              <input type="text" [(ngModel)]="deliveryForm.customer_phone" name="customer_phone" class="form-control" style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;" placeholder="10-digit phone number">
+              <label
+                style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;"
+              >
+                Customer Phone Number *
+              </label>
+
+              <input
+                type="text"
+                [(ngModel)]="deliveryForm.customer_phone"
+                name="customer_phone"
+                class="form-control"
+                style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;"
+                placeholder="10-digit phone number"
+              >
             </div>
 
+
             <div class="form-row-2col">
+
               <div class="form-group">
-                <label style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;">Priority</label>
-                <select [(ngModel)]="deliveryForm.priority" name="priority" class="form-control select-control" style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;">
+                <label
+                  style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;"
+                >
+                  Priority
+                </label>
+
+                <select
+                  [(ngModel)]="deliveryForm.priority"
+                  name="priority"
+                  class="form-control select-control"
+                  style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;"
+                >
                   <option value="Normal">Normal</option>
                   <option value="Express">Express</option>
                 </select>
               </div>
+
+
               <div class="form-group">
-                <label style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;">Assign Agent</label>
-                <select [(ngModel)]="deliveryForm.agent" name="agent" class="form-control select-control" style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;">
-                  <option *ngFor="let ag of agents()" [value]="ag">{{ ag }}</option>
+                <label
+                  style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;"
+                >
+                  Assign Agent
+                </label>
+
+                <select
+                  [(ngModel)]="deliveryForm.agent"
+                  name="agent"
+                  class="form-control select-control"
+                  style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;"
+                >
+                  <option
+                    *ngFor="let ag of agents()"
+                    [value]="ag"
+                  >
+                    {{ ag }}
+                  </option>
                 </select>
               </div>
+
             </div>
 
+
             <div class="form-row-2col">
+
               <div class="form-group">
-                <label style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;">Status</label>
-                <select [(ngModel)]="deliveryForm.status" name="status" class="form-control select-control" style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;">
-                  <option *ngFor="let s of statuses" [value]="s">{{ s }}</option>
+                <label
+                  style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;"
+                >
+                  Status
+                </label>
+
+                <select
+                  [(ngModel)]="deliveryForm.status"
+                  name="status"
+                  class="form-control select-control"
+                  style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;"
+                >
+                  <option
+                    *ngFor="let s of statuses"
+                    [value]="s"
+                  >
+                    {{ s }}
+                  </option>
                 </select>
               </div>
+
+
               <div class="form-group">
-                <label style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;">Payment Status</label>
-                <select [(ngModel)]="deliveryForm.payment_status" name="payment_status" class="form-control select-control" style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;">
+                <label
+                  style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;"
+                >
+                  Payment Status
+                </label>
+
+                <select
+                  [(ngModel)]="deliveryForm.payment_status"
+                  name="payment_status"
+                  class="form-control select-control"
+                  style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;"
+                >
                   <option value="Unpaid">Unpaid</option>
                   <option value="Paid">Paid</option>
                 </select>
               </div>
+
             </div>
 
-            <div class="form-row-2col" *ngIf="deliveryForm.payment_status === 'Paid'">
+
+            <div
+              class="form-row-2col"
+              *ngIf="deliveryForm.payment_status === 'Paid'"
+            >
+
               <div class="form-group">
-                <label style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;">Payment Method</label>
-                <select [(ngModel)]="deliveryForm.payment_method" name="payment_method" class="form-control select-control" style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;">
+
+                <label
+                  style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;"
+                >
+                  Payment Method
+                </label>
+
+                <select
+                  [(ngModel)]="deliveryForm.payment_method"
+                  name="payment_method"
+                  class="form-control select-control"
+                  style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;"
+                >
                   <option value="QR Code">QR Code</option>
                   <option value="Card">Card</option>
                   <option value="COD">COD</option>
                 </select>
+
               </div>
+
             </div>
-            
+
+
             <div class="form-group">
-              <label style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;">Notes / Special Instructions</label>
-              <input type="text" [(ngModel)]="deliveryForm.notes" name="notes" class="form-control" style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;" placeholder="e.g. Handle with care, leave at door">
+
+              <label
+                style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;"
+              >
+                Notes / Special Instructions
+              </label>
+
+              <input
+                type="text"
+                [(ngModel)]="deliveryForm.notes"
+                name="notes"
+                class="form-control"
+                style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;"
+                placeholder="e.g. Handle with care, leave at door"
+              >
+
             </div>
+
           </div>
+
         </div>
 
-        <div class="api-error" *ngIf="submitError()" style="color: #ef4444; font-size: 13px; margin-top: 8px; font-weight: 500;">
+
+        <div
+          class="api-error"
+          *ngIf="submitError()"
+          style="color: #ef4444; font-size: 13px; margin-top: 8px; font-weight: 500;"
+        >
           {{ submitError() }}
         </div>
+
       </div>
 
-      <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 12px; padding-top: 16px; border-top: 1px solid #e5e7eb; margin-top: 16px;">
-        <button type="button" class="btn btn-outline" (click)="closeModals()" [disabled]="isSubmitting()">Cancel</button>
-        <button type="submit" class="btn btn-primary" [disabled]="isSubmitting()">Create shipment</button>
+
+      <div
+        class="modal-footer"
+        style="display: flex; justify-content: flex-end; gap: 12px; padding-top: 16px; border-top: 1px solid #e5e7eb; margin-top: 16px;"
+      >
+
+        <button
+          type="button"
+          class="btn btn-outline"
+          (click)="closeModals()"
+          [disabled]="isSubmitting()"
+        >
+          Cancel
+        </button>
+
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="isSubmitting()"
+        >
+          Create shipment
+        </button>
+
       </div>
+
     </form>
+
   </div>
 </div>
 
-<!-- Edit Delivery Modal -->
-<div class="modal-overlay" *ngIf="showEditModal()" (click)="closeModals()">
-  <div class="modal-content large-modal" (click)="$event.stopPropagation()">
+
+<!-- ========================================================= -->
+<!-- EDIT DELIVERY MODAL -->
+<!-- ========================================================= -->
+
+<div
+  class="modal-overlay"
+  *ngIf="showEditModal()"
+  (click)="closeModals()"
+>
+  <div
+    class="modal-content large-modal"
+    (click)="$event.stopPropagation()"
+  >
+
     <div class="modal-header">
-      <h2>Edit Delivery: {{ selectedDelivery()?.delivery_id }}</h2>
-      <button class="btn-close" (click)="closeModals()">&times;</button>
+
+      <h2>
+        Edit Delivery: {{ selectedDelivery()?.delivery_id }}
+      </h2>
+
+      <button
+        class="btn-close"
+        (click)="closeModals()"
+      >
+        &times;
+      </button>
+
     </div>
 
+
     <form (ngSubmit)="onEditSubmit()">
+
       <div class="modal-body">
-        
+
         <div class="modal-form-grid">
-          <!-- SENDER DETAILS COLUMN -->
+
+          <!-- SENDER DETAILS -->
+
           <div class="form-column-section">
+
             <h3>Sender details</h3>
-            
-            <div class="form-group">
-              <label style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;">Sender Name *</label>
-              <input type="text" [(ngModel)]="deliveryForm.sender_name" name="sender_name" class="form-control" style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;">
-            </div>
+
 
             <div class="form-group">
-              <label style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;">Sender Address *</label>
-              <textarea [(ngModel)]="deliveryForm.sender_address" name="sender_address" class="form-control text-area-address" style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;"></textarea>
+
+              <label
+                style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;"
+              >
+                Sender Name *
+              </label>
+
+              <input
+                type="text"
+                [(ngModel)]="deliveryForm.sender_name"
+                name="sender_name"
+                class="form-control"
+                style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;"
+              >
+
             </div>
 
+
             <div class="form-group">
-              <label style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;">Sender Pincode *</label>
-              <input type="text" [(ngModel)]="deliveryForm.sender_pincode" name="sender_pincode" class="form-control" style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;">
+
+              <label
+                style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;"
+              >
+                Sender Address *
+              </label>
+
+              <textarea
+                [(ngModel)]="deliveryForm.sender_address"
+                name="sender_address"
+                class="form-control text-area-address"
+                style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;"
+              ></textarea>
+
             </div>
+
+
             <div class="form-group">
-              <label style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;">Sender Phone *</label>
-              <input type="text" [(ngModel)]="deliveryForm.sender_phone" name="sender_phone" class="form-control" style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;">
+
+              <label
+                style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;"
+              >
+                Sender Pincode *
+              </label>
+
+              <input
+                type="text"
+                [(ngModel)]="deliveryForm.sender_pincode"
+                name="sender_pincode"
+                class="form-control"
+                style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;"
+              >
+
             </div>
+
+
+            <div class="form-group">
+
+              <label
+                style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;"
+              >
+                Sender Phone *
+              </label>
+
+              <input
+                type="text"
+                [(ngModel)]="deliveryForm.sender_phone"
+                name="sender_phone"
+                class="form-control"
+                style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;"
+              >
+
+            </div>
+
+
+            <!-- NEW: SENDER EMAIL -->
+
+            <div class="form-group">
+
+              <label
+                style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;"
+              >
+                Sender Email *
+              </label>
+
+              <input
+                type="email"
+                [(ngModel)]="deliveryForm.sender_email"
+                name="sender_email"
+                class="form-control"
+                style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;"
+              >
+
+            </div>
+
           </div>
 
-          <!-- RECIPIENT DETAILS COLUMN -->
+
+          <!-- RECIPIENT DETAILS -->
+
           <div class="form-column-section">
+
             <h3>Recipient details</h3>
 
 
             <div class="form-group">
-              <label style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;">Recipient Name *</label>
-              <input type="text" [(ngModel)]="deliveryForm.recipient_name" name="recipient_name" class="form-control" style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;">
+
+              <label
+                style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;"
+              >
+                Recipient Name *
+              </label>
+
+              <input
+                type="text"
+                [(ngModel)]="deliveryForm.recipient_name"
+                name="recipient_name"
+                class="form-control"
+                style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;"
+              >
+
             </div>
 
-            <div class="form-group">
-              <label style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;">Recipient Address *</label>
-              <textarea [(ngModel)]="deliveryForm.recipient_address" name="recipient_address" class="form-control text-area-address" style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;"></textarea>
-            </div>
 
             <div class="form-group">
-              <label style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;">Recipient Pincode *</label>
-              <input type="text" [(ngModel)]="deliveryForm.recipient_pincode" name="recipient_pincode" class="form-control" style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;">
+
+              <label
+                style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;"
+              >
+                Recipient Address *
+              </label>
+
+              <textarea
+                [(ngModel)]="deliveryForm.recipient_address"
+                name="recipient_address"
+                class="form-control text-area-address"
+                style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;"
+              ></textarea>
+
             </div>
+
+
             <div class="form-group">
-              <label style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;">Recipient Phone *</label>
-              <input type="text" [(ngModel)]="deliveryForm.recipient_phone" name="recipient_phone" class="form-control" style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;">
+
+              <label
+                style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;"
+              >
+                Recipient Pincode *
+              </label>
+
+              <input
+                type="text"
+                [(ngModel)]="deliveryForm.recipient_pincode"
+                name="recipient_pincode"
+                class="form-control"
+                style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;"
+              >
+
             </div>
+
+
+            <div class="form-group">
+
+              <label
+                style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;"
+              >
+                Recipient Phone *
+              </label>
+
+              <input
+                type="text"
+                [(ngModel)]="deliveryForm.recipient_phone"
+                name="recipient_phone"
+                class="form-control"
+                style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;"
+              >
+
+            </div>
+
+
+            <!-- NEW: RECIPIENT EMAIL -->
+
+            <div class="form-group">
+
+              <label
+                style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;"
+              >
+                Recipient Email *
+              </label>
+
+              <input
+                type="email"
+                [(ngModel)]="deliveryForm.recipient_email"
+                name="recipient_email"
+                class="form-control"
+                style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;"
+              >
+
+            </div>
+
           </div>
+
         </div>
 
 
         <hr class="form-divider">
 
+
+        <!-- PACKAGE + SETTINGS -->
+
         <div class="modal-form-grid">
+
           <!-- PACKAGE DETAILS -->
+
           <div class="form-column-section">
+
             <h3>Package Details</h3>
 
+
             <div class="form-group">
-              <label style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;">Description (Optional)</label>
-              <input type="text" [(ngModel)]="deliveryForm.package_description" name="package_description" class="form-control" style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;">
+
+              <label
+                style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;"
+              >
+                Description (Optional)
+              </label>
+
+              <input
+                type="text"
+                [(ngModel)]="deliveryForm.package_description"
+                name="package_description"
+                class="form-control"
+                style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;"
+              >
+
             </div>
 
+
             <div class="form-row-2col">
+
               <div class="form-group">
-                <label style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;">Weight (Optional)</label>
-                <input type="text" [(ngModel)]="deliveryForm.package_weight" name="package_weight" class="form-control" style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;">
+
+                <label
+                  style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;"
+                >
+                  Weight (Optional)
+                </label>
+
+                <input
+                  type="text"
+                  [(ngModel)]="deliveryForm.package_weight"
+                  name="package_weight"
+                  class="form-control"
+                  style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;"
+                >
+
               </div>
+
+
               <div class="form-group">
-                <label style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;">Dimensions (Optional)</label>
-                <input type="text" [(ngModel)]="deliveryForm.package_dimensions" name="package_dimensions" class="form-control" style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;">
+
+                <label
+                  style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;"
+                >
+                  Dimensions (Optional)
+                </label>
+
+                <input
+                  type="text"
+                  [(ngModel)]="deliveryForm.package_dimensions"
+                  name="package_dimensions"
+                  class="form-control"
+                  style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;"
+                >
+
               </div>
+
             </div>
+
           </div>
 
-          <!-- CUSTOMER CONTACT & ADDITIONAL INFO -->
+
+          <!-- CUSTOMER SETTINGS -->
+
           <div class="form-column-section">
+
             <h3>Customer Contact & Settings</h3>
 
+
             <div class="form-group">
-              <label style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;">Customer Phone Number *</label>
-              <input type="text" [(ngModel)]="deliveryForm.customer_phone" name="customer_phone" class="form-control" style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;">
+
+              <label
+                style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;"
+              >
+                Customer Phone Number *
+              </label>
+
+              <input
+                type="text"
+                [(ngModel)]="deliveryForm.customer_phone"
+                name="customer_phone"
+                class="form-control"
+                style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;"
+              >
+
             </div>
 
+
             <div class="form-row-2col">
+
               <div class="form-group">
-                <label style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;">Priority</label>
-                <select [(ngModel)]="deliveryForm.priority" name="priority" class="form-control select-control" style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;">
+
+                <label
+                  style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;"
+                >
+                  Priority
+                </label>
+
+                <select
+                  [(ngModel)]="deliveryForm.priority"
+                  name="priority"
+                  class="form-control select-control"
+                  style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;"
+                >
                   <option value="Normal">Normal</option>
                   <option value="Express">Express</option>
                 </select>
+
               </div>
+
+
               <div class="form-group">
-                <label style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;">Assign Agent</label>
-                <select [(ngModel)]="deliveryForm.agent" name="agent" class="form-control select-control" style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;">
-                  <option *ngFor="let ag of agents()" [value]="ag">{{ ag }}</option>
+
+                <label
+                  style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;"
+                >
+                  Assign Agent
+                </label>
+
+                <select
+                  [(ngModel)]="deliveryForm.agent"
+                  name="agent"
+                  class="form-control select-control"
+                  style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;"
+                >
+                  <option
+                    *ngFor="let ag of agents()"
+                    [value]="ag"
+                  >
+                    {{ ag }}
+                  </option>
                 </select>
+
               </div>
+
             </div>
 
+
             <div class="form-row-2col">
+
               <div class="form-group">
-                <label style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;">Status</label>
-                <select [(ngModel)]="deliveryForm.status" name="status" class="form-control select-control" style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;">
-                  <option *ngFor="let s of statuses" [value]="s">{{ s }}</option>
+
+                <label
+                  style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;"
+                >
+                  Status
+                </label>
+
+                <select
+                  [(ngModel)]="deliveryForm.status"
+                  name="status"
+                  class="form-control select-control"
+                  style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;"
+                >
+                  <option
+                    *ngFor="let s of statuses"
+                    [value]="s"
+                  >
+                    {{ s }}
+                  </option>
                 </select>
+
               </div>
+
+
               <div class="form-group">
-                <label style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;">Payment Status</label>
-                <select [(ngModel)]="deliveryForm.payment_status" name="payment_status" class="form-control select-control" style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;">
+
+                <label
+                  style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;"
+                >
+                  Payment Status
+                </label>
+
+                <select
+                  [(ngModel)]="deliveryForm.payment_status"
+                  name="payment_status"
+                  class="form-control select-control"
+                  style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;"
+                >
                   <option value="Unpaid">Unpaid</option>
                   <option value="Paid">Paid</option>
                 </select>
+
               </div>
+
             </div>
 
-            <div class="form-row-2col" *ngIf="deliveryForm.payment_status === 'Paid'">
+
+            <div
+              class="form-row-2col"
+              *ngIf="deliveryForm.payment_status === 'Paid'"
+            >
+
               <div class="form-group">
-                <label style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;">Payment Method</label>
-                <select [(ngModel)]="deliveryForm.payment_method" name="payment_method" class="form-control select-control" style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;">
+
+                <label
+                  style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;"
+                >
+                  Payment Method
+                </label>
+
+                <select
+                  [(ngModel)]="deliveryForm.payment_method"
+                  name="payment_method"
+                  class="form-control select-control"
+                  style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;"
+                >
                   <option value="QR Code">QR Code</option>
                   <option value="Card">Card</option>
                   <option value="COD">COD</option>
                 </select>
+
               </div>
+
             </div>
-            
+
+
             <div class="form-group">
-              <label style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;">Notes / Special Instructions</label>
-              <input type="text" [(ngModel)]="deliveryForm.notes" name="notes" class="form-control" style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;">
+
+              <label
+                style="display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;"
+              >
+                Notes / Special Instructions
+              </label>
+
+              <input
+                type="text"
+                [(ngModel)]="deliveryForm.notes"
+                name="notes"
+                class="form-control"
+                style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px;"
+              >
+
             </div>
+
           </div>
+
         </div>
 
-        <div class="api-error" *ngIf="submitError()" style="color: #ef4444; font-size: 13px; margin-top: 8px; font-weight: 500;">
+
+        <div
+          class="api-error"
+          *ngIf="submitError()"
+          style="color: #ef4444; font-size: 13px; margin-top: 8px; font-weight: 500;"
+        >
           {{ submitError() }}
         </div>
+
       </div>
 
-      <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 12px; padding-top: 16px; border-top: 1px solid #e5e7eb; margin-top: 16px;">
-        <button type="button" class="btn btn-outline" (click)="closeModals()" [disabled]="isSubmitting()">Cancel</button>
-        <button type="submit" class="btn btn-primary" [disabled]="isSubmitting()">Save changes</button>
+
+      <div
+        class="modal-footer"
+        style="display: flex; justify-content: flex-end; gap: 12px; padding-top: 16px; border-top: 1px solid #e5e7eb; margin-top: 16px;"
+      >
+
+        <button
+          type="button"
+          class="btn btn-outline"
+          (click)="closeModals()"
+          [disabled]="isSubmitting()"
+        >
+          Cancel
+        </button>
+
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="isSubmitting()"
+        >
+          Save changes
+        </button>
+
       </div>
+
     </form>
+
   </div>
 </div>
