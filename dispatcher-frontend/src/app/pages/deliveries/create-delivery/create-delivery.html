@@ -31,28 +31,15 @@
             <!-- Address Line 1 -->
             <div class="field">
               <label>Address Line 1</label>
-              <input
-                type="text"
-                pInputText
-                [(ngModel)]="pickup.line1"
-                (ngModelChange)="updatePickupAddress()"
-                placeholder="Street Address"
-                class="w-full"
-                [class.input-error]="formErrors.pickupAddress"
-              />
+              <input type="text" pInputText [(ngModel)]="pickup.line1" (ngModelChange)="updatePickupAddress()"
+                placeholder="Street Address" class="w-full" [class.input-error]="formErrors.pickupAddress" />
             </div>
 
             <!-- Address Line 2 -->
             <div class="field">
               <label>Address Line 2</label>
-              <input
-                type="text"
-                pInputText
-                [(ngModel)]="pickup.line2"
-                (ngModelChange)="updatePickupAddress()"
-                placeholder="Street Address Line 2"
-                class="w-full"
-              />
+              <input type="text" pInputText [(ngModel)]="pickup.line2" (ngModelChange)="updatePickupAddress()"
+                placeholder="Street Address Line 2" class="w-full" />
             </div>
 
             <!-- State / City / Pincode Row -->
@@ -60,31 +47,17 @@
               <!-- State -->
               <div class="field">
                 <label>State</label>
-                <input
-                  type="text"
-                  pInputText
-                  list="states-list"
-                  [(ngModel)]="pickup.state"
-                  (ngModelChange)="updatePickupAddress()"
-                  placeholder="Enter State"
-                  class="w-full"
-                  [class.input-error]="formErrors.pickupAddress"
-                />
+                <input type="text" pInputText list="states-list" [(ngModel)]="pickup.state"
+                  (ngModelChange)="updatePickupAddress()" placeholder="Enter State" class="w-full"
+                  [class.input-error]="formErrors.pickupAddress" />
               </div>
 
               <!-- City -->
               <div class="field">
                 <label>City</label>
-                <input
-                  type="text"
-                  pInputText
-                  list="pickup-cities-list"
-                  [(ngModel)]="pickup.city"
-                  (ngModelChange)="onPickupCityChange()"
-                  placeholder="Enter City"
-                  class="w-full"
-                  [class.input-error]="formErrors.pickupAddress"
-                />
+                <input type="text" pInputText list="pickup-cities-list" [(ngModel)]="pickup.city"
+                  (ngModelChange)="updatePickupAddress()" placeholder="Enter City" class="w-full"
+                  [class.input-error]="formErrors.pickupAddress" />
                 <datalist id="pickup-cities-list">
                   <option *ngFor="let city of getPickupCities()" [value]="city"></option>
                 </datalist>
@@ -93,16 +66,9 @@
               <!-- Pincode -->
               <div class="field">
                 <label>Pincode</label>
-                <input
-                  type="text"
-                  pInputText
-                  [(ngModel)]="pickup.pincode"
-                  (ngModelChange)="updatePickupAddress()"
-                  placeholder="Postal code"
-                  class="w-full"
-                  maxlength="6"
-                  [class.input-error]="formErrors.pickupPincode"
-                />
+                <input type="text" pInputText [(ngModel)]="pickup.pincode" (ngModelChange)="updatePickupAddress()"
+                  placeholder="Postal code" class="w-full" maxlength="6"
+                  [class.input-error]="formErrors.pickupPincode" />
                 <small class="error-msg" *ngIf="formErrors.pickupPincode">{{formErrors.pickupPincode}}</small>
               </div>
             </div>
@@ -123,28 +89,15 @@
             <!-- Address Line 1 -->
             <div class="field">
               <label>Address Line 1</label>
-              <input
-                type="text"
-                pInputText
-                [(ngModel)]="delivery.line1"
-                (ngModelChange)="updateDeliveryAddress()"
-                placeholder="Street Address"
-                class="w-full"
-                [class.input-error]="formErrors.deliveryAddress"
-              />
+              <input type="text" pInputText [(ngModel)]="delivery.line1" (ngModelChange)="updateDeliveryAddress()"
+                placeholder="Street Address" class="w-full" [class.input-error]="formErrors.deliveryAddress" />
             </div>
 
             <!-- Address Line 2 -->
             <div class="field">
               <label>Address Line 2</label>
-              <input
-                type="text"
-                pInputText
-                [(ngModel)]="delivery.line2"
-                (ngModelChange)="updateDeliveryAddress()"
-                placeholder="Street Address Line 2"
-                class="w-full"
-              />
+              <input type="text" pInputText [(ngModel)]="delivery.line2" (ngModelChange)="updateDeliveryAddress()"
+                placeholder="Street Address Line 2" class="w-full" />
             </div>
 
             <!-- State / City / Pincode Row -->
@@ -152,31 +105,17 @@
               <!-- State -->
               <div class="field">
                 <label>State</label>
-                <input
-                  type="text"
-                  pInputText
-                  list="states-list"
-                  [(ngModel)]="delivery.state"
-                  (ngModelChange)="updateDeliveryAddress()"
-                  placeholder="Enter State"
-                  class="w-full"
-                  [class.input-error]="formErrors.deliveryAddress"
-                />
+                <input type="text" pInputText list="states-list" [(ngModel)]="delivery.state"
+                  (ngModelChange)="updateDeliveryAddress()" placeholder="Enter State" class="w-full"
+                  [class.input-error]="formErrors.deliveryAddress" />
               </div>
 
               <!-- City -->
               <div class="field">
                 <label>City</label>
-                <input
-                  type="text"
-                  pInputText
-                  list="delivery-cities-list"
-                  [(ngModel)]="delivery.city"
-                  (ngModelChange)="onDeliveryCityChange()"
-                  placeholder="Enter City"
-                  class="w-full"
-                  [class.input-error]="formErrors.deliveryAddress"
-                />
+                <input type="text" pInputText list="delivery-cities-list" [(ngModel)]="delivery.city"
+                  (ngModelChange)="updateDeliveryAddress()" placeholder="Enter City" class="w-full"
+                  [class.input-error]="formErrors.deliveryAddress" />
                 <datalist id="delivery-cities-list">
                   <option *ngFor="let city of getDeliveryCities()" [value]="city"></option>
                 </datalist>
@@ -185,16 +124,9 @@
               <!-- Pincode -->
               <div class="field">
                 <label>Pincode</label>
-                <input
-                  type="text"
-                  pInputText
-                  [(ngModel)]="delivery.pincode"
-                  (ngModelChange)="updateDeliveryAddress()"
-                  placeholder="Postal Code"
-                  class="w-full"
-                  maxlength="6"
-                  [class.input-error]="formErrors.deliveryPincode"
-                />
+                <input type="text" pInputText [(ngModel)]="delivery.pincode" (ngModelChange)="updateDeliveryAddress()"
+                  placeholder="Postal Code" class="w-full" maxlength="6"
+                  [class.input-error]="formErrors.deliveryPincode" />
                 <small class="error-msg" *ngIf="formErrors.deliveryPincode">{{formErrors.deliveryPincode}}</small>
               </div>
             </div>
@@ -221,28 +153,21 @@
           <div class="two-field-row">
             <div class="field">
               <label>Sender Name <span class="required">*</span></label>
-              <input
-                type="text"
-                pInputText
-                [(ngModel)]="form.senderName"
-                placeholder="Enter Full Name"
-                class="w-full"
-                [class.input-error]="formErrors.senderName"
-              />
+              <input type="text" pInputText [(ngModel)]="form.senderName" placeholder="Enter Full Name" class="w-full"
+                [class.input-error]="formErrors.senderName" />
               <small class="error-msg" *ngIf="formErrors.senderName">{{formErrors.senderName}}</small>
             </div>
             <div class="field">
               <label>Sender Phone <span class="required">*</span></label>
-              <input
-                type="text"
-                pInputText
-                [(ngModel)]="form.senderPhone"
-                placeholder="+91"
-                class="w-full"
-                maxlength="10"
-                [class.input-error]="formErrors.senderPhone"
-              />
+              <input type="text" pInputText [(ngModel)]="form.senderPhone" placeholder="+91" class="w-full"
+                maxlength="10" [class.input-error]="formErrors.senderPhone" />
               <small class="error-msg" *ngIf="formErrors.senderPhone">{{formErrors.senderPhone}}</small>
+            </div>
+            <div class="field" style="grid-column: 1 / -1;">
+              <label>Sender Email</label>
+              <input type="email" pInputText [(ngModel)]="form.senderEmail" placeholder="Enter Email" class="w-full"
+                [class.input-error]="formErrors.senderEmail" />
+              <small class="error-msg" *ngIf="formErrors.senderEmail">{{formErrors.senderEmail}}</small>
             </div>
           </div>
         </div>
@@ -260,28 +185,21 @@
           <div class="two-field-row">
             <div class="field">
               <label>Recipient Name <span class="required">*</span></label>
-              <input
-                type="text"
-                pInputText
-                [(ngModel)]="form.recipientName"
-                placeholder="Enter Full Name"
-                class="w-full"
-                [class.input-error]="formErrors.recipientName"
-              />
+              <input type="text" pInputText [(ngModel)]="form.recipientName" placeholder="Enter Full Name"
+                class="w-full" [class.input-error]="formErrors.recipientName" />
               <small class="error-msg" *ngIf="formErrors.recipientName">{{formErrors.recipientName}}</small>
             </div>
             <div class="field">
               <label>Recipient Phone <span class="required">*</span></label>
-              <input
-                type="text"
-                pInputText
-                [(ngModel)]="form.recipientPhone"
-                placeholder="+91"
-                class="w-full"
-                maxlength="10"
-                [class.input-error]="formErrors.recipientPhone"
-              />
+              <input type="text" pInputText [(ngModel)]="form.recipientPhone" placeholder="+91" class="w-full"
+                maxlength="10" [class.input-error]="formErrors.recipientPhone" />
               <small class="error-msg" *ngIf="formErrors.recipientPhone">{{formErrors.recipientPhone}}</small>
+            </div>
+            <div class="field" style="grid-column: 1 / -1;">
+              <label>Recipient Email</label>
+              <input type="email" pInputText [(ngModel)]="form.recipientEmail" placeholder="Enter Email" class="w-full"
+                [class.input-error]="formErrors.recipientEmail" />
+              <small class="error-msg" *ngIf="formErrors.recipientEmail">{{formErrors.recipientEmail}}</small>
             </div>
           </div>
         </div>
@@ -301,137 +219,56 @@
       <div class="section-body">
 
         <!-- Package Type / Description / Weight row -->
-        <div class="package-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 16px;">
+        <div class="package-grid">
           <div class="field">
             <label>Package Type <span class="required">*</span></label>
-            <p-select
-              [options]="packageTypeOptions"
-              optionLabel="label"
-              optionValue="value"
-              [(ngModel)]="form.packageType"
-              placeholder="Select Type"
-              styleClass="w-full"
-              [class.input-error]="formErrors.packageType"
-            ></p-select>
+            <p-select [options]="packageTypeOptions" optionLabel="label" optionValue="value"
+              [(ngModel)]="form.packageType" placeholder="Select Type" styleClass="w-full"
+              [class.input-error]="formErrors.packageType"></p-select>
             <small class="error-msg" *ngIf="formErrors.packageType">{{formErrors.packageType}}</small>
           </div>
 
           <div class="field">
             <label>Package Description</label>
-            <input
-              type="text"
-              pInputText
-              [(ngModel)]="form.packageDescription"
-              placeholder="Describe items being shipped."
-              class="w-full"
-            />
+            <input type="text" pInputText [(ngModel)]="form.packageDescription"
+              placeholder="Describe items being shipped." class="w-full" />
           </div>
 
           <div class="field weight-field">
             <label>Weight (kg) <span class="required">*</span></label>
-            <p-inputNumber
-              [(ngModel)]="form.weight"
-              (ngModelChange)="recalculatePrice()"
-              [minFractionDigits]="2"
-              [maxFractionDigits]="2"
-              [min]="0.01"
-              placeholder="Enter weight"
-              styleClass="w-full"
-              [class.input-error]="formErrors.weight"
-            ></p-inputNumber>
+            <p-inputNumber [(ngModel)]="form.weight" [minFractionDigits]="2" [maxFractionDigits]="2" [min]="0.01"
+              placeholder="Enter weight" styleClass="w-full" [class.input-error]="formErrors.weight"></p-inputNumber>
             <small class="error-msg" *ngIf="formErrors.weight">{{formErrors.weight}}</small>
           </div>
+        </div>
 
-          <div class="field">
-            <label>Delivery Distance (km) <span class="required">*</span></label>
-            <p-inputNumber
-              [(ngModel)]="deliveryDistance"
-              (ngModelChange)="recalculatePrice()"
-              [min]="0.1"
-              placeholder="Distance in km"
-              styleClass="w-full"
-              [class.input-error]="formErrors.deliveryDistance"
-            ></p-inputNumber>
-            <small class="error-msg" *ngIf="formErrors.deliveryDistance">{{formErrors.deliveryDistance}}</small>
+        <!-- Priority Selection -->
+        <div class="field" style="margin-bottom: 20px;">
+          <label>Priority <span class="required">*</span></label>
+          <div class="priority-options-horizontal">
+            <div class="priority-option" *ngFor="let opt of priorityOptions" (click)="form.priority = opt.value">
+              <p-radioButton [value]="opt.value" [(ngModel)]="form.priority"
+                [inputId]="'priority_' + opt.value"></p-radioButton>
+              <label [for]="'priority_' + opt.value" class="priority-label">{{opt.label}}</label>
+            </div>
           </div>
         </div>
 
-        <!-- Dimensions L x W x H row -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 20px;">
-          <div class="field">
-            <label>Length (cm) <span class="required">*</span></label>
-            <p-inputNumber [(ngModel)]="pkgLength" (ngModelChange)="recalculatePrice()" [min]="1" placeholder="Length" styleClass="w-full" [class.input-error]="formErrors.pkgLength"></p-inputNumber>
-            <small class="error-msg" *ngIf="formErrors.pkgLength">{{formErrors.pkgLength}}</small>
-          </div>
-          <div class="field">
-            <label>Width (cm) <span class="required">*</span></label>
-            <p-inputNumber [(ngModel)]="pkgWidth" (ngModelChange)="recalculatePrice()" [min]="1" placeholder="Width" styleClass="w-full" [class.input-error]="formErrors.pkgWidth"></p-inputNumber>
-            <small class="error-msg" *ngIf="formErrors.pkgWidth">{{formErrors.pkgWidth}}</small>
-          </div>
-          <div class="field">
-            <label>Height (cm) <span class="required">*</span></label>
-            <p-inputNumber [(ngModel)]="pkgHeight" (ngModelChange)="recalculatePrice()" [min]="1" placeholder="Height" styleClass="w-full" [class.input-error]="formErrors.pkgHeight"></p-inputNumber>
-            <small class="error-msg" *ngIf="formErrors.pkgHeight">{{formErrors.pkgHeight}}</small>
-          </div>
-        </div>
-
-        <!-- Pricing Options Grid -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-top: 16px; padding-top: 16px; border-top: 1px dashed #e2e8f0;">
-          <div class="field">
-            <label>Delivery Service Type</label>
-            <select [(ngModel)]="deliveryType" (ngModelChange)="recalculatePrice()" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
-              <option value="Standard">Standard (₹0)</option>
-              <option value="Next Day">Next Day (₹75)</option>
-              <option value="Express">Express (₹100)</option>
-              <option value="Same Day">Same Day (₹150)</option>
-            </select>
-          </div>
-
-          <div class="field">
-            <label>Payment Method</label>
-            <select [(ngModel)]="paymentMethod" (ngModelChange)="recalculatePrice()" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
-              <option value="Prepaid">Prepaid (Online Payment)</option>
-              <option value="COD">Cash on Delivery (COD)</option>
-            </select>
-          </div>
-
-          <div class="field">
-            <label>Payment Responsibility</label>
-            <select [(ngModel)]="paymentResponsibility" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
-              <option value="Sender">Sender Pays</option>
-              <option value="Receiver">Receiver Pays</option>
-            </select>
-          </div>
-
-          <div class="field">
-            <label>Fragile Package?</label>
-            <select [(ngModel)]="isFragile" (ngModelChange)="recalculatePrice()" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
-              <option [ngValue]="false">No</option>
-              <option [ngValue]="true">Yes (+₹50)</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- COD value input if COD chosen -->
-        <div *ngIf="paymentMethod === 'COD'" style="background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 16px; margin-top: 16px;">
-          <div class="field" style="margin-bottom: 0;">
-            <label style="font-weight: 600;">COD Order Amount (₹) <span class="required">*</span></label>
-            <p-inputNumber [(ngModel)]="codAmount" (ngModelChange)="recalculatePrice()" placeholder="COD Amount to Collect" styleClass="w-full" [class.input-error]="formErrors.codAmount"></p-inputNumber>
-            <small class="error-msg" *ngIf="formErrors.codAmount">{{formErrors.codAmount}}</small>
-            <span style="font-size: 11px; color: #64748b; margin-top: 4px; display: block;">COD fee: max(₹30, 2% of value). Current fee: ₹{{ codCharge }}</span>
-          </div>
-        </div>
-
-        <!-- Declared value & insurance -->
-        <div style="background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 16px; margin-top: 16px; display: flex; flex-direction: column; gap: 12px;">
-          <div class="field" style="margin-bottom: 0;">
-            <label style="font-weight: 600;">Declared Value of Item (₹)</label>
-            <p-inputNumber [(ngModel)]="declaredValue" (ngModelChange)="recalculatePrice()" placeholder="Enter item value" styleClass="w-full" [class.input-error]="formErrors.declaredValue"></p-inputNumber>
-            <small class="error-msg" *ngIf="formErrors.declaredValue">{{formErrors.declaredValue}}</small>
-          </div>
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <input type="checkbox" id="insuranceOptIn" [(ngModel)]="insuranceOptIn" (ngModelChange)="recalculatePrice()" style="cursor: pointer; width: auto;" />
-            <label for="insuranceOptIn" style="margin-bottom: 0; cursor: pointer; font-size: 13px; font-weight: 500;">Opt-in for package insurance (1% of Declared Value: ₹{{ insuranceCharge }})</label>
+        <!-- Special Handling -->
+        <div class="field">
+          <label class="handling-label">
+            Special Handling
+            <span class="handling-hint">(Select if applicable)</span>
+          </label>
+          <div class="handling-options">
+            <div class="handling-chip" *ngFor="let opt of specialHandlingOptions"
+              [class.selected]="isHandlingSelected(opt.value)" (click)="toggleHandling(opt.value)">
+              <span class="chip-checkbox" [class.checked]="isHandlingSelected(opt.value)">
+                <i class="pi pi-check" *ngIf="isHandlingSelected(opt.value)"></i>
+              </span>
+              <i [class]="opt.icon" [style.color]="opt.color" class="chip-icon"></i>
+              <span class="chip-label">{{opt.label}}</span>
+            </div>
           </div>
         </div>
 
@@ -450,62 +287,18 @@
       <div class="section-body">
         <div class="field">
           <label>Special Delivery Instructions <span class="optional-hint">(Optional)</span></label>
-          <textarea
-            pTextarea
-            [(ngModel)]="form.specialInstructions"
-            placeholder="Enter any special handling or delivery instructions."
-            rows="3"
-            class="w-full"
-          ></textarea>
-        </div>
-      </div>
-    </div>
-
-    <!-- PRICE ESTIMATION BREAKDOWN CARD -->
-    <div class="form-sectionPriceEstimation" style="background: white; border-radius: 12px; border: 1px solid #e2e8f0; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); margin-bottom: 24px;">
-      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px; border-bottom: 1px solid #f1f5f9; padding-bottom: 12px;">
-        <i class="pi pi-receipt" style="color: #6366f1; font-size: 20px;"></i>
-        <h2 style="font-size: 18px; font-weight: 700; color: #0f172a; margin: 0;">Detailed Price Estimation</h2>
-      </div>
-
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; font-size: 13px; color: #475569;">
-        <div style="display: flex; flex-direction: column; gap: 8px;">
-          <div style="display: flex; justify-content: space-between;"><span>Volumetric Weight:</span><strong>{{ calculatedVolumetricWeight }} kg</strong></div>
-          <div style="display: flex; justify-content: space-between;"><span>Billable Weight:</span><strong>{{ calculatedBillableWeight }} kg</strong></div>
-          <div style="display: flex; justify-content: space-between;"><span>Base Weight Charge:</span><span>₹{{ baseWeightCharge }}</span></div>
-        </div>
-        <div style="display: flex; flex-direction: column; gap: 8px;">
-          <div style="display: flex; justify-content: space-between;"><span>Distance Charge:</span><span>₹{{ distanceCharge }}</span></div>
-          <div style="display: flex; justify-content: space-between;"><span>Service Priority Charge:</span><span>₹{{ serviceCharge }}</span></div>
-          <div style="display: flex; justify-content: space-between;"><span>COD Handling Charge:</span><span>₹{{ codCharge }}</span></div>
-        </div>
-        <div style="display: flex; flex-direction: column; gap: 8px;">
-          <div style="display: flex; justify-content: space-between;"><span>Fragile Handling Charge:</span><span>₹{{ fragileCharge }}</span></div>
-          <div style="display: flex; justify-content: space-between;"><span>Insurance Protection:</span><span>₹{{ insuranceCharge }}</span></div>
-          <div style="display: flex; justify-content: space-between; font-size: 16px; font-weight: 800; color: #0f172a; border-top: 1px dashed #cbd5e1; padding-top: 8px; margin-top: 4px;">
-            <span>Total Charge:</span>
-            <span style="color: #6366f1;">₹{{ totalCharge }}</span>
-          </div>
+          <textarea pTextarea [(ngModel)]="form.specialInstructions"
+            placeholder="Enter any special handling or delivery instructions." rows="3" class="w-full"></textarea>
         </div>
       </div>
     </div>
 
     <!-- ── Footer Actions ────────────────────────────────────────────── -->
     <div class="form-footer">
-      <p-button
-        label="Reset"
-        [outlined]="true"
-        severity="secondary"
-        (click)="reset()"
-        styleClass="reset-btn"
-      ></p-button>
-      <p-button
-        [label]="paymentResponsibility === 'Sender' && paymentMethod === 'Prepaid' ? 'Proceed to Payment' : 'Create Order'"
-        icon="pi pi-lock"
-        iconPos="left"
-        (click)="createOrder()"
-        styleClass="create-order-btn"
-      ></p-button>
+      <p-button label="Reset" [outlined]="true" severity="secondary" (onClick)="reset()"
+        styleClass="reset-btn"></p-button>
+      <p-button label="Create Order" icon="pi pi-lock" iconPos="left" (onClick)="createOrder()"
+        styleClass="create-order-btn"></p-button>
     </div>
 
   </div>
@@ -514,47 +307,4 @@
   <datalist id="states-list">
     <option *ngFor="let state of statesList" [value]="state"></option>
   </datalist>
-
-  <!-- MOCK PREPAID CHECKOUT MODAL OVERLAY -->
-  <div *ngIf="showCheckoutModal" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); z-index: 99999; display: flex; align-items: center; justify-content: center;">
-    <div style="background: white; width: 420px; border-radius: 16px; padding: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.15), 0 10px 10px -5px rgba(0,0,0,0.04); font-family: sans-serif; position: relative;">
-      <!-- Header -->
-      <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 16px;">
-        <h3 style="margin: 0; color: #0f172a; font-weight: 700;">Secure Dispatcher Checkout</h3>
-        <button type="button" (click)="showCheckoutModal = false" style="background: none; border: none; font-size: 18px; cursor: pointer; color: #94a3b8;"><i class="pi pi-times"></i></button>
-      </div>
-
-      <!-- Bill Details -->
-      <div style="background: #f8fafc; border-radius: 12px; padding: 16px; margin-bottom: 16px; border: 1px solid #e2e8f0;">
-        <span style="font-size: 12px; color: #64748b; font-weight: 600;">DISPATCHER PAYMENT INVOICE</span>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
-          <span style="font-size: 15px; color: #334155; font-weight: 500;">Delivery Invoice Charge</span>
-          <span style="font-size: 20px; color: #6366f1; font-weight: 800;">₹{{ totalCharge }}</span>
-        </div>
-      </div>
-
-      <!-- Credit Card Fields -->
-      <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
-        <div style="display: flex; flex-direction: column; gap: 4px;">
-          <label style="font-size: 12px; color: #475569; font-weight: 600;">Payment Source</label>
-          <input type="text" value="LogisticsPro Company Corporate Account" style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px;" readonly />
-        </div>
-        <div style="display: flex; flex-direction: column; gap: 4px;">
-          <label style="font-size: 12px; color: #475569; font-weight: 600;">Corporate Card</label>
-          <input type="text" value="•••• •••• •••• 9876" style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px;" readonly />
-        </div>
-      </div>
-
-      <!-- Pay Button -->
-      <button type="button" (click)="payAndSubmit()" style="width: 100%; padding: 14px; background: #22c55e; border: none; border-radius: 8px; color: white; font-weight: 700; font-size: 15px; cursor: pointer; transition: background 0.2s ease;">
-        Confirm Corporate Payment
-      </button>
-
-      <div style="text-align: center; margin-top: 12px;">
-        <span style="font-size: 11px; color: #94a3b8; display: inline-flex; align-items: center; gap: 4px;">
-          <i class="pi pi-lock" style="font-size: 10px;"></i> Dispatcher Gateway (Authorized)
-        </span>
-      </div>
-    </div>
-  </div>
 </div>
